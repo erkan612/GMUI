@@ -575,6 +575,14 @@ function gmui_end() {
         global.gmui.window_stack[array_length(global.gmui.window_stack) - 1] : undefined;
 }
 
+// Add sprite to draw list
+function gmui_add_sprite(x, y, w, h, sprite, subimg = 0) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "sprite", spr: sprite, x: x, y: y, width: w, height: h, index: subimg
+    });
+}
+
 // Add rect to draw list
 function gmui_add_rect(x, y, w, h, col) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
@@ -770,6 +778,9 @@ function gmui_render_surface(window) {
 			    draw_vertex(cmd.x2, cmd.y2);
 			    draw_vertex(cmd.x3, cmd.y3);
 			    draw_primitive_end();
+			    break;
+			case "sprite":
+			    draw_sprite_ext(cmd.spr, cmd.index, cmd.x, cmd.y, cmd.width / sprite_get_width(cmd.spr), cmd.height / sprite_get_height(cmd.spr), 0, #ffffff, 1);
 			    break;
         }
     }
@@ -2956,3 +2967,16 @@ function gmui_collapsing_header_end() {
     dc.cursor_y += style.collapsible_header_content_padding[1];
     gmui_new_line();
 }
+
+function gmui_get_cursor() {
+	if (global.gmui.current_window == undefined) { return; };
+	return [ global.gmui.current_window.dc.cursor_x, global.gmui.current_window.dc.cursor_y ];
+};
+
+function gmui_set_cursor(x, y) {
+	if (global.gmui.current_window == undefined) { return; };
+	global.gmui.current_window.dc.cursor_previous_x = global.gmui.current_window.dc.cursor_x;
+	global.gmui.current_window.dc.cursor_previous_y = global.gmui.current_window.dc.cursor_y;
+	global.gmui.current_window.dc.cursor_x = x;
+	global.gmui.current_window.dc.cursor_y = y;
+};
