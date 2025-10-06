@@ -26,6 +26,15 @@ enum gmui_window_flags {
     NO_NAV_FOCUS = 1 << 17,
     UNSAVED_DOCUMENT = 1 << 18,
     NO_CLOSE = 1 << 19,
+    
+    // Scrollbar flags
+    VERTICAL_SCROLL = 1 << 20,
+    HORIZONTAL_SCROLL = 1 << 21,
+    AUTO_SCROLL = 1 << 22,           // Automatically show scrollbars when needed
+    ALWAYS_SCROLLBARS = 1 << 23,     // Always show scrollbars (even when not needed)
+    SCROLL_WITH_MOUSE_WHEEL = 1 << 24, // Enable mouse wheel scrolling
+    SCROLLBAR_LEFT = 1 << 25,        // Place vertical scrollbar on left side
+    SCROLLBAR_TOP = 1 << 26,         // Place horizontal scrollbar on top
 }
 
 // Initialize gmui system (call once in create event)
@@ -207,6 +216,17 @@ function gmui_init() {
 			    collapsible_header_arrow_active_color: make_color_rgb(180, 180, 180),
 			    collapsible_header_padding: [8, 4],
 			    collapsible_header_content_padding: [4, 4],
+				
+				// Scrollbar styles
+			    scrollbar_width: 16,
+			    scrollbar_background_color: make_color_rgb(40, 40, 40),
+			    scrollbar_anchor_color: make_color_rgb(100, 100, 100),
+			    scrollbar_anchor_hover_color: make_color_rgb(120, 120, 120),
+			    scrollbar_anchor_active_color: make_color_rgb(140, 140, 140),
+			    scrollbar_min_anchor_size: 30,
+			    scrollbar_margin: 2,
+			    scrollbar_rounding: 4,
+			    scroll_wheel_speed: 30
             },
             font: draw_get_font()
         };
@@ -234,6 +254,19 @@ function gmui_window_state() {
         
         // Double click detection
         last_click_time: 0,
+		
+		// Scroll state
+        scroll_x: 0,
+        scroll_y: 0,
+        content_width: 0,
+        content_height: 0,
+        scrollbar_dragging: false,
+        scrollbar_drag_offset: 0,
+        scrollbar_drag_axis: 0, // 0 = vertical, 1 = horizontal
+        
+        // Track content size for scroll calculations
+        max_cursor_x: 0,
+        max_cursor_y: 0,
         
         // Track if window has been positioned for the first time
         first_frame: true,
@@ -245,7 +278,11 @@ function gmui_window_state() {
             line_height: 0, item_width: 0, previous_line_height: 0,
             
             // Title bar takes up space at the top
-            title_bar_height: 0
+            title_bar_height: 0,
+            
+            // Scroll offset for content
+            scroll_offset_x: 0,
+            scroll_offset_y: 0
         },
 
         // Treeview state
@@ -502,31 +539,49 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     
     // Handle initial positioning
     if (window.first_frame) {
-        // First frame: always set position/size
         if (x != -1) { window.x = x; window.initial_x = x; }
         if (y != -1) { window.y = y; window.initial_y = y; }
         if (w != -1) { window.width = w; window.initial_width = w; }
         if (h != -1) { window.height = h; window.initial_height = h; }
         window.first_frame = false;
     } else if (!no_move) {
-        // Subsequent frames: update position/size unless NO_AUTO_POSITION is set
         if (x != -1) window.x = x;
         if (y != -1) window.y = y;
         if (w != -1) window.width = w;
         if (h != -1) window.height = h;
     }
-    // If NO_AUTO_POSITION is set and not first frame, keep current position/size
     
     window.flags = flags;
     window.active = true;
-	
-	window.treeview_stack = [];
+    window.treeview_stack = [];
+    
+    // Reset max cursor for content size calculation
+    window.max_cursor_x = 0;
+    window.max_cursor_y = 0;
     
     // Calculate title bar height
     var has_title_bar = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
     var title_bar_height = has_title_bar ? global.gmui.style.title_bar_height : 0;
     
-    // Recreate surface if size changed and we're not using NO_AUTO_POSITION
+    // Check if scrollbars are enabled
+    var has_vertical_scroll = (flags & gmui_window_flags.VERTICAL_SCROLL) != 0;
+    var has_horizontal_scroll = (flags & gmui_window_flags.HORIZONTAL_SCROLL) != 0;
+    var auto_scroll = (flags & gmui_window_flags.AUTO_SCROLL) != 0;
+    var always_scrollbars = (flags & gmui_window_flags.ALWAYS_SCROLLBARS) != 0;
+    
+    // Calculate available space for content (accounting for scrollbars)
+    var scrollbar_width = global.gmui.style.scrollbar_width;
+    var content_width = window.width;
+    var content_height = window.height - title_bar_height;
+    
+    if (has_vertical_scroll || (auto_scroll && always_scrollbars)) {
+        content_width -= scrollbar_width;
+    }
+    if (has_horizontal_scroll || (auto_scroll && always_scrollbars)) {
+        content_height -= scrollbar_width;
+    }
+    
+    // Recreate surface if size changed
     var size_changed = window.width != w || window.height != h;
     if ((size_changed && !no_move) || !surface_exists(window.surface)) {
         gmui_create_surface(window);
@@ -534,7 +589,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
         window.surface_dirty = true;
     }
     
-    // Reset DC with title bar offset
+    // Reset DC with title bar offset and scroll
     var dc = window.dc;
     dc.cursor_x = global.gmui.style.window_padding[0];
     dc.cursor_y = global.gmui.style.window_padding[1] + title_bar_height;
@@ -545,6 +600,12 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     dc.line_height = 0;
     dc.item_width = 0;
     dc.title_bar_height = title_bar_height;
+    
+    // Apply scroll offsets
+    dc.scroll_offset_x = -window.scroll_x;
+    dc.scroll_offset_y = -window.scroll_y;
+    dc.cursor_x += dc.scroll_offset_x;
+    dc.cursor_y += dc.scroll_offset_y;
     
     window.draw_list = [];
     array_push(global.gmui.window_stack, window);
@@ -563,6 +624,14 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
         gmui_draw_title_bar(window, name);
     }
     
+    // Setup scissor for content area (accounts for scrollbars)
+    var scissor_x = 0;
+    var scissor_y = title_bar_height;
+    var scissor_width = content_width;
+    var scissor_height = content_height;
+    
+    gmui_begin_scissor(scissor_x, scissor_y, scissor_width, scissor_height);
+    
     // Handle window interaction (dragging, resizing)
     gmui_handle_window_interaction(window);
     
@@ -572,6 +641,23 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
 // End window
 function gmui_end() {
     if (!global.gmui.initialized || array_length(global.gmui.window_stack) == 0) return;
+    
+    var window = global.gmui.current_window;
+    var flags = window.flags;
+    
+    // Update max cursor position for content size calculation
+    window.max_cursor_x = max(window.max_cursor_x, window.dc.cursor_x - window.dc.scroll_offset_x);
+    window.max_cursor_y = max(window.max_cursor_y, window.dc.cursor_y - window.dc.scroll_offset_y);
+    
+    // Calculate content dimensions
+    window.content_width = window.max_cursor_x + global.gmui.style.window_padding[0];
+    window.content_height = window.max_cursor_y + global.gmui.style.window_padding[1];
+    
+    // End content scissor
+    gmui_end_scissor();
+    
+    // Handle scrollbars
+    gmui_handle_scrollbars(window);
     
     array_pop(global.gmui.window_stack);
     global.gmui.current_window = array_length(global.gmui.window_stack) > 0 ? 
@@ -683,14 +769,20 @@ function gmui_same_line() {
 	dc.cursor_y = dc.cursor_previous_y;
 }
 
-// New line
+// In gmui_new_line function, update max cursor tracking:
 function gmui_new_line() {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
     
-    var dc = global.gmui.current_window.dc;
-	dc.cursor_previous_x = dc.cursor_x;
-	dc.cursor_previous_y = dc.cursor_y;
-    dc.cursor_x = dc.cursor_start_x;
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    
+    // Update max cursor position (accounting for scroll offset)
+    window.max_cursor_x = max(window.max_cursor_x, dc.cursor_x - dc.scroll_offset_x);
+    window.max_cursor_y = max(window.max_cursor_y, dc.cursor_y - dc.scroll_offset_y);
+    
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_previous_y = dc.cursor_y;
+    dc.cursor_x = dc.cursor_start_x + dc.scroll_offset_x;
     dc.cursor_y += dc.line_height + global.gmui.style.item_spacing[1];
     dc.line_height = 0;
 }
@@ -3039,4 +3131,254 @@ function gmui_scissor_group(x, y, w, h, func) {
     gmui_begin_scissor(x, y, w, h);
     func();
     gmui_end_scissor();
+}
+
+/// @function gmui_handle_scrollbars(window)
+/// @desc Handle scrollbar drawing and interaction for a window
+/// @param {struct} window Window object
+function gmui_handle_scrollbars(window) {
+    var flags = window.flags;
+    var style = global.gmui.style;
+    
+    // Check scrollbar conditions
+    var has_vertical_scroll = (flags & gmui_window_flags.VERTICAL_SCROLL) != 0;
+    var has_horizontal_scroll = (flags & gmui_window_flags.HORIZONTAL_SCROLL) != 0;
+    var auto_scroll = (flags & gmui_window_flags.AUTO_SCROLL) != 0;
+    var always_scrollbars = (flags & gmui_window_flags.ALWAYS_SCROLLBARS) != 0;
+    var scroll_with_wheel = (flags & gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL) != 0;
+    
+    var scrollbar_width = style.scrollbar_width;
+    var content_area_width = window.width;
+    var content_area_height = window.height - window.dc.title_bar_height;
+    
+    // Determine if scrollbars are needed
+    var needs_vertical = has_vertical_scroll || (auto_scroll && window.content_height > content_area_height);
+    var needs_horizontal = has_horizontal_scroll || (auto_scroll && window.content_width > content_area_width);
+    
+    var show_vertical = needs_vertical || (always_scrollbars && has_vertical_scroll);
+    var show_horizontal = needs_horizontal || (always_scrollbars && has_horizontal_scroll);
+    
+    // Adjust content area for scrollbars
+    if (show_vertical) content_area_width -= scrollbar_width;
+    if (show_horizontal) content_area_height -= scrollbar_width;
+    
+    // Handle vertical scrollbar
+    if (show_vertical) {
+        gmui_draw_vertical_scrollbar(window, content_area_width, content_area_height);
+    }
+    
+    // Handle horizontal scrollbar
+    if (show_horizontal) {
+        gmui_draw_horizontal_scrollbar(window, content_area_width, content_area_height);
+    }
+    
+    // Handle mouse wheel scrolling
+    if (scroll_with_wheel && gmui_is_mouse_over_window(window)) {
+        var wheel_delta = mouse_wheel_down() - mouse_wheel_up();
+        if (wheel_delta != 0) {
+            window.scroll_y += wheel_delta * style.scroll_wheel_speed;
+        }
+    }
+    
+    // Clamp scroll positions
+    var max_scroll_x = max(0, window.content_width - content_area_width);
+    var max_scroll_y = max(0, window.content_height - content_area_height);
+    
+    window.scroll_x = clamp(window.scroll_x, 0, max_scroll_x);
+    window.scroll_y = clamp(window.scroll_y, 0, max_scroll_y);
+}
+
+/// @function gmui_draw_vertical_scrollbar(window, content_width, content_height)
+/// @desc Draw and handle vertical scrollbar
+/// @param {struct} window Window object
+/// @param {number} content_width Width of content area
+/// @param {number} content_height Height of content area
+function gmui_draw_vertical_scrollbar(window, content_width, content_height) {
+    var style = global.gmui.style;
+    var scrollbar_width = style.scrollbar_width;
+    
+    // Calculate scrollbar position
+    var scrollbar_x = (window.flags & gmui_window_flags.SCROLLBAR_LEFT) != 0 ? 0 : content_width;
+    var scrollbar_y = window.dc.title_bar_height;
+    var scrollbar_height = content_height;
+    
+    // Draw scrollbar background
+    gmui_add_rect(scrollbar_x, scrollbar_y, scrollbar_width, scrollbar_height, 
+                 style.scrollbar_background_color);
+    
+    // Calculate anchor size and position
+    var max_scroll = max(0, window.content_height - content_height);
+    var viewport_ratio = content_height / window.content_height;
+    var anchor_height = max(style.scrollbar_min_anchor_size, scrollbar_height * viewport_ratio);
+    
+    var scroll_percent = (max_scroll > 0) ? window.scroll_y / max_scroll : 0;
+    var anchor_y = scrollbar_y + (scrollbar_height - anchor_height) * scroll_percent;
+    
+    var anchor_bounds = [scrollbar_x, anchor_y, scrollbar_x + scrollbar_width, anchor_y + anchor_height];
+    
+    // Handle interaction
+    var mouse_over_anchor = gmui_is_scrollbar_interacting(window, anchor_bounds);
+    
+    // Handle dragging
+    if (mouse_over_anchor && global.gmui.mouse_clicked[0]) {
+        window.scrollbar_dragging = true;
+        window.scrollbar_drag_axis = 0; // vertical
+        window.scrollbar_drag_offset = (global.gmui.mouse_pos[1] - window.y) - anchor_y;
+    }
+    
+    if (window.scrollbar_dragging && window.scrollbar_drag_axis == 0) {
+        if (global.gmui.mouse_down[0]) {
+            var mouse_y_in_scrollbar = (global.gmui.mouse_pos[1] - window.y) - window.scrollbar_drag_offset;
+            var normalized_y = (mouse_y_in_scrollbar - scrollbar_y) / (scrollbar_height - anchor_height);
+            window.scroll_y = normalized_y * max_scroll;
+        } else {
+            window.scrollbar_dragging = false;
+        }
+    }
+    
+    // Draw anchor
+    var anchor_color = style.scrollbar_anchor_color;
+    if (window.scrollbar_dragging && window.scrollbar_drag_axis == 0) {
+        anchor_color = style.scrollbar_anchor_active_color;
+    } else if (mouse_over_anchor) {
+        anchor_color = style.scrollbar_anchor_hover_color;
+    }
+    
+    gmui_add_rect(scrollbar_x, anchor_y, scrollbar_width, anchor_height, anchor_color);
+}
+
+/// @function gmui_draw_horizontal_scrollbar(window, content_width, content_height)
+/// @desc Draw and handle horizontal scrollbar
+/// @param {struct} window Window object
+/// @param {number} content_width Width of content area
+/// @param {number} content_height Height of content area
+function gmui_draw_horizontal_scrollbar(window, content_width, content_height) {
+    var style = global.gmui.style;
+    var scrollbar_height = style.scrollbar_width;
+    
+    // Calculate scrollbar position
+    var scrollbar_x = 0;
+    var scrollbar_y = (window.flags & gmui_window_flags.SCROLLBAR_TOP) != 0 ? 
+        window.dc.title_bar_height : window.height - scrollbar_height;
+    
+    var scrollbar_width = content_width;
+    
+    // Draw scrollbar background
+    gmui_add_rect(scrollbar_x, scrollbar_y, scrollbar_width, scrollbar_height, 
+                 style.scrollbar_background_color);
+    
+    // Calculate anchor size and position
+    var max_scroll = max(0, window.content_width - content_width);
+    var viewport_ratio = content_width / window.content_width;
+    var anchor_width = max(style.scrollbar_min_anchor_size, scrollbar_width * viewport_ratio);
+    
+    var scroll_percent = (max_scroll > 0) ? window.scroll_x / max_scroll : 0;
+    var anchor_x = scrollbar_x + (scrollbar_width - anchor_width) * scroll_percent;
+    
+    var anchor_bounds = [anchor_x, scrollbar_y, anchor_x + anchor_width, scrollbar_y + scrollbar_height];
+    
+    // Handle interaction
+    var mouse_over_anchor = gmui_is_scrollbar_interacting(window, anchor_bounds);
+    
+    // Handle dragging
+    if (mouse_over_anchor && global.gmui.mouse_clicked[0]) {
+        window.scrollbar_dragging = true;
+        window.scrollbar_drag_axis = 1; // horizontal
+        window.scrollbar_drag_offset = (global.gmui.mouse_pos[0] - window.x) - anchor_x;
+    }
+    
+    if (window.scrollbar_dragging && window.scrollbar_drag_axis == 1) {
+        if (global.gmui.mouse_down[0]) {
+            var mouse_x_in_scrollbar = (global.gmui.mouse_pos[0] - window.x) - window.scrollbar_drag_offset;
+            var normalized_x = (mouse_x_in_scrollbar - scrollbar_x) / (scrollbar_width - anchor_width);
+            window.scroll_x = normalized_x * max_scroll;
+        } else {
+            window.scrollbar_dragging = false;
+        }
+    }
+    
+    // Draw anchor
+    var anchor_color = style.scrollbar_anchor_color;
+    if (window.scrollbar_dragging && window.scrollbar_drag_axis == 1) {
+        anchor_color = style.scrollbar_anchor_active_color;
+    } else if (mouse_over_anchor) {
+        anchor_color = style.scrollbar_anchor_hover_color;
+    }
+    
+    gmui_add_rect(anchor_x, scrollbar_y, anchor_width, scrollbar_height, anchor_color);
+}
+
+/// @function gmui_is_scrollbar_interacting(window, bounds)
+/// @desc Check if mouse is interacting with scrollbar
+/// @param {struct} window Window object
+/// @param {array} bounds Scrollbar bounds [x1, y1, x2, y2]
+/// @return {bool} True if interacting
+function gmui_is_scrollbar_interacting(window, bounds) {
+    return gmui_is_mouse_over_window(window) && 
+           gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                               global.gmui.mouse_pos[1] - window.y, 
+                               bounds);
+}
+
+/// @function gmui_set_scroll_position(window_name, scroll_x, scroll_y)
+/// @desc Set scroll position for a window
+/// @param {string} window_name Window name
+/// @param {number} scroll_x Horizontal scroll position
+/// @param {number} scroll_y Vertical scroll position
+function gmui_set_scroll_position(window_name, scroll_x, scroll_y) {
+    if (!global.gmui.initialized) return false;
+    
+    var window = gmui_get_window(window_name);
+    if (!window) return false;
+    
+    window.scroll_x = scroll_x;
+    window.scroll_y = scroll_y;
+    
+    return true;
+}
+
+/// @function gmui_get_scroll_position(window_name)
+/// @desc Get current scroll position for a window
+/// @param {string} window_name Window name
+/// @return {array} [scroll_x, scroll_y] or undefined
+function gmui_get_scroll_position(window_name) {
+    if (!global.gmui.initialized) return undefined;
+    
+    var window = gmui_get_window(window_name);
+    if (!window) return undefined;
+    
+    return [window.scroll_x, window.scroll_y];
+}
+
+/// @function gmui_scroll_to_bottom(window_name)
+/// @desc Scroll to the bottom of a window
+/// @param {string} window_name Window name
+function gmui_scroll_to_bottom(window_name) {
+    if (!global.gmui.initialized) return false;
+    
+    var window = gmui_get_window(window_name);
+    if (!window) return false;
+    
+    var content_area_height = window.height - window.dc.title_bar_height;
+    if ((window.flags & gmui_window_flags.HORIZONTAL_SCROLL) != 0) {
+        content_area_height -= global.gmui.style.scrollbar_width;
+    }
+    
+    window.scroll_y = max(0, window.content_height - content_area_height);
+    
+    return true;
+}
+
+/// @function gmui_scroll_to_top(window_name)
+/// @desc Scroll to the top of a window
+/// @param {string} window_name Window name
+function gmui_scroll_to_top(window_name) {
+    if (!global.gmui.initialized) return false;
+    
+    var window = gmui_get_window(window_name);
+    if (!window) return false;
+    
+    window.scroll_y = 0;
+    
+    return true;
 }
