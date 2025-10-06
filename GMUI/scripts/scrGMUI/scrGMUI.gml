@@ -33,6 +33,8 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			is_hovering_element: false,
+			recent_scissor: undefined,
 			treeview_stack: [],
 			treeview_open_nodes: ds_map_create(),
 			active_slider: undefined,
@@ -485,6 +487,7 @@ function gmui_update_input() {
 }
 
 function gmui_update() {
+	global.gmui.is_hovering_element = false;
 	gmui_update_input();
 };
 
@@ -735,9 +738,29 @@ function gmui_render_surface(window) {
     var old_font = draw_get_font();
     draw_set_font(global.gmui.font);
     
+    // Track scissor state
+    var scissor_enabled = false;
+    var scissor_rect = [0, 0, 0, 0];
+    
     for (var i = 0; i < array_length(window.draw_list); i++) {
         var cmd = window.draw_list[i];
         
+        // Handle scissor commands
+        switch (cmd.type) {
+            case "scissor":
+                gpu_set_scissor(cmd.x, cmd.y, cmd.width, cmd.height);
+                scissor_enabled = true;
+                scissor_rect = [cmd.x, cmd.y, cmd.width, cmd.height];
+                continue; // Skip to next command
+                
+            case "scissor_reset":
+                // Reset scissor by setting it to the entire surface
+                gpu_set_scissor(0, 0, window.width, window.height);
+                scissor_enabled = false;
+                continue; // Skip to next command
+        }
+        
+        // Only process drawing commands if we're not in a scissor command
         switch (cmd.type) {
             case "rect":
                 draw_set_color(cmd.color);
@@ -759,11 +782,9 @@ function gmui_render_surface(window) {
                 
             case "line":
                 draw_set_color(cmd.color);
-                //draw_set_line_width(cmd.thickness);
-				draw_line_width(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.thickness);
-                //draw_line(cmd.x1, cmd.y1, cmd.x2, cmd.y2);
-                //draw_set_line_width(1); // Reset to default
+                draw_line_width(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.thickness);
                 break;
+                
 			case "surface":
 			    if (surface_exists(cmd.surface)) {
 			        draw_surface(cmd.surface, cmd.x, cmd.y);
@@ -771,6 +792,7 @@ function gmui_render_surface(window) {
 			        surface_free(cmd.surface);
 			    }
 			    break;
+			    
 			case "triangle":
 			    draw_set_color(cmd.color);
 			    draw_primitive_begin(pr_trianglelist);
@@ -779,10 +801,16 @@ function gmui_render_surface(window) {
 			    draw_vertex(cmd.x3, cmd.y3);
 			    draw_primitive_end();
 			    break;
+			    
 			case "sprite":
 			    draw_sprite_ext(cmd.spr, cmd.index, cmd.x, cmd.y, cmd.width / sprite_get_width(cmd.spr), cmd.height / sprite_get_height(cmd.spr), 0, #ffffff, 1);
 			    break;
         }
+    }
+    
+    // Reset scissor to ensure clean state by setting to full surface
+    if (scissor_enabled) {
+        gpu_set_scissor(0, 0, window.width, window.height);
     }
     
     draw_set_font(old_font);
@@ -850,12 +878,13 @@ function gmui_button(label, width = -1, height = -1) {
     
     // Check for mouse interaction
     var mouse_over = gmui_is_mouse_over_window(window) && 
-                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, button_bounds);
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, button_bounds) && !global.gmui.is_hovering_element;
     
     var clicked = false;
     var is_active = false;
     
     if (mouse_over) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -1052,10 +1081,11 @@ function gmui_draw_title_bar_close_button(window) {
     // Check close button interaction
     var mouse_over_close = gmui_is_mouse_over_window(window) && 
                           gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
-                                              global.gmui.mouse_pos[1] - window.y, close_bounds);
+                                              global.gmui.mouse_pos[1] - window.y, close_bounds) && !global.gmui.is_hovering_element;
     
     var close_color = style.close_button_color;
     if (mouse_over_close) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             close_color = style.close_button_active_color;
         } else {
@@ -1100,8 +1130,9 @@ function gmui_handle_window_interaction(window) {
     window.title_bar_hovered = false;
     
     // Check title bar hover
-    if (has_title_bar && mouse_over_window && mouse_y_in_window <= style.title_bar_height) {
-        window.title_bar_hovered = true;
+    if (has_title_bar && mouse_over_window && mouse_y_in_window <= style.title_bar_height && !global.gmui.is_hovering_element) {
+        global.gmui.is_hovering_element = true;
+		window.title_bar_hovered = true;
     }
     
     // Handle dragging
@@ -1159,7 +1190,8 @@ function gmui_handle_window_interaction(window) {
             window.is_resizing = true;
         }
 		
-		if (near_right && near_bottom) {
+		if (near_right && near_bottom && !global.gmui.is_hovering_element) {
+			global.gmui.is_hovering_element = true;
 			window_set_cursor(cr_size_nwse);
 		}
     }
@@ -1281,12 +1313,13 @@ function gmui_checkbox(label, value) {
     var mouse_over = gmui_is_mouse_over_window(window) && 
                      gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
                                          global.gmui.mouse_pos[1] - window.y, 
-                                         interactive_bounds);
+                                         interactive_bounds) && !global.gmui.is_hovering_element;
     
     var toggled = false;
     var is_active = false;
     
     if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -1437,12 +1470,13 @@ function gmui_checkbox_box(value, size = -1) {
     var mouse_over = gmui_is_mouse_over_window(window) && 
                      gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
                                          global.gmui.mouse_pos[1] - window.y, 
-                                         checkbox_bounds);
+                                         checkbox_bounds) && !global.gmui.is_hovering_element;
     
     var toggled = false;
     var is_active = false;
     
     if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -1548,8 +1582,8 @@ function gmui_slider(label, value, min_value, max_value, width = -1) {
     
     // Check for mouse interaction
     var mouse_over = gmui_is_mouse_over_window(window);
-    var mouse_over_handle = mouse_over && gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, handle_bounds);
-    var mouse_over_track = mouse_over && gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, track_bounds);
+    var mouse_over_handle = mouse_over && gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, handle_bounds) && !global.gmui.is_hovering_element;
+    var mouse_over_track = mouse_over && gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, track_bounds) && !global.gmui.is_hovering_element;
     
     var value_changed = false;
     var is_active = false;
@@ -1562,6 +1596,7 @@ function gmui_slider(label, value, min_value, max_value, width = -1) {
     }
     
     if ((mouse_over_handle || mouse_over_track) && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_clicked[0]) {
             // Start dragging this slider
             global.gmui.active_slider = slider_id;
@@ -1718,22 +1753,6 @@ function gmui_slider_disabled(label, value, min_value, max_value, width = -1) {
     return value;
 }
 
-// Add scissor to draw list
-function gmui_add_scissor(x, y, w, h) {
-    if (!global.gmui.initialized || !global.gmui.current_window) return;
-    array_push(global.gmui.current_window.draw_list, {
-        type: "scissor", x: x, y: y, width: w, height: h
-    });
-}
-
-// Reset scissor
-function gmui_add_scissor_reset() {
-    if (!global.gmui.initialized || !global.gmui.current_window) return;
-    array_push(global.gmui.current_window.draw_list, {
-        type: "scissor_reset"
-    });
-}
-
 function gmui_textbox_get_cursor_pos_from_x(text, x) {
     var len = string_length(text);
     var current_width = 0;
@@ -1779,13 +1798,14 @@ function gmui_textbox(text, placeholder = "", width = -1) {
 	var mouse_over = gmui_is_mouse_over_window(window) && 
 	                 gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
 	                                     global.gmui.mouse_pos[1] - window.y, 
-	                                     textbox_bounds);
+	                                     textbox_bounds) && !global.gmui.is_hovering_element;
 
 	var clicked = false;
 	var changed = false;
 	var is_focused = (global.gmui.active_textbox != undefined && global.gmui.active_textbox.id == textbox_id);
 
 	if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
 	    // Handle mouse press to set cursor position
 	    if (global.gmui.mouse_clicked[0]) {
 	        clicked = true;
@@ -2088,12 +2108,13 @@ function gmui_selectable(label, selected, width = -1, height = -1) {
     
     // Check for mouse interaction
     var mouse_over = gmui_is_mouse_over_window(window) && 
-                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, selectable_bounds);
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, selectable_bounds) && !global.gmui.is_hovering_element;
     
     var clicked = false;
     var is_active = false;
     
     if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -2326,13 +2347,14 @@ function gmui_tree_node(label, selected = false, leaf = false) {
     var mouse_over = gmui_is_mouse_over_window(window) && 
                      gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
                                          global.gmui.mouse_pos[1] - window.y, 
-                                         node_bounds);
+                                         node_bounds) && !global.gmui.is_hovering_element;
     
     var clicked = false;
     var is_active = false;
     var arrow_clicked = false;
     
     if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -2477,13 +2499,14 @@ function gmui_tree_node_begin(label, selected = false) {
     var mouse_over = gmui_is_mouse_over_window(window) && 
                      gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
                                          global.gmui.mouse_pos[1] - window.y, 
-                                         node_bounds);
+                                         node_bounds) && !global.gmui.is_hovering_element;
     
     var clicked = false;
     var is_active = false;
     var arrow_clicked = false;
     
     if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -2618,12 +2641,13 @@ function gmui_tree_leaf(label, selected = false) {
     var mouse_over = gmui_is_mouse_over_window(window) && 
                      gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
                                          global.gmui.mouse_pos[1] - window.y, 
-                                         node_bounds);
+                                         node_bounds) && !global.gmui.is_hovering_element;
     
     var clicked = false;
     var is_active = false;
     
     if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -2711,13 +2735,14 @@ function gmui_tree_node_ex(label, selected = false) {
     var mouse_over = gmui_is_mouse_over_window(window) && 
                      gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
                                          global.gmui.mouse_pos[1] - window.y, 
-                                         node_bounds);
+                                         node_bounds) && !global.gmui.is_hovering_element;
     
     var clicked = false;
     var is_active = false;
     var arrow_clicked = false;
     
     if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -2858,12 +2883,13 @@ function gmui_collapsing_header(label, is_open) {
     var mouse_over = gmui_is_mouse_over_window(window) && 
                      gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
                                          global.gmui.mouse_pos[1] - window.y, 
-                                         header_bounds);
+                                         header_bounds) && !global.gmui.is_hovering_element;
     
     var clicked = false;
     var is_active = false;
     
     if (mouse_over && window.active) {
+		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
         }
@@ -2980,3 +3006,37 @@ function gmui_set_cursor(x, y) {
 	global.gmui.current_window.dc.cursor_x = x;
 	global.gmui.current_window.dc.cursor_y = y;
 };
+
+// Add scissor to draw list
+function gmui_add_scissor(x, y, w, h) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "scissor", x: x, y: y, width: w, height: h
+    });
+}
+
+// Reset scissor
+function gmui_add_scissor_reset() {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "scissor_reset"
+    });
+}
+
+// Begin scissor region - clip all subsequent drawing to the specified rectangle
+function gmui_begin_scissor(x, y, w, h) {
+    gmui_add_scissor(x, y, w, h);
+	return true;
+}
+
+// End scissor region - reset clipping
+function gmui_end_scissor() {
+    gmui_add_scissor_reset();
+}
+
+// Scissor group - execute a function with scissor region active
+function gmui_scissor_group(x, y, w, h, func) {
+    gmui_begin_scissor(x, y, w, h);
+    func();
+    gmui_end_scissor();
+}
