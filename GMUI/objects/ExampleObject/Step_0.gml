@@ -1,44 +1,38 @@
 gmui_update();
 
-// Simple vertical scrolling
-if (gmui_begin("Scrollable Window", 100, 100, 300, 200, 
-    gmui_window_flags.VERTICAL_SCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
-    
-    for (var i = 0; i < 50; i++) {
-        gmui_button("Button " + string(i));
-    }
-    
-    gmui_end();
-}
-
-// Auto-scrolling (scrollbars appear only when needed)
-if (gmui_begin("Auto Scroll Window", 150, 150, 250, 180,
-    gmui_window_flags.AUTO_SCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
-    
-    for (var i = 0; i < 20; i++) {
-        gmui_text("This is line " + string(i));
-    }
-    
-    gmui_end();
-}
-
-// Both vertical and horizontal scrolling
-if (gmui_begin("Dual Scroll Window", 200, 200, 200, 150,
-    gmui_window_flags.VERTICAL_SCROLL | gmui_window_flags.HORIZONTAL_SCROLL)) {
-    
-    gmui_dummy(400, 300); // Force large content area
-    gmui_text("This window has both scrollbars!");
-    
-    gmui_end();
-}
-
-// Always show scrollbars
-if (gmui_begin("Always Scrollbars", 250, 250, 220, 160,
-    gmui_window_flags.VERTICAL_SCROLL | gmui_window_flags.ALWAYS_SCROLLBARS)) {
-    
-    gmui_text("Scrollbars are always visible");
-    gmui_end();
-}
+if (gmui_begin("Demo Window"/*, undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE*/)) {
+	var oldSpacingX = global.gmui.style.item_spacing[0];
+	global.gmui.style.item_spacing[0] = 0;
+	if (gmui_selectable("Example 1", tabIdx == 1)) { tabIdx = 1; }; gmui_same_line();
+	if (gmui_selectable("Example 2", tabIdx == 2)) { tabIdx = 2; }; gmui_same_line();
+	if (gmui_selectable("Example 3", tabIdx == 3)) { tabIdx = 3; }; gmui_separator();
+	global.gmui.style.item_spacing[0] = oldSpacingX;
+	
+	switch (tabIdx) {
+	case 1: {
+		if (gmui_button("Click Me!")) { show_debug_message("Hello World!"); };
+	} break;
+	
+	case 2: {
+		gmui_text("Hello! I'm GMUI! and you?");
+		txD1 = gmui_textbox(txD1, "Enter your name");
+		if (gmui_button("Enter") || (gmui_textbox_id() == gmui_get_focused_textbox_id() && keyboard_check_pressed(vk_enter))) { show_message("Hello " + txD1 + "!"); };
+	} break;
+	
+	case 3: {
+		gmui_tree_node_reset();
+		var tvRoot = gmui_tree_node_begin("Root", tnIdx == "Root");
+		tnIdx = tvRoot[1] ? "Root" : tnIdx;
+		if (tvRoot[0]) {
+			if (gmui_tree_leaf("Leaf", tnIdx == "Leaf")) { tnIdx = "Leaf"; };
+			
+			gmui_tree_node_end();
+		};
+	} break;
+	};
+	
+	gmui_end();
+};
 
 //var windowName = "Demo Window";
 //

@@ -496,7 +496,7 @@ function gmui_update_input() {
 	                }
 	            }
 	            // Enter or Escape to defocus
-	            else if (key == vk_enter || key == vk_escape) {
+	            else if (key == vk_escape) { // key == vk_enter || key == vk_escape
 	                global.gmui.active_textbox = undefined;
 	            }
 	            // Regular character input
