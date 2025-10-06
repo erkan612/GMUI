@@ -3159,8 +3159,10 @@ function gmui_handle_scrollbars(window) {
     var show_horizontal = needs_horizontal || (always_scrollbars && has_horizontal_scroll);
     
     // Adjust content area for scrollbars
-    if (show_vertical) content_area_width -= scrollbar_width;
-    if (show_horizontal) content_area_height -= scrollbar_width;
+    content_area_width -= scrollbar_width;
+	content_area_height -= scrollbar_width;
+	//if (show_vertical) content_area_width -= scrollbar_width;
+    //if (show_horizontal) content_area_height -= scrollbar_width;
     
     // Handle vertical scrollbar
     if (show_vertical) {
@@ -3218,7 +3220,7 @@ function gmui_draw_vertical_scrollbar(window, content_width, content_height) {
     
     // Handle interaction
     var mouse_over_anchor = gmui_is_scrollbar_interacting(window, anchor_bounds);
-    
+	
     // Handle dragging
     if (mouse_over_anchor && global.gmui.mouse_clicked[0]) {
         window.scrollbar_dragging = true;
