@@ -867,7 +867,7 @@ function gmui_render_surface(window) {
             case "text":
 				var oldBlendMode = gpu_get_blendmode();
 				gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
-                draw_set_color(cmd.color);
+				draw_set_color(cmd.color);
                 draw_text(cmd.x, cmd.y, cmd.text);
 				gpu_set_blendmode(oldBlendMode);
                 break;
@@ -1970,6 +1970,8 @@ function gmui_textbox(text, placeholder = "", width = -1) {
         if (surface_exists(text_surface)) {
             surface_set_target(text_surface);
             draw_clear_alpha(c_black, 0);
+			var oldBlendMode = gpu_get_blendmode();
+			gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
             
             var old_font = draw_get_font();
             draw_set_font(global.gmui.font);
@@ -2014,6 +2016,7 @@ function gmui_textbox(text, placeholder = "", width = -1) {
                 }
             }
             
+			gpu_set_blendmode(oldBlendMode);
             draw_set_font(old_font);
             surface_reset_target();
         }
