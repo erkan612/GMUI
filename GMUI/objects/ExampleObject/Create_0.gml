@@ -9,4 +9,10 @@ tabIdx = 1;
 
 txD1 = "";
 
-tnIdx = undefined;
+c1 = false;
+c2 = false;
+c3 = false;
+
+v2 = [ 0, 0 ];
+v3 = [ 0, 0, 0 ];
+v4 = [ 0, 0, 0, 0 ];

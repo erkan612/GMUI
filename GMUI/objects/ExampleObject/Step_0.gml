@@ -1,6 +1,6 @@
 gmui_update();
 
-if (gmui_begin("Demo Window"/*, undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE*/)) {
+if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
 	global.gmui.style.item_spacing[0] = 0;
 	if (gmui_selectable("Example 1", tabIdx == 1)) { tabIdx = 1; }; gmui_same_line();
@@ -20,13 +20,40 @@ if (gmui_begin("Demo Window"/*, undefined, undefined, undefined, undefined, gmui
 	} break;
 	
 	case 3: {
-		gmui_tree_node_reset();
-		var tvRoot = gmui_tree_node_begin("Root", tnIdx == "Root");
-		tnIdx = tvRoot[1] ? "Root" : tnIdx;
-		if (tvRoot[0]) {
-			if (gmui_tree_leaf("Leaf", tnIdx == "Leaf")) { tnIdx = "Leaf"; };
+		var ac1 = gmui_collapsing_header("Vector 2", c1);
+		c1 = ac1[0];
+		if (c1) {
+			gmui_text("X "); gmui_same_line(); v2[0] = gmui_input_int(v2[0]);
+			gmui_same_line();
+			gmui_text("Y "); gmui_same_line(); v2[1] = gmui_input_int(v2[1]);
 			
-			gmui_tree_node_end();
+			gmui_collapsing_header_end();
+		};
+		
+		var ac2 = gmui_collapsing_header("Vector 3", c2);
+		c2 = ac2[0];
+		if (c2) {
+			gmui_text("X "); gmui_same_line(); v3[0] = gmui_input_int(v3[0]);
+			gmui_same_line();
+			gmui_text("Y "); gmui_same_line(); v3[1] = gmui_input_int(v3[1]);
+			gmui_same_line();
+			gmui_text("Z "); gmui_same_line(); v3[2] = gmui_input_int(v3[2]);
+
+			gmui_collapsing_header_end();
+		};
+		
+		var ac3 = gmui_collapsing_header("Vector 4", c3);
+		c3 = ac3[0];
+		if (c3) {
+			gmui_text("X "); gmui_same_line(); v4[0] = gmui_input_int(v4[0]);
+			gmui_same_line();
+			gmui_text("Y "); gmui_same_line(); v4[1] = gmui_input_int(v4[1]);
+			gmui_same_line();
+			gmui_text("Z "); gmui_same_line(); v4[2] = gmui_input_int(v4[2]);
+			gmui_same_line();
+			gmui_text("W "); gmui_same_line(); v4[3] = gmui_input_int(v4[3]);
+
+			gmui_collapsing_header_end();
 		};
 	} break;
 	};

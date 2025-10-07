@@ -48,7 +48,11 @@ function gmui_init() {
 			treeview_open_nodes: ds_map_create(),
 			active_slider: undefined,
 			active_textbox: undefined,
+			active_drag_textbox: undefined,
 			textbox_id: undefined,
+			drag_textbox_id: undefined,
+			drag_textbox_start_value: 0,
+			drag_textbox_start_mouse_x: 0,
 			textbox_cursor_timer: 0,
 			textbox_cursor_visible: true,
             windows: {},
@@ -161,6 +165,22 @@ function gmui_init() {
 				textbox_rounding: 4,
 				textbox_border_size: 1,
 				textbox_cursor_width: 2,
+
+				// Drag Textbox styles
+				drag_textbox_bg_color: make_color_rgb(40, 40, 40),
+				drag_textbox_border_color: make_color_rgb(80, 80, 80),
+				drag_textbox_focused_border_color: make_color_rgb(100, 100, 255),
+				drag_textbox_text_color: make_color_rgb(220, 220, 220),
+				drag_textbox_placeholder_color: make_color_rgb(128, 128, 128),
+				drag_textbox_cursor_color: make_color_rgb(220, 220, 220),
+				drag_textbox_selection_color: make_color_rgb(60, 60, 140),
+				drag_textbox_padding: [4, 4],
+				drag_textbox_rounding: 4,
+				drag_textbox_border_size: 1,
+				drag_textbox_cursor_width: 2,
+				drag_textbox_drag_sensitivity: 0.1, // How fast values change when dragging
+				drag_textbox_drag_color: make_color_rgb(100, 100, 255), // Color when dragging
+				drag_textbox_drag_hotzone_width: 8, // Width of the right-side drag area
 				
 				// Selectable styles
 				selectable_height: 24,
@@ -226,12 +246,13 @@ function gmui_init() {
 			    scrollbar_min_anchor_size: 30,
 			    scrollbar_margin: 2,
 			    scrollbar_rounding: 4,
-			    scroll_wheel_speed: 30
+			    scroll_wheel_speed: 30,
             },
             font: draw_get_font()
         };
     }
 }
+
 
 // Window state
 function gmui_window_state() {
@@ -501,19 +522,41 @@ function gmui_update_input() {
 	            }
 	            // Regular character input
 	            else if (char != "" && string_byte_length(char) == 1) {
-	                // Filter out control characters and only allow printable characters
-	                var byte = string_byte_at(char, 1);
-	                if (byte >= 32 && byte <= 126) { // Printable ASCII range
-	                    if (textbox.selection_length > 0) {
-	                        textbox.text = string_delete(textbox.text, textbox.selection_start + 1, textbox.selection_length);
-	                        textbox.cursor_pos = textbox.selection_start;
-	                        textbox.selection_length = 0;
-	                    }
-	                    textbox.text = string_insert(char, textbox.text, textbox.cursor_pos + 1);
-	                    textbox.cursor_pos++;
-	                    textbox.changed = true;
-	                }
-	            }
+				    // Filter out control characters and only allow printable characters
+				    var byte = string_byte_at(char, 1);
+				    if (byte >= 32 && byte <= 126) { // Printable ASCII range
+        
+				        // Check if this is a digit-only textbox
+				        if (textbox.is_digit_only != undefined && textbox.is_digit_only) {
+				            // For digit-only textboxes, only allow digits, minus, and decimal
+				            var is_digit = (byte >= 48 && byte <= 57); // 0-9
+				            var is_minus = (char == "-") && textbox.cursor_pos == 0; // Minus only at start
+				            var is_decimal = (char == ".") && (textbox.is_integer_only == undefined || !textbox.is_integer_only); // Decimal only if not integer-only
+            
+				            if (!is_digit && !is_minus && !is_decimal) {
+				                // Invalid character for digit-only textbox, skip
+				                //continue;
+				            }
+            
+				            // Additional check for decimal point (only one allowed)
+				            if (is_decimal) {
+				                var has_decimal = string_pos(".", textbox.text) > 0;
+				                if (has_decimal) {
+				                    //continue; // Already has decimal, skip
+				                }
+				            }
+				        }
+        
+				        if (textbox.selection_length > 0) {
+				            textbox.text = string_delete(textbox.text, textbox.selection_start + 1, textbox.selection_length);
+				            textbox.cursor_pos = textbox.selection_start;
+				            textbox.selection_length = 0;
+				        }
+				        textbox.text = string_insert(char, textbox.text, textbox.cursor_pos + 1);
+				        textbox.cursor_pos++;
+				        textbox.changed = true;
+				    }
+				}
 	        }
         
 	        // Reset cursor blink when typing
@@ -1910,7 +1953,9 @@ function gmui_textbox(text, placeholder = "", width = -1) {
 	            selection_start: 0,
 	            selection_length: 0,
 	            changed: false,
-	            drag_start_pos: 0  // Add this for drag tracking
+	            drag_start_pos: 0,  // Add this for drag tracking
+				is_digit_only: false, 
+				is_integer_only: false
 	        };
 	        is_focused = true;
         
@@ -2195,9 +2240,9 @@ function gmui_selectable(label, selected, width = -1, height = -1) {
     if (height <= 0) selectable_height = style.selectable_height;
     
     // Check if selectable fits on current line
-    if (dc.cursor_x + selectable_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
-        gmui_new_line();
-    }
+    //if (dc.cursor_x + selectable_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //    gmui_new_line();
+    //}
     
     // Calculate selectable bounds
     var selectable_x = dc.cursor_x;
@@ -3389,4 +3434,555 @@ function gmui_scroll_to_top(window_name) {
     window.scroll_y = 0;
     
     return true;
+}
+
+// New function: Digit-only textbox with drag functionality
+function gmui_input_float(value, step = 1, min_value = -1000000, max_value = 1000000, width = -1, placeholder = "") {
+    if (!global.gmui.initialized || !global.gmui.current_window) return value;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate textbox size
+    var text_size = gmui_calc_text_size("0"); // Use '0' as reference for height
+    var textbox_height = text_size[1] + style.drag_textbox_padding[1] * 2;
+    var textbox_width = (width > 0) ? width : 120; // Default width
+    
+    // Check if textbox fits on current line
+    if (dc.cursor_x + textbox_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+    }
+    
+    // Calculate textbox bounds
+    var textbox_x = dc.cursor_x;
+    var textbox_y = dc.cursor_y;
+    var textbox_bounds = [textbox_x, textbox_y, textbox_x + textbox_width, textbox_y + textbox_height];
+    
+    // Calculate drag hotzone (right side of textbox)
+    var drag_hotzone_x = textbox_x + textbox_width - style.drag_textbox_drag_hotzone_width;
+    var drag_hotzone_bounds = [drag_hotzone_x, textbox_y, textbox_x + textbox_width, textbox_y + textbox_height];
+    
+    // Create a unique ID for this drag textbox
+    var drag_textbox_id = "drag_textbox_" + string(window.x) + "_" + string(window.y) + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    global.gmui.drag_textbox_id = drag_textbox_id;
+    
+    // Convert value to string for display/editing
+    var value_string = string(value);
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         textbox_bounds) && !global.gmui.is_hovering_element;
+
+    var mouse_over_drag_zone = gmui_is_mouse_over_window(window) && 
+                               gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                                   global.gmui.mouse_pos[1] - window.y, 
+                                                   drag_hotzone_bounds) && !global.gmui.is_hovering_element;
+
+    var clicked = false;
+    var is_focused = (global.gmui.active_textbox != undefined && global.gmui.active_textbox.id == drag_textbox_id);
+    var is_dragging = (global.gmui.active_drag_textbox == drag_textbox_id);
+    var value_changed = false;
+
+    if (mouse_over && window.active) {
+        global.gmui.is_hovering_element = true;
+        
+        // Handle mouse press
+        if (global.gmui.mouse_clicked[0]) {
+            clicked = true;
+            
+            if (mouse_over_drag_zone) {
+                // Start dragging
+                global.gmui.active_drag_textbox = drag_textbox_id;
+                global.gmui.drag_textbox_start_value = value;
+                global.gmui.drag_textbox_start_mouse_x = global.gmui.mouse_pos[0];
+                is_dragging = true;
+                
+                // Defocus textbox if it was focused
+                if (is_focused) {
+                    global.gmui.active_textbox = undefined;
+                    is_focused = false;
+                }
+            } else {
+                // Set focus to this textbox for editing
+                global.gmui.active_textbox = {
+                    id: drag_textbox_id,
+                    text: value_string,
+                    cursor_pos: string_length(value_string),
+                    selection_start: 0,
+                    selection_length: 0,
+                    changed: false,
+                    drag_start_pos: 0,
+                    is_digit_only: true, // Flag to indicate digit-only input
+					is_integer_only: false
+                };
+                is_focused = true;
+                
+                // Set cursor position based on click
+                var click_x = global.gmui.mouse_pos[0] - window.x - (textbox_x + style.drag_textbox_padding[0]);
+                textbox_set_cursor_from_click(global.gmui.active_textbox, click_x);
+                
+                // Reset selection on click
+                global.gmui.active_textbox.selection_start = global.gmui.active_textbox.cursor_pos;
+                global.gmui.active_textbox.selection_length = 0;
+                global.gmui.active_textbox.drag_start_pos = global.gmui.active_textbox.cursor_pos;
+            }
+        }
+        
+        // Handle text selection with mouse drag (only when focused and not in drag zone)
+        if (is_focused && global.gmui.mouse_down[0] && !mouse_over_drag_zone) {
+            var drag_x = global.gmui.mouse_pos[0] - window.x - (textbox_x + style.drag_textbox_padding[0]);
+            
+            // Only start dragging after initial click
+            if (global.gmui.mouse_down[0] && !global.gmui.mouse_clicked[0]) {
+                textbox_handle_mouse_drag(global.gmui.active_textbox, drag_x);
+            }
+        }
+    }
+
+    // Handle focus loss when clicking outside
+    if (global.gmui.mouse_clicked[0] && !mouse_over && is_focused) {
+        global.gmui.active_textbox = undefined;
+        is_focused = false;
+    }
+    
+    // Handle dragging
+    if (is_dragging && global.gmui.mouse_down[0]) {
+        var mouse_delta_x = global.gmui.mouse_pos[0] - global.gmui.drag_textbox_start_mouse_x;
+        var value_delta = mouse_delta_x * style.drag_textbox_drag_sensitivity * step;
+        
+        var new_value = global.gmui.drag_textbox_start_value + value_delta;
+        
+        // Apply step snapping
+        if (step != 0) {
+            new_value = (new_value / step) * step; // round
+        }
+        
+        // Clamp to min/max
+        new_value = clamp(new_value, min_value, max_value);
+        
+        if (new_value != value) {
+            value = new_value;
+            value_string = string(value);
+            value_changed = true;
+        }
+        
+        // Update cursor to show dragging
+        window_set_cursor(cr_size_we);
+    } else if (is_dragging && global.gmui.mouse_released[0]) {
+        // Stop dragging
+        global.gmui.active_drag_textbox = undefined;
+        is_dragging = false;
+    }
+    
+    // Update value if this textbox is focused and changed
+    if (is_focused) {
+        if (global.gmui.active_textbox.changed) {
+            // Filter to only allow digits, minus sign, and decimal point
+            var filtered_text = "";
+            var has_decimal = false;
+            var has_minus = false;
+            
+            for (var i = 1; i <= string_length(global.gmui.active_textbox.text); i++) {
+                var char = string_char_at(global.gmui.active_textbox.text, i);
+                var byte = string_byte_at(char, 1);
+                
+                if (byte >= 48 && byte <= 57) { // 0-9
+                    filtered_text += char;
+                } else if (char == "-" && !has_minus && i == 1) { // Minus sign only at start
+                    filtered_text += char;
+                    has_minus = true;
+                } else if (char == "." && !has_decimal) { // Decimal point only once
+                    filtered_text += char;
+                    has_decimal = true;
+                }
+            }
+            
+            global.gmui.active_textbox.text = filtered_text;
+            global.gmui.active_textbox.changed = false;
+            
+            // Convert back to number if not empty
+            if (filtered_text != "" && filtered_text != "-" && filtered_text != ".") {
+                var new_num = real(filtered_text);
+                if (new_num != value) {
+                    value = clamp(new_num, min_value, max_value);
+                    value_string = string(value);
+                    value_changed = true;
+                }
+            }
+        }
+    }
+    
+    // Draw textbox background
+    var bg_color = style.drag_textbox_bg_color;
+    var border_color = is_focused ? style.drag_textbox_focused_border_color : 
+                      (is_dragging ? style.drag_textbox_drag_color : style.drag_textbox_border_color);
+    
+    // Highlight drag zone on hover
+    if (mouse_over_drag_zone && !is_focused && !is_dragging) {
+        bg_color = make_color_rgb(60, 60, 60);
+    }
+    
+    gmui_add_rect(textbox_x, textbox_y, textbox_width, textbox_height, bg_color);
+    
+    // Draw border
+    if (style.drag_textbox_border_size > 0) {
+        gmui_add_rect_outline(textbox_x, textbox_y, textbox_width, textbox_height, 
+                            border_color, style.drag_textbox_border_size);
+    }
+    
+    // Draw drag zone indicator (vertical line or dots)
+    if (!is_focused) {
+        var indicator_x = drag_hotzone_x;
+        var indicator_color = is_dragging ? style.drag_textbox_drag_color : 
+                             (mouse_over_drag_zone ? make_color_rgb(150, 150, 150) : make_color_rgb(100, 100, 100));
+        
+        // Draw vertical line
+        gmui_add_line(indicator_x, textbox_y + 4, indicator_x, textbox_y + textbox_height - 4, 
+                     indicator_color, 1);
+        
+        // Draw dots to indicate drag area
+        var dot_spacing = 3;
+        var dot_y = textbox_y + (textbox_height / 2) - 3;
+        for (var i = 0; i < 3; i++) {
+            gmui_add_rect(indicator_x + 2, dot_y + i * dot_spacing, 1, 1, indicator_color);
+        }
+    }
+    
+    // Create a surface for text clipping
+    var text_surface = -1;
+    var text_area_width = textbox_width - style.drag_textbox_padding[0] * 2 - style.drag_textbox_drag_hotzone_width;
+    
+    if (surface_exists(window.surface)) {
+        text_surface = surface_create(text_area_width, text_size[1]);
+        if (surface_exists(text_surface)) {
+            surface_set_target(text_surface);
+            draw_clear_alpha(c_black, 0);
+            var oldBlendMode = gpu_get_blendmode();
+            gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
+            
+            draw_set_color(style.drag_textbox_bg_color);
+            draw_rectangle(0, 0, textbox_width, textbox_height, false);
+            
+            var old_font = draw_get_font();
+            draw_set_font(global.gmui.font);
+            
+            // Draw text or placeholder
+            if (value_string == "" && placeholder != "" && !is_focused) {
+                draw_set_color(style.drag_textbox_placeholder_color);
+                draw_text(0, 0, placeholder);
+            } else if (value_string != "" || is_focused) {
+                // Handle text display with cursor and selection
+                var display_text = is_focused ? global.gmui.active_textbox.text : value_string;
+                
+                // Draw selection if any
+                if (is_focused && global.gmui.active_textbox.selection_length > 0) {
+                    var sel_start = global.gmui.active_textbox.selection_start;
+                    var sel_length = global.gmui.active_textbox.selection_length;
+                    
+                    var prefix_text = string_copy(display_text, 1, sel_start);
+                    var selected_text = string_copy(display_text, sel_start + 1, sel_length);
+                    
+                    var prefix_width = string_width(prefix_text);
+                    var selected_width = string_width(selected_text);
+                    
+                    draw_set_color(style.drag_textbox_selection_color);
+                    draw_rectangle(prefix_width, 0, prefix_width + selected_width, text_size[1], false);
+                }
+                
+                // Draw text
+                draw_set_color(style.drag_textbox_text_color);
+                draw_text(0, 0, display_text);
+                
+                // Draw cursor if focused
+                if (is_focused && global.gmui.textbox_cursor_visible) {
+                    var cursor_prefix = string_copy(display_text, 1, global.gmui.active_textbox.cursor_pos);
+                    var cursor_x = string_width(cursor_prefix);
+                    
+                    draw_set_color(style.drag_textbox_cursor_color);
+                    draw_set_alpha((sin(current_time / 200) * 0.5 + 0.5) * 0.3 + 0.7);
+                    draw_line_width(cursor_x, 0, cursor_x, text_size[1], style.drag_textbox_cursor_width);
+                    draw_set_alpha(1);
+                }
+            }
+            
+            gpu_set_blendmode(oldBlendMode);
+            draw_set_font(old_font);
+            surface_reset_target();
+        }
+    }
+    
+    // Draw the text surface
+    if (surface_exists(text_surface)) {
+        array_push(window.draw_list, {
+            type: "surface",
+            surface: text_surface,
+            x: textbox_x + style.drag_textbox_padding[0],
+            y: textbox_y + style.drag_textbox_padding[1]
+        });
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += textbox_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, textbox_height);
+    
+    gmui_new_line();
+    
+    return value;
+}
+
+// Integer-only version (no decimal points)
+function gmui_input_int(value, step = 1, min_value = -1000000, max_value = 1000000, width = -1, placeholder = "") {
+    if (!global.gmui.initialized || !global.gmui.current_window) return value;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate textbox size
+    var text_size = gmui_calc_text_size("0");
+    var textbox_height = text_size[1] + style.drag_textbox_padding[1] * 2;
+    var textbox_width = (width > 0) ? width : 120;
+    
+    //if (dc.cursor_x + textbox_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //    gmui_new_line();
+    //}
+    
+    var textbox_x = dc.cursor_x;
+    var textbox_y = dc.cursor_y;
+    var textbox_bounds = [textbox_x, textbox_y, textbox_x + textbox_width, textbox_y + textbox_height];
+    
+    var drag_hotzone_x = textbox_x + textbox_width - style.drag_textbox_drag_hotzone_width;
+    var drag_hotzone_bounds = [drag_hotzone_x, textbox_y, textbox_x + textbox_width, textbox_y + textbox_height];
+    
+    var drag_textbox_id = "drag_int_" + string(window.x) + "_" + string(window.y) + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    global.gmui.drag_textbox_id = drag_textbox_id;
+    
+    var value_string = string(floor(value)); // Ensure integer
+    
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         textbox_bounds) && !global.gmui.is_hovering_element;
+
+    var mouse_over_drag_zone = gmui_is_mouse_over_window(window) && 
+                               gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                                   global.gmui.mouse_pos[1] - window.y, 
+                                                   drag_hotzone_bounds) && !global.gmui.is_hovering_element;
+
+    var clicked = false;
+    var is_focused = (global.gmui.active_textbox != undefined && global.gmui.active_textbox.id == drag_textbox_id);
+    var is_dragging = (global.gmui.active_drag_textbox == drag_textbox_id);
+    var value_changed = false;
+
+    if (mouse_over && window.active) {
+        global.gmui.is_hovering_element = true;
+        
+        if (global.gmui.mouse_clicked[0]) {
+            clicked = true;
+            
+            if (mouse_over_drag_zone) {
+                global.gmui.active_drag_textbox = drag_textbox_id;
+                global.gmui.drag_textbox_start_value = value;
+                global.gmui.drag_textbox_start_mouse_x = global.gmui.mouse_pos[0];
+                is_dragging = true;
+                
+                if (is_focused) {
+                    global.gmui.active_textbox = undefined;
+                    is_focused = false;
+                }
+            } else {
+                global.gmui.active_textbox = {
+                    id: drag_textbox_id,
+                    text: value_string,
+                    cursor_pos: string_length(value_string),
+                    selection_start: 0,
+                    selection_length: 0,
+                    changed: false,
+                    drag_start_pos: 0,
+                    is_digit_only: true,
+                    is_integer_only: true // Additional flag for integer-only
+                };
+                is_focused = true;
+                
+                var click_x = global.gmui.mouse_pos[0] - window.x - (textbox_x + style.drag_textbox_padding[0]);
+                textbox_set_cursor_from_click(global.gmui.active_textbox, click_x);
+                
+                global.gmui.active_textbox.selection_start = global.gmui.active_textbox.cursor_pos;
+                global.gmui.active_textbox.selection_length = 0;
+                global.gmui.active_textbox.drag_start_pos = global.gmui.active_textbox.cursor_pos;
+            }
+        }
+        
+        if (is_focused && global.gmui.mouse_down[0] && !mouse_over_drag_zone) {
+            var drag_x = global.gmui.mouse_pos[0] - window.x - (textbox_x + style.drag_textbox_padding[0]);
+            
+            if (global.gmui.mouse_down[0] && !global.gmui.mouse_clicked[0]) {
+                textbox_handle_mouse_drag(global.gmui.active_textbox, drag_x);
+            }
+        }
+    }
+
+    if (global.gmui.mouse_clicked[0] && !mouse_over && is_focused) {
+        global.gmui.active_textbox = undefined;
+        is_focused = false;
+    }
+    
+    if (is_dragging && global.gmui.mouse_down[0]) {
+        var mouse_delta_x = global.gmui.mouse_pos[0] - global.gmui.drag_textbox_start_mouse_x;
+        var value_delta = round(mouse_delta_x * style.drag_textbox_drag_sensitivity * step);
+        
+        var new_value = global.gmui.drag_textbox_start_value + value_delta;
+        new_value = clamp(new_value, min_value, max_value);
+        
+        if (new_value != value) {
+            value = new_value;
+            value_string = string(value);
+            value_changed = true;
+        }
+        
+        window_set_cursor(cr_size_we);
+    } else if (is_dragging && global.gmui.mouse_released[0]) {
+        global.gmui.active_drag_textbox = undefined;
+        is_dragging = false;
+    }
+    
+    if (is_focused) {
+        if (global.gmui.active_textbox.changed) {
+            // Filter to only allow digits and minus sign (no decimals for integers)
+            var filtered_text = "";
+            var has_minus = false;
+            
+            for (var i = 1; i <= string_length(global.gmui.active_textbox.text); i++) {
+                var char = string_char_at(global.gmui.active_textbox.text, i);
+                var byte = string_byte_at(char, 1);
+                
+                if (byte >= 48 && byte <= 57) { // 0-9
+                    filtered_text += char;
+                } else if (char == "-" && !has_minus && i == 1) { // Minus sign only at start
+                    filtered_text += char;
+                    has_minus = true;
+                }
+            }
+            
+            global.gmui.active_textbox.text = filtered_text;
+            global.gmui.active_textbox.changed = false;
+            
+            if (filtered_text != "" && filtered_text != "-") {
+                var new_num = real(filtered_text);
+                if (floor(new_num) != value) {
+                    value = clamp(floor(new_num), min_value, max_value);
+                    value_string = string(value);
+                    value_changed = true;
+                }
+            }
+        }
+    }
+    
+    var bg_color = style.drag_textbox_bg_color;
+    var border_color = is_focused ? style.drag_textbox_focused_border_color : 
+                      (is_dragging ? style.drag_textbox_drag_color : style.drag_textbox_border_color);
+    
+    if (mouse_over_drag_zone && !is_focused && !is_dragging) {
+        bg_color = make_color_rgb(60, 60, 60);
+    }
+    
+    gmui_add_rect(textbox_x, textbox_y, textbox_width, textbox_height, bg_color);
+    
+    if (style.drag_textbox_border_size > 0) {
+        gmui_add_rect_outline(textbox_x, textbox_y, textbox_width, textbox_height, 
+                            border_color, style.drag_textbox_border_size);
+    }
+    
+    if (!is_focused) {
+        var indicator_x = drag_hotzone_x;
+        var indicator_color = is_dragging ? style.drag_textbox_drag_color : 
+                             (mouse_over_drag_zone ? make_color_rgb(150, 150, 150) : make_color_rgb(100, 100, 100));
+        
+        gmui_add_line(indicator_x, textbox_y + 4, indicator_x, textbox_y + textbox_height - 4, 
+                     indicator_color, 1);
+        
+        var dot_spacing = 3;
+        var dot_y = textbox_y + (textbox_height / 2) - 3;
+        for (var i = 0; i < 3; i++) {
+            gmui_add_rect(indicator_x + 2, dot_y + i * dot_spacing, 1, 1, indicator_color);
+        }
+    }
+    
+    var text_surface = -1;
+    var text_area_width = textbox_width - style.drag_textbox_padding[0] * 2 - style.drag_textbox_drag_hotzone_width;
+    
+    if (surface_exists(window.surface)) {
+        text_surface = surface_create(text_area_width, text_size[1]);
+        if (surface_exists(text_surface)) {
+            surface_set_target(text_surface);
+            draw_clear_alpha(c_black, 0);
+            var oldBlendMode = gpu_get_blendmode();
+            gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
+            
+            draw_set_color(style.drag_textbox_bg_color);
+            draw_rectangle(0, 0, textbox_width, textbox_height, false);
+            
+            var old_font = draw_get_font();
+            draw_set_font(global.gmui.font);
+            
+            if (value_string == "" && placeholder != "" && !is_focused) {
+                draw_set_color(style.drag_textbox_placeholder_color);
+                draw_text(0, 0, placeholder);
+            } else if (value_string != "" || is_focused) {
+                var display_text = is_focused ? global.gmui.active_textbox.text : value_string;
+                
+                if (is_focused && global.gmui.active_textbox.selection_length > 0) {
+                    var sel_start = global.gmui.active_textbox.selection_start;
+                    var sel_length = global.gmui.active_textbox.selection_length;
+                    
+                    var prefix_text = string_copy(display_text, 1, sel_start);
+                    var selected_text = string_copy(display_text, sel_start + 1, sel_length);
+                    
+                    var prefix_width = string_width(prefix_text);
+                    var selected_width = string_width(selected_text);
+                    
+                    draw_set_color(style.drag_textbox_selection_color);
+                    draw_rectangle(prefix_width, 0, prefix_width + selected_width, text_size[1], false);
+                }
+                
+                draw_set_color(style.drag_textbox_text_color);
+                draw_text(0, 0, display_text);
+                
+                if (is_focused && global.gmui.textbox_cursor_visible) {
+                    var cursor_prefix = string_copy(display_text, 1, global.gmui.active_textbox.cursor_pos);
+                    var cursor_x = string_width(cursor_prefix);
+                    
+                    draw_set_color(style.drag_textbox_cursor_color);
+                    draw_set_alpha((sin(current_time / 200) * 0.5 + 0.5) * 0.3 + 0.7);
+                    draw_line_width(cursor_x, 0, cursor_x, text_size[1], style.drag_textbox_cursor_width);
+                    draw_set_alpha(1);
+                }
+            }
+            
+            gpu_set_blendmode(oldBlendMode);
+            draw_set_font(old_font);
+            surface_reset_target();
+        }
+    }
+    
+    if (surface_exists(text_surface)) {
+        array_push(window.draw_list, {
+            type: "surface",
+            surface: text_surface,
+            x: textbox_x + style.drag_textbox_padding[0],
+            y: textbox_y + style.drag_textbox_padding[1]
+        });
+    }
+    
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += textbox_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, textbox_height);
+    
+    gmui_new_line();
+    
+    return value;
 }
