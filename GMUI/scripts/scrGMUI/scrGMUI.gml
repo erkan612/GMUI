@@ -37,6 +37,8 @@ enum gmui_window_flags {
     SCROLLBAR_TOP = 1 << 26,         // Place horizontal scrollbar on top
 }
 
+function gmui_get() { return global.gmui; };
+
 // Initialize gmui system (call once in create event)
 function gmui_init() {
     if (global.gmui == undefined) {
@@ -69,6 +71,7 @@ function gmui_init() {
                 window_border_size: 1,
                 window_min_size: [32, 32],
                 background_color: make_color_rgb(30, 30, 30),
+				background_alpha: 255,
                 border_color: make_color_rgb(60, 60, 60),
                 item_spacing: [8, 4],
                 item_inner_spacing: [4, 4],
@@ -656,9 +659,9 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     
     // Draw background
     if ((flags & gmui_window_flags.NO_BACKGROUND) == 0) {
-        gmui_add_rect(0, 0, window.width, window.height, global.gmui.style.background_color);
+        gmui_add_rect_alpha(0, 0, window.width, window.height, global.gmui.style.background_color, global.gmui.style.background_alpha);
         if (global.gmui.style.window_border_size > 0) {
-            gmui_add_rect_outline(0, 0, window.width, window.height, global.gmui.style.border_color, global.gmui.style.window_border_size);
+            gmui_add_rect_outline_alpha(0, 0, window.width, window.height, global.gmui.style.border_color, global.gmui.style.window_border_size, global.gmui.style.background_alpha);
         }
     }
     
@@ -722,12 +725,24 @@ function gmui_add_rect(x, y, w, h, col) {
         type: "rect", x: x, y: y, width: w, height: h, color: col
     });
 }
+function gmui_add_rect_alpha(x, y, w, h, col, a) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "rect_alpha", x: x, y: y, width: w, height: h, color: col, alpha: a
+    });
+}
 
 // Add rect outline
 function gmui_add_rect_outline(x, y, w, h, col, thickness) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_outline", x: x, y: y, width: w, height: h, color: col, thickness: thickness
+    });
+}
+function gmui_add_rect_outline_alpha(x, y, w, h, col, thickness, a) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "rect_outline", x: x, y: y, width: w, height: h, color: col, thickness: thickness, alpha: a
     });
 }
 
@@ -901,10 +916,23 @@ function gmui_render_surface(window) {
                 draw_set_color(cmd.color);
                 draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, false);
                 break;
+				
+            case "rect_alpha":
+				draw_set_alpha(cmd.alpha);
+                draw_set_color(cmd.color);
+                draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, false);
+                draw_set_alpha(1);
+				break;
                 
             case "rect_outline":
                 draw_set_color(cmd.color);
                 draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, true);
+                break;
+            case "rect_outline_alpha":
+				draw_set_alpha(cmd.alpha);
+                draw_set_color(cmd.color);
+                draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, true);
+                draw_set_alpha(1);
                 break;
                 
             case "text":
@@ -1346,6 +1374,40 @@ function gmui_handle_window_interaction(window) {
     } else {
         window.is_resizing = false;
     }
+	
+	// Handle Scrollbar to make sure elements dont overlap over mouse
+	var has_scrollbar_vertical = (window.flags & gmui_window_flags.VERTICAL_SCROLL) != 0 || (window.flags & gmui_window_flags.AUTO_SCROLL) != 0;
+	var has_scrollbar_horizontal = (window.flags & gmui_window_flags.HORIZONTAL_SCROLLBAR) != 0 || (window.flags & gmui_window_flags.AUTO_SCROLL) != 0;
+	
+	if (has_scrollbar_vertical) {
+		var content_width = window.width - style.scrollbar_width;
+		var content_height = window.height - window.dc.title_bar_height - style.scrollbar_width;
+		var _x = (window.flags & gmui_window_flags.SCROLLBAR_LEFT) != 0 ? 0 : content_width;
+		var _y = window.dc.title_bar_height;
+		var _width = style.scrollbar_width;
+		var _height = content_height;
+		
+		var anchor_bounds = [_x, _y, _x + _width, _y + _height];
+		var mouse_over_anchor = gmui_is_scrollbar_interacting(window, anchor_bounds);
+		if (mouse_over_anchor && !global.gmui.is_hovering_element) {
+			global.gmui.is_hovering_element = true;
+		};
+	};
+	
+	if (has_scrollbar_horizontal) {
+		var content_width = window.width - style.scrollbar_width;
+		var content_height = window.height - window.dc.title_bar_height - style.scrollbar_width;
+		var _x = 0
+		var _y = (window.flags & gmui_window_flags.SCROLLBAR_TOP) != 0 ? window.dc.title_bar_height : content_height;
+		var _width = content_width;
+		var _height = style.scrollbar_width;
+		
+		var anchor_bounds = [_x, _y, _x + _width, _y + _height];
+		var mouse_over_anchor = gmui_is_scrollbar_interacting(window, anchor_bounds);
+		if (mouse_over_anchor && !global.gmui.is_hovering_element) {
+			global.gmui.is_hovering_element = true;
+		};
+	};
 }
 
 // Add line drawing function (for close button X)
@@ -2058,7 +2120,7 @@ function gmui_textbox(text, placeholder = "", width = -1) {
                     
                     draw_set_color(style.textbox_cursor_color);
                     //draw_rectangle(cursor_x, 0, cursor_x + style.textbox_cursor_width, text_size[1], false);
-					draw_set_alpha((sin(current_time / 200) * 0.5 + 0.5) * 0.3 + 0.7);
+					draw_set_alpha((sin(current_time / 200) * 0.5 + 0.5) * 0.8 + 0.2);
 					draw_line_width(cursor_x, 0, cursor_x, text_size[1], style.textbox_cursor_width);
 					draw_set_alpha(1);
                 }
@@ -2256,14 +2318,15 @@ function gmui_selectable(label, selected, width = -1, height = -1) {
     var clicked = false;
     var is_active = false;
     
-    if (mouse_over && window.active) {
+    if (mouse_over && window.active && !global.gmui.is_hovering_element) {
 		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
-        }
-        if (global.gmui.mouse_released[0]) {
             clicked = true;
         }
+        //if (global.gmui.mouse_released[0]) {
+        //    clicked = true;
+        //}
     }
     
     // Draw selectable based on state and selection
@@ -2496,7 +2559,7 @@ function gmui_tree_node(label, selected = false, leaf = false) {
     var is_active = false;
     var arrow_clicked = false;
     
-    if (mouse_over && window.active) {
+    if (mouse_over && window.active && !global.gmui.is_hovering_element) {
 		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
