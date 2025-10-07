@@ -1972,6 +1972,9 @@ function gmui_textbox(text, placeholder = "", width = -1) {
             draw_clear_alpha(c_black, 0);
 			var oldBlendMode = gpu_get_blendmode();
 			gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
+			
+			draw_set_color(global.gmui.style.textbox_bg_color);
+			draw_rectangle(0, 0, textbox_width, textbox_height, false); // neccessary for text and background blending
             
             var old_font = draw_get_font();
             draw_set_font(global.gmui.font);
