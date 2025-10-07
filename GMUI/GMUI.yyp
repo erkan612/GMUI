@@ -35,6 +35,7 @@
   },
   "name":"GMUI",
   "resources":[
+    {"id":{"name":"fnCascadiaCode","path":"fonts/fnCascadiaCode/fnCascadiaCode.yy",},},
     {"id":{"name":"ExampleObject","path":"objects/ExampleObject/ExampleObject.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
     {"id":{"name":"scrGMUI","path":"scripts/scrGMUI/scrGMUI.yy",},},

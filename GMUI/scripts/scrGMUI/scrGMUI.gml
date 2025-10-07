@@ -251,7 +251,10 @@ function gmui_init() {
 			    scrollbar_rounding: 4,
 			    scroll_wheel_speed: 30,
             },
-            font: draw_get_font()
+            font: draw_get_font(),
+			styler: {
+				button: function(data) { gmui_add_rect(data.x, data.y, data.width, data.height, data.color); },
+			}
         };
     }
 }
