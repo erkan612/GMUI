@@ -18,3 +18,5 @@ v3 = [ 0, 0, 0 ];
 v4 = [ 0, 0, 0, 0 ];
 
 global.gmui.font = fnCascadiaCode;
+
+cbc = gmui_make_color_rgba(0, 0, 255, 255);

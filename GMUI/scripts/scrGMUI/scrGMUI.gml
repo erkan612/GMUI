@@ -250,6 +250,41 @@ function gmui_init() {
 			    scrollbar_margin: 2,
 			    scrollbar_rounding: 4,
 			    scroll_wheel_speed: 30,
+				
+				// Color picker styles (updated)
+				color_picker_width: 200,
+				color_picker_height: 200,
+				color_picker_hue_height: 20,
+				color_picker_alpha_height: 20,
+				color_picker_preview_size: 40,
+				color_picker_padding: 8,
+				color_picker_rounding: 4,
+				color_picker_border_size: 1,
+				color_picker_border_color: make_color_rgb(80, 80, 80),
+
+				// Color button styles
+				color_button_size: 20,
+				color_button_rounding: 4,
+				color_button_border_size: 1,
+				color_button_border_color: make_color_rgb(100, 100, 100),
+				color_button_hover_border_color: make_color_rgb(150, 150, 150),
+				color_button_active_border_color: make_color_rgb(200, 200, 200),
+
+				// Color edit styles
+				color_edit_height: 24,
+				color_edit_rounding: 4,
+				color_edit_border_size: 1,
+				color_edit_border_color: make_color_rgb(80, 80, 80),
+				color_edit_focused_border_color: make_color_rgb(100, 100, 255),
+				color_edit_text_color: make_color_rgb(220, 220, 220),
+				color_edit_bg_color: make_color_rgb(40, 40, 40),
+				color_edit_padding: [4, 4],
+
+				// Shader handles
+				shader_hue: -1,
+				shader_saturation_brightness: -1,
+				shader_alpha: -1,
+				shader_checkerboard: -1
             },
             font: draw_get_font(),
 			styler: {
@@ -290,6 +325,16 @@ function gmui_window_state() {
         scrollbar_dragging: false,
         scrollbar_drag_offset: 0,
         scrollbar_drag_axis: 0, // 0 = vertical, 1 = horizontal
+		
+		// Color picker state
+		active_color_picker: undefined,
+		color_picker_value: [1, 1, 1, 1],
+		color_picker_hue: 0,
+		color_picker_saturation: 1,
+		color_picker_brightness: 1,
+		color_picker_alpha: 1,
+		color_picker_dragging: false,
+		color_picker_drag_type: 0, // 0 = none, 1 = hue, 2 = saturation/brightness, 3 = alpha
         
         // Track content size for scroll calculations
         max_cursor_x: 0,
@@ -602,7 +647,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     
     window.flags = flags;
     window.active = true;
-    window.treeview_stack = [];
+    window.treeview_stack = [];//
     
     // Reset max cursor for content size calculation
     window.max_cursor_x = 0;
@@ -704,6 +749,11 @@ function gmui_end() {
     
     // End content scissor
     gmui_end_scissor();
+    
+    // Handle color picker if active
+    if (window.active_color_picker != undefined) {
+        gmui_color_picker();
+    }
     
     // Handle scrollbars
     gmui_handle_scrollbars(window);
@@ -970,6 +1020,32 @@ function gmui_render_surface(window) {
 			    
 			case "sprite":
 			    draw_sprite_ext(cmd.spr, cmd.index, cmd.x, cmd.y, cmd.width / sprite_get_width(cmd.spr), cmd.height / sprite_get_height(cmd.spr), 0, #ffffff, 1);
+			    break;
+			
+			case "shader_rect":
+			    shader_set(cmd.shader);
+    
+			    // Set uniforms
+			    for (var j = 0; j < array_length(cmd.uniforms); j++) {
+			        var uniform = cmd.uniforms[j];
+			        switch (uniform.type) {
+			            case "float":
+			                shader_set_uniform_f(shader_get_uniform(cmd.shader, uniform.name), uniform.value);
+			                break;
+			            case "vec2":
+			                shader_set_uniform_f(shader_get_uniform(cmd.shader, uniform.name), uniform.value[0], uniform.value[1]);
+			                break;
+			            case "vec3":
+			                shader_set_uniform_f(shader_get_uniform(cmd.shader, uniform.name), uniform.value[0], uniform.value[1], uniform.value[2]);
+			                break;
+			            case "vec4":
+			                shader_set_uniform_f(shader_get_uniform(cmd.shader, uniform.name), uniform.value[0], uniform.value[1], uniform.value[2], uniform.value[3]);
+			                break;
+			        }
+			    }
+    
+			    draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, false);
+			    shader_reset();
 			    break;
         }
     }
@@ -4051,4 +4127,650 @@ function gmui_input_int(value, step = 1, min_value = -1000000, max_value = 10000
     gmui_new_line();
     
     return value;
+}
+
+/// @function gmui_draw_hue_bar(x, y, width, height)
+/// @desc Draw hue gradient bar
+/// @param {number} x X position
+/// @param {number} y Y position
+/// @param {number} width Width
+/// @param {number} height Height
+function gmui_draw_hue_bar(x, y, width, height) {
+    var segment_width = width / 6;
+    
+    // Red to Yellow
+    for (var i = 0; i < segment_width; i++) {
+        var ratio = i / segment_width;
+        var color = make_color_rgb(255, round(255 * ratio), 0);
+        gmui_add_rect(x + i, y, 1, height, color);
+    }
+    
+    // Yellow to Green
+    for (var i = 0; i < segment_width; i++) {
+        var ratio = i / segment_width;
+        var color = make_color_rgb(round(255 * (1 - ratio)), 255, 0);
+        gmui_add_rect(x + segment_width + i, y, 1, height, color);
+    }
+    
+    // Green to Cyan
+    for (var i = 0; i < segment_width; i++) {
+        var ratio = i / segment_width;
+        var color = make_color_rgb(0, 255, round(255 * ratio));
+        gmui_add_rect(x + segment_width * 2 + i, y, 1, height, color);
+    }
+    
+    // Cyan to Blue
+    for (var i = 0; i < segment_width; i++) {
+        var ratio = i / segment_width;
+        var color = make_color_rgb(0, round(255 * (1 - ratio)), 255);
+        gmui_add_rect(x + segment_width * 3 + i, y, 1, height, color);
+    }
+    
+    // Blue to Magenta
+    for (var i = 0; i < segment_width; i++) {
+        var ratio = i / segment_width;
+        var color = make_color_rgb(round(255 * ratio), 0, 255);
+        gmui_add_rect(x + segment_width * 4 + i, y, 1, height, color);
+    }
+    
+    // Magenta to Red
+    for (var i = 0; i < segment_width; i++) {
+        var ratio = i / segment_width;
+        var color = make_color_rgb(255, 0, round(255 * (1 - ratio)));
+        gmui_add_rect(x + segment_width * 5 + i, y, 1, height, color);
+    }
+}
+
+/// @function gmui_draw_saturation_brightness_area(x, y, width, height, hue)
+/// @desc Draw saturation/brightness gradient area
+/// @param {number} x X position
+/// @param {number} y Y position
+/// @param {number} width Width
+/// @param {number} height Height
+/// @param {number} hue Hue value (0-1)
+function gmui_draw_saturation_brightness_area(x, y, width, height, hue) {
+    // Draw saturation/brightness gradient
+    for (var sy = 0; sy < height; sy++) {
+        var brightness = 1 - (sy / height);
+        
+        for (var sx = 0; sx < width; sx++) {
+            var saturation = sx / width;
+            var rgb = gmui_hsva_to_rgba(hue, saturation, brightness, 255);
+            var color = make_color_rgb(
+                round(rgb[0] * 255),
+                round(rgb[1] * 255),
+                round(rgb[2] * 255)
+            );
+            gmui_add_rect(x + sx, y + sy, 1, 1, color);
+        }
+    }
+}
+
+/// @function gmui_draw_alpha_bar(x, y, width, height, rgb_color)
+/// @desc Draw alpha gradient bar
+/// @param {number} x X position
+/// @param {number} y Y position
+/// @param {number} width Width
+/// @param {number} height Height
+/// @param {array} rgb_color [r, g, b] normalized 0-1
+function gmui_draw_alpha_bar(x, y, width, height, rgb_color) {
+    // Draw checkerboard background for transparency
+    var checker_size = 4;
+    for (var i = 0; i < width; i += checker_size * 2) {
+        for (var j = 0; j < height; j += checker_size * 2) {
+            // Draw checkerboard pattern
+            gmui_add_rect(x + i, y + j, checker_size, checker_size, make_color_rgb(120, 120, 120));
+            gmui_add_rect(x + i + checker_size, y + j + checker_size, checker_size, checker_size, make_color_rgb(120, 120, 120));
+            gmui_add_rect(x + i + checker_size, y + j, checker_size, checker_size, make_color_rgb(80, 80, 80));
+            gmui_add_rect(x + i, y + j + checker_size, checker_size, checker_size, make_color_rgb(80, 80, 80));
+        }
+    }
+    
+    // Draw alpha gradient
+    for (var i = 0; i < width; i++) {
+        var alpha = i / width;
+        var color = gmui_make_color_rgba(
+            round(rgb_color[0] * 255),
+            round(rgb_color[1] * 255),
+            round(rgb_color[2] * 255),
+            round(alpha * 255)
+        );
+        gmui_add_rect(x + i, y, 1, height, color);
+    }
+}
+
+/// @function gmui_color_button(color, size = -1)
+/// @desc Display a color button that shows the current color
+/// @param {number} color GameMaker color
+/// @param {number} size Button size (optional)
+/// @return {bool} True if clicked
+function gmui_color_button(color, size = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate button size
+    var button_size = size > 0 ? size : style.color_button_size;
+    
+    // Check if button fits on current line
+    if (dc.cursor_x + button_size > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+    }
+    
+    // Calculate button bounds
+    var button_x = dc.cursor_x;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + button_size, button_y + button_size];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over && window.active) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_down[0]) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0]) {
+            clicked = true;
+        }
+    }
+    
+    // Draw checkerboard background for transparency
+    gmui_draw_checkerboard_shader(button_x, button_y, button_size, button_size);
+    
+    // Draw color
+    gmui_add_rect(button_x, button_y, button_size, button_size, color);
+    
+    // Draw border based on state
+    var border_color = style.color_button_border_color;
+    if (is_active) {
+        border_color = style.color_button_active_border_color;
+    } else if (mouse_over) {
+        border_color = style.color_button_hover_border_color;
+    }
+    
+    if (style.color_button_border_size > 0) {
+        gmui_add_rect_outline(button_x, button_y, button_size, button_size, 
+                            border_color, style.color_button_border_size);
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_size + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, button_size);
+    
+    gmui_new_line();
+    
+    return clicked && window.active;
+}
+
+function gmui_color_edit_4(label, rgba) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return rgba;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Create a unique ID for this color editor
+    var color_edit_id = "color_edit_4_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    // Convert color to array
+    var color_array = gmui_color_rgba_to_array(rgba);
+    
+    // If this color editor has an active picker, use the picker's value
+    if (window.active_color_picker == color_edit_id) {
+        color_array = window.color_picker_value;
+        rgba = gmui_array_to_color_rgba(color_array);
+    }
+    
+    // Draw label
+	if (label != "") {gmui_text(label); gmui_same_line();};
+    
+    // Draw color preview button
+    var preview_clicked = gmui_color_button(make_color_rgb(color_array[0], color_array[1], color_array[2]), style.color_button_size);
+    
+    // If color button clicked, open color picker
+    if (preview_clicked) {
+        window.active_color_picker = color_edit_id;
+        window.color_picker_value = color_array;
+        
+        // Convert RGB to HSV for the picker
+        var hsv = gmui_rgba_to_hsva(color_array[0], color_array[1], color_array[2], 255);
+        window.color_picker_hue = hsv[0];
+        window.color_picker_saturation = hsv[1];
+        window.color_picker_brightness = hsv[2];
+        window.color_picker_alpha = color_array[3];
+    }
+    
+    // Red channel
+    gmui_same_line(); gmui_text("R:"); gmui_same_line();
+    var new_r = gmui_input_int(color_array[0], 1, 0, 255, 60);
+    color_array[0] = clamp(new_r, 0, 255);
+    
+    // Green channel
+    gmui_same_line(); gmui_text("G:"); gmui_same_line();
+    var new_g = gmui_input_int(color_array[1], 1, 0, 255, 60);
+    color_array[1] = clamp(new_g, 0, 255);
+    
+    // Blue channel
+    gmui_same_line(); gmui_text("B:"); gmui_same_line();
+    var new_b = gmui_input_int(color_array[2], 1, 0, 255, 60);
+    color_array[2] = clamp(new_b, 0, 255);
+    
+    // Alpha channel
+    gmui_same_line(); gmui_text("A:"); gmui_same_line();
+    var new_a = gmui_input_int(color_array[3], 1, 0, 255, 60);
+    color_array[3] = clamp(new_a, 0, 255);
+    
+    // Convert back to color
+    var new_color = gmui_array_to_color_rgba(color_array);
+    
+    // Update picker value if input fields changed
+    if (window.active_color_picker == color_edit_id && new_color != rgba) {
+        var new_array = gmui_color_rgba_to_array(new_color);
+        window.color_picker_value = new_array;
+        
+        // Update HSV for picker
+        var hsv = gmui_rgba_to_hsva(new_array[0], new_array[1], new_array[2], 255);
+        window.color_picker_hue = hsv[0];
+        window.color_picker_saturation = hsv[1];
+        window.color_picker_brightness = hsv[2];
+        window.color_picker_alpha = new_array[3];
+    }
+    
+    gmui_new_line();
+    
+    return new_color;
+}
+
+function gmui_color_picker() {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // If no color picker is active for this window, return
+    if (window.active_color_picker == undefined) return false;
+    
+    // Calculate picker position (centered in window)
+    var picker_width = style.color_picker_width;
+    var picker_height = style.color_picker_height + style.color_picker_hue_height + 
+                       style.color_picker_alpha_height + 0/*style.color_picker_preview_size*/ + 
+                       style.color_picker_padding * 4;
+    
+    var picker_x = (window.width - picker_width) / 2;
+    var picker_y = (window.height - picker_height) / 2;
+    
+    // Draw color picker background
+    gmui_add_rect(picker_x, picker_y, picker_width, picker_height, style.background_color);
+    
+    // Draw border
+    if (style.color_picker_border_size > 0) {
+        gmui_add_rect_outline(picker_x, picker_y, picker_width, picker_height, 
+                            style.color_picker_border_color, style.color_picker_border_size);
+    }
+    
+    var current_y = picker_y + style.color_picker_padding;
+    
+    // Draw saturation/brightness area USING SHADER
+    var sb_width = picker_width - style.color_picker_padding * 2;
+    var sb_height = style.color_picker_height;
+    var sb_x = picker_x + style.color_picker_padding;
+    var sb_y = current_y;
+    
+    gmui_draw_saturation_brightness_shader(sb_x, sb_y, sb_width, sb_height, window.color_picker_hue);
+    
+    // Draw saturation/brightness cursor
+    var cursor_x = sb_x + window.color_picker_saturation * sb_width;
+    var cursor_y = sb_y + (1 - window.color_picker_brightness) * sb_height;
+    
+    // Draw crosshair cursor
+    gmui_add_rect_outline(cursor_x - 5, cursor_y, 11, 1, make_color_rgb(255, 255, 255), 1);
+    gmui_add_rect_outline(cursor_x, cursor_y - 5, 1, 11, make_color_rgb(255, 255, 255), 1);
+    gmui_add_rect_outline(cursor_x - 5, cursor_y, 11, 1, make_color_rgb(0, 0, 0), 1);
+    gmui_add_rect_outline(cursor_x, cursor_y - 5, 1, 11, make_color_rgb(0, 0, 0), 1);
+    
+    current_y += sb_height + style.color_picker_padding;
+    
+    // Draw hue bar USING SHADER
+    var hue_x = sb_x;
+    var hue_y = current_y;
+    var hue_width = sb_width;
+    var hue_height = style.color_picker_hue_height;
+    
+    gmui_draw_hue_bar_shader(hue_x, hue_y, hue_width, hue_height);
+    
+    // Draw hue cursor
+    var hue_cursor_x = hue_x + window.color_picker_hue * hue_width;
+    gmui_add_rect_outline(hue_cursor_x - 2, hue_y - 2, 5, hue_height + 4, make_color_rgb(255, 255, 255), 2);
+    
+    current_y += hue_height + style.color_picker_padding;
+    
+    // Draw alpha bar USING SHADER
+    var alpha_x = sb_x;
+    var alpha_y = current_y;
+    var alpha_width = sb_width;
+    var alpha_height = style.color_picker_alpha_height;
+    
+    // Draw checkerboard background
+    gmui_draw_checkerboard_shader(alpha_x, alpha_y, alpha_width, alpha_height);
+    
+    // Draw alpha gradient USING SHADER
+    var current_rgb = gmui_hsva_to_rgba(window.color_picker_hue, window.color_picker_saturation, window.color_picker_brightness, 255);
+    gmui_draw_alpha_bar_shader(alpha_x, alpha_y, alpha_width, alpha_height, current_rgb);
+    
+    // Draw alpha cursor
+    var alpha_cursor_x = alpha_x + window.color_picker_alpha / 255 * alpha_width;
+    gmui_add_rect_outline(alpha_cursor_x - 2, alpha_y - 2, 5, alpha_height + 4, make_color_rgb(255, 255, 255), 2);
+    
+    current_y += alpha_height + style.color_picker_padding;
+    
+    // Calculate current RGB color from HSV
+    var new_rgb = gmui_hsva_to_rgba(window.color_picker_hue, window.color_picker_saturation, window.color_picker_brightness, 255);
+    var new_color = gmui_array_to_color_rgba([new_rgb[0], new_rgb[1], new_rgb[2], window.color_picker_alpha]);
+    
+    // Update the window's color picker value
+    window.color_picker_value = [new_rgb[0], new_rgb[1], new_rgb[2], window.color_picker_alpha];
+    
+    //// Draw color preview and buttons
+    //var preview_x = sb_x;
+    //var preview_y = current_y;
+    //var preview_size = style.color_picker_preview_size;
+    //
+    //// Draw old color (left) with checkerboard
+    //gmui_draw_checkerboard_shader(preview_x, preview_y, preview_size, preview_size);
+    //var old_color_array = window.color_picker_value; // This gets updated elsewhere
+    //var old_color = gmui_array_to_color_rgba(old_color_array);
+    //gmui_add_rect(preview_x, preview_y, preview_size, preview_size, old_color);
+    //gmui_add_rect_outline(preview_x, preview_y, preview_size, preview_size, 
+    //                    style.color_picker_border_color, style.color_picker_border_size);
+    //
+    //// Draw new color (right) with checkerboard
+    //gmui_draw_checkerboard_shader(preview_x + preview_size + style.color_picker_padding, preview_y, 
+    //                             preview_size, preview_size);
+    //gmui_add_rect(preview_x + preview_size + style.color_picker_padding, preview_y, 
+    //             preview_size, preview_size, new_color);
+    //gmui_add_rect_outline(preview_x + preview_size + style.color_picker_padding, preview_y, 
+    //                     preview_size, preview_size, style.color_picker_border_color, 
+    //                     style.color_picker_border_size);
+    //
+    //// Draw OK and Cancel buttons
+    //var button_width = (sb_width - preview_size * 2 - style.color_picker_padding * 2) / 2;
+    //var button_x = preview_x + preview_size * 2 + style.color_picker_padding * 2;
+    //var button_y = preview_y + (preview_size - style.button_min_size[1]) / 2;
+    //
+    //// Save cursor state
+    //var old_cursor_x = dc.cursor_x;
+    //var old_cursor_y = dc.cursor_y;
+    //
+    //// Set cursor for buttons
+    //dc.cursor_x = button_x;
+    //dc.cursor_y = button_y;
+    //
+    var color_changed = false;
+    //
+    //// OK button
+    //if (gmui_button("OK", button_width)) {
+    //    // Finalize the color change
+    //    color_changed = true;
+    //    window.active_color_picker = undefined;
+    //}
+    //
+    //// Cancel button
+    //gmui_same_line();
+    //if (gmui_button("Cancel", button_width)) {
+    //    // Revert to original color
+    //    window.active_color_picker = undefined;
+    //    color_changed = false;
+    //}
+    //
+    //// Restore cursor
+    //dc.cursor_x = old_cursor_x;
+    //dc.cursor_y = old_cursor_y;
+    
+    // Handle interaction
+    var mouse_over_picker = gmui_is_mouse_over_window(window) && 
+                           gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                               global.gmui.mouse_pos[1] - window.y, 
+                                               [picker_x, picker_y, picker_x + picker_width, picker_y + picker_height]);
+    
+    // Check for clicks outside picker to close it
+    if (global.gmui.mouse_clicked[0] && !mouse_over_picker) {
+        window.active_color_picker = undefined;
+    }
+    
+    // Handle dragging in color areas
+    if (mouse_over_picker && global.gmui.mouse_clicked[0]) {
+        var _mouse_x = global.gmui.mouse_pos[0] - window.x;
+        var _mouse_y = global.gmui.mouse_pos[1] - window.y;
+        
+        // Check if clicking in saturation/brightness area
+        if (gmui_is_point_in_rect(_mouse_x, _mouse_y, [sb_x, sb_y, sb_x + sb_width, sb_y + sb_height])) {
+            window.color_picker_dragging = true;
+            window.color_picker_drag_type = 2;
+            
+            var local_x = clamp((_mouse_x - sb_x) / sb_width, 0, 1);
+            var local_y = clamp((_mouse_y - sb_y) / sb_height, 0, 1);
+            
+            window.color_picker_saturation = local_x;
+            window.color_picker_brightness = 1 - local_y;
+            color_changed = true;
+        }
+        // Check if clicking in hue bar
+        else if (gmui_is_point_in_rect(_mouse_x, _mouse_y, [hue_x, hue_y, hue_x + hue_width, hue_y + hue_height])) {
+            window.color_picker_dragging = true;
+            window.color_picker_drag_type = 1;
+            
+            var local_x = clamp((_mouse_x - hue_x) / hue_width, 0, 1);
+            window.color_picker_hue = local_x;
+            color_changed = true;
+        }
+        // Check if clicking in alpha bar
+        else if (gmui_is_point_in_rect(_mouse_x, _mouse_y, [alpha_x, alpha_y, alpha_x + alpha_width, alpha_y + alpha_height])) {
+            window.color_picker_dragging = true;
+            window.color_picker_drag_type = 3;
+            
+            var local_x = clamp((_mouse_x - alpha_x) / alpha_width * 255, 0, 255);
+            window.color_picker_alpha = local_x;
+            color_changed = true;
+        }
+    }
+    
+    // Handle dragging updates
+    if (window.color_picker_dragging && global.gmui.mouse_down[0]) {
+        var _mouse_x = global.gmui.mouse_pos[0] - window.x;
+        var _mouse_y = global.gmui.mouse_pos[1] - window.y;
+        
+        switch (window.color_picker_drag_type) {
+            case 1: // Hue
+                var local_x = clamp((_mouse_x - hue_x) / hue_width, 0, 1);
+                window.color_picker_hue = local_x;
+                color_changed = true;
+                break;
+                
+            case 2: // Saturation/Brightness
+                var local_x = clamp((_mouse_x - sb_x) / sb_width, 0, 1);
+                var local_y = clamp((_mouse_y - sb_y) / sb_height, 0, 1);
+                
+                window.color_picker_saturation = local_x;
+                window.color_picker_brightness = 1 - local_y;
+                color_changed = true;
+                break;
+                
+            case 3: // Alpha
+                var local_x = clamp((_mouse_x - alpha_x) / alpha_width * 255, 0, 255);
+                window.color_picker_alpha = local_x;
+                color_changed = true;
+                break;
+        }
+    } else {
+        window.color_picker_dragging = false;
+        window.color_picker_drag_type = 0;
+    }
+    
+    return color_changed;
+}
+
+function gmui_make_color_rgba(r, g, b, a) {
+    r = clamp(r, 0, 255);
+    g = clamp(g, 0, 255);
+    b = clamp(b, 0, 255);
+    a = clamp(a, 0, 255);
+
+    // Combine RGBA into a single 32-bit integer
+    return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+/// @function gmui_add_shader_rect(x, y, w, h, shader, uniforms)
+/// @desc Draw a rectangle using a shader
+/// @param {number} x X position
+/// @param {number} y Y position
+/// @param {number} w Width
+/// @param {number} h Height
+/// @param {number} shader Shader ID
+/// @param {array} uniforms Array of uniform data
+function gmui_add_shader_rect(x, y, w, h, shader, uniforms) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "shader_rect",
+        x: x, y: y, width: w, height: h,
+        shader: shader,
+        uniforms: uniforms
+    });
+}
+
+/// @function gmui_draw_hue_bar_shader(x, y, w, h)
+/// @desc Draw hue bar using shader
+/// @param {number} x X position
+/// @param {number} y Y position
+/// @param {number} w Width
+/// @param {number} h Height
+function gmui_draw_hue_bar_shader(x, y, w, h) {
+    gmui_add_shader_rect(x, y, w, h, shdHue, []);
+}
+
+/// @function gmui_draw_saturation_brightness_shader(x, y, w, h, hue)
+/// @desc Draw saturation/brightness area using shader
+/// @param {number} x X position
+/// @param {number} y Y position
+/// @param {number} w Width
+/// @param {number} h Height
+/// @param {number} hue Hue value (0-1)
+function gmui_draw_saturation_brightness_shader(x, y, w, h, hue) {
+    gmui_add_shader_rect(x, y, w, h, shdSaturationBrightness, [
+        { type: "float", name: "u_hue", value: hue }
+    ]);
+}
+
+/// @function gmui_draw_alpha_bar_shader(x, y, w, h, rgb_color)
+/// @desc Draw alpha bar using shader
+/// @param {number} x X position
+/// @param {number} y Y position
+/// @param {number} w Width
+/// @param {number} h Height
+/// @param {array} rgb_color [r, g, b] normalized 0-1
+function gmui_draw_alpha_bar_shader(x, y, w, h, rgb_color) {
+    gmui_add_shader_rect(x, y, w, h, shdAlphaGradient, [
+        { type: "vec3", name: "u_color", value: rgb_color }
+    ]);
+}
+
+/// @function gmui_draw_checkerboard_shader(x, y, w, h)
+/// @desc Draw checkerboard pattern using shader
+/// @param {number} x X position
+/// @param {number} y Y position
+/// @param {number} w Width
+/// @param {number} h Height
+function gmui_draw_checkerboard_shader(x, y, w, h) {
+    gmui_add_shader_rect(x, y, w, h, shdCheckerboard, [
+        { type: "vec2", name: "u_size", value: [w, h] }
+    ]);
+}
+
+function gmui_rgba_to_hsva(r, g, b, a)
+{
+    // Normalize RGB to [0, 1]
+    var rf = r / 255;
+    var gf = g / 255;
+    var bf = b / 255;
+
+    // Find min/max
+    var maxc = max(rf, max(gf, bf));
+    var minc = min(rf, min(gf, bf));
+    var delta = maxc - minc;
+
+    var h, s, v;
+    v = maxc;
+
+    // Saturation
+    if (maxc == 0) s = 0;
+    else s = delta / maxc;
+
+    // Hue
+    if (delta == 0) {
+        h = 0;
+    } else if (maxc == rf) {
+        h = ((gf - bf) / delta) % 6;
+    } else if (maxc == gf) {
+        h = ((bf - rf) / delta) + 2;
+    } else {
+        h = ((rf - gf) / delta) + 4;
+    }
+
+    h = (h / 6);
+    if (h < 0) h += 1;
+
+	return [h, s, v, a];
+}
+
+function gmui_hsva_to_rgba(h, s, v, a)
+{
+    h = frac(h) * 6; // ensure hue in [0,6)
+    var i = floor(h);
+    var f = h - i;
+    var p = v * (1 - s);
+    var q = v * (1 - s * f);
+    var t = v * (1 - s * (1 - f));
+
+    var rf, gf, bf;
+    switch (i) {
+        case 0: rf = v; gf = t; bf = p; break;
+        case 1: rf = q; gf = v; bf = p; break;
+        case 2: rf = p; gf = v; bf = t; break;
+        case 3: rf = p; gf = q; bf = v; break;
+        case 4: rf = t; gf = p; bf = v; break;
+        default: rf = v; gf = p; bf = q; break;
+    }
+
+    return [
+        clamp(rf * 255, 0, 255),
+        clamp(gf * 255, 0, 255),
+        clamp(bf * 255, 0, 255),
+        clamp(a, 0, 255)
+    ];
+}
+
+function gmui_color_rgba_to_array(color) {
+	var a = (color >> 24) & 255;
+	var r = (color >> 16) & 255;
+	var g = (color >> 8) & 255;
+	var b = color & 255;
+    return [r, g, b, a];
+}
+
+function gmui_array_to_color_rgba(rgba) {
+    var r = clamp(rgba[0], 0, 255);
+    var g = clamp(rgba[1], 0, 255);
+    var b = clamp(rgba[2], 0, 255);
+    var a = clamp(rgba[3], 0, 255);
+    return gmui_make_color_rgba(r, g, b, a);
 }
