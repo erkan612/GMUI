@@ -45,6 +45,7 @@ function gmui_init() {
         global.gmui = {
             initialized: true,
 			is_hovering_element: false,
+			hovering_window: undefined,
 			recent_scissor: undefined,
 			treeview_stack: [],
 			treeview_open_nodes: ds_map_create(),
@@ -733,15 +734,23 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
 }
 
 // End window
-function gmui_end() {
+function gmui_end(_no_repeat = false) {
     if (!global.gmui.initialized || array_length(global.gmui.window_stack) == 0) return;
     
     var window = global.gmui.current_window;
     var flags = window.flags;
+	var style = global.gmui.style;
     
     // Update max cursor position for content size calculation
     window.max_cursor_x = max(window.max_cursor_x, window.dc.cursor_x - window.dc.scroll_offset_x);
     window.max_cursor_y = max(window.max_cursor_y, window.dc.cursor_y - window.dc.scroll_offset_y);
+	
+	// Auto Resize
+	var always_auto_resize = (flags & gmui_window_flags.ALWAYS_AUTO_RESIZE) != 0;
+	if (always_auto_resize) {
+		window.width = window.max_cursor_x;
+		window.height = window.max_cursor_y;
+	};
     
     // Calculate content dimensions
     window.content_width = window.max_cursor_x + global.gmui.style.window_padding[0];
@@ -750,17 +759,39 @@ function gmui_end() {
     // End content scissor
     gmui_end_scissor();
     
-    // Handle color picker if active
-    if (window.active_color_picker != undefined) {
-        gmui_color_picker();
-    }
-    
     // Handle scrollbars
     gmui_handle_scrollbars(window);
     
     array_pop(global.gmui.window_stack);
     global.gmui.current_window = array_length(global.gmui.window_stack) > 0 ? 
         global.gmui.window_stack[array_length(global.gmui.window_stack) - 1] : undefined;
+    
+    // Handle color picker if active
+    if (window.active_color_picker != undefined && !_no_repeat) {
+		var picker_width = style.color_picker_width;
+		var picker_height = style.color_picker_height + style.color_picker_hue_height + style.color_picker_alpha_height + style.color_picker_padding * 4;
+		if (gmui_begin(window.name + "_color_picker_" + string(window.dc.cursor_x * window.dc.cursor_y + 1), device_mouse_x_to_gui(0), device_mouse_y_to_gui(0), picker_width, picker_height, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+			var w = global.gmui.current_window;
+			w.active_color_picker			= window.active_color_picker;
+			w.color_picker_value			= window.color_picker_value;
+			w.color_picker_hue				= window.color_picker_hue;
+			w.color_picker_saturation		= window.color_picker_saturation;
+			w.color_picker_brightness		= window.color_picker_brightness;
+			w.color_picker_alpha			= window.color_picker_alpha;
+			w.color_picker_dragging			= window.color_picker_dragging;
+			w.color_picker_drag_type		= window.color_picker_drag_type;
+			gmui_color_picker();
+			window.active_color_picker		= w.active_color_picker;
+			window.color_picker_value		= w.color_picker_value;
+			window.color_picker_hue			= w.color_picker_hue;
+			window.color_picker_saturation	= w.color_picker_saturation;
+			window.color_picker_brightness	= w.color_picker_brightness;
+			window.color_picker_alpha		= w.color_picker_alpha;
+			window.color_picker_dragging	= w.color_picker_dragging;
+			window.color_picker_drag_type	= w.color_picker_drag_type;
+			gmui_end(true);
+		};
+    }
 }
 
 // Add sprite to draw list
@@ -1044,7 +1075,17 @@ function gmui_render_surface(window) {
 			        }
 			    }
     
-			    draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, false);
+			    //draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, false);
+				draw_primitive_begin_texture(pr_trianglelist, -1);
+				draw_vertex_texture(cmd.x, cmd.y + cmd.height, 0, 1);
+				draw_vertex_texture(cmd.x, cmd.y, 0, 0);
+				draw_vertex_texture(cmd.x + cmd.width, cmd.y, 1, 0);
+				
+				draw_vertex_texture(cmd.x + cmd.width, cmd.y + cmd.height, 1, 1);
+				draw_vertex_texture(cmd.x, cmd.y + cmd.height, 0, 1);
+				draw_vertex_texture(cmd.x + cmd.width, cmd.y, 1, 0);
+				draw_primitive_end();
+				
 			    shader_reset();
 			    break;
         }
@@ -1065,6 +1106,18 @@ function gmui_render() {
     if (!global.gmui.initialized) return;
     
     var names = variable_struct_get_names(global.gmui.windows);
+	
+	// hovering
+	global.gmui.hovering_window = undefined;
+    for (var i = array_length(names) - 1; i >= 0; i--) {
+        var window = global.gmui.windows[$ names[i]];
+        if (window.active && window.open) {
+			var mouse_over = (device_mouse_x_to_gui(0) > window.x && device_mouse_x_to_gui(0) < window.x + window.width) && (device_mouse_y_to_gui(0) > window.y && device_mouse_y_to_gui(0) < window.y + window.height);
+			if (mouse_over) { global.gmui.hovering_window = window; break; };
+        }
+    }
+	
+	// rendering
     for (var i = 0; i < array_length(names); i++) {
         var window = global.gmui.windows[$ names[i]];
         if (window.active && window.open) {
@@ -1202,8 +1255,9 @@ function gmui_button_width(label, width) {
 function gmui_is_mouse_over_window(window) {
     var mx = global.gmui.mouse_pos[0];
     var my = global.gmui.mouse_pos[1];
-    return (mx >= window.x && mx <= window.x + window.width &&
-            my >= window.y && my <= window.y + window.height);
+    var result = ((mx >= window.x && mx <= window.x + window.width &&
+            my >= window.y && my <= window.y + window.height)) && global.gmui.hovering_window == window;
+	return result;
 }
 
 // Utility function: Check if point is in rectangle
@@ -4239,11 +4293,6 @@ function gmui_draw_alpha_bar(x, y, width, height, rgb_color) {
     }
 }
 
-/// @function gmui_color_button(color, size = -1)
-/// @desc Display a color button that shows the current color
-/// @param {number} color GameMaker color
-/// @param {number} size Button size (optional)
-/// @return {bool} True if clicked
 function gmui_color_button(color, size = -1) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
     
@@ -4407,8 +4456,8 @@ function gmui_color_picker() {
                        style.color_picker_alpha_height + 0/*style.color_picker_preview_size*/ + 
                        style.color_picker_padding * 4;
     
-    var picker_x = (window.width - picker_width) / 2;
-    var picker_y = (window.height - picker_height) / 2;
+    var picker_x = 0;//(window.width - picker_width) / 2;
+    var picker_y = 0;//(window.height - picker_height) / 2;
     
     // Draw color picker background
     gmui_add_rect(picker_x, picker_y, picker_width, picker_height, style.background_color);
@@ -4680,7 +4729,7 @@ function gmui_draw_saturation_brightness_shader(x, y, w, h, hue) {
 /// @param {array} rgb_color [r, g, b] normalized 0-1
 function gmui_draw_alpha_bar_shader(x, y, w, h, rgb_color) {
     gmui_add_shader_rect(x, y, w, h, shdAlphaGradient, [
-        { type: "vec3", name: "u_color", value: rgb_color }
+        { type: "vec3", name: "u_color", value: [rgb_color[0] / 255, rgb_color[1] / 255, rgb_color[2] / 255] }
     ]);
 }
 
@@ -4774,3 +4823,11 @@ function gmui_array_to_color_rgba(rgba) {
     var a = clamp(rgba[3], 0, 255);
     return gmui_make_color_rgba(r, g, b, a);
 }
+
+function gmui_color_rgba_to_color_rgb(rgba) { // if i call 'gmui_color_rgba_to_array', gamemaker tries to suicide
+	var a = (rgba >> 24) & 255;
+	var r = (rgba >> 16) & 255;
+	var g = (rgba >> 8) & 255;
+	var b = rgba & 255;
+	return make_color_rgb(r, g, b);
+};

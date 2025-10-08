@@ -13,6 +13,7 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL 
 		if (gmui_button("Click Me!")) { show_debug_message("Hello World!"); };
 		//cbc = gmui_color_button(cbc, 64);
 		cbc = gmui_color_edit_4("test", cbc);
+		gmui_color_button(gmui_color_rgba_to_color_rgb(cbc), 64);
 	} break;
 	
 	case 2: {
