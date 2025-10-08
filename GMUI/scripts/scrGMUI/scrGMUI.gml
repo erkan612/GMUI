@@ -44,6 +44,7 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			to_delete_color_picker: false,
 			is_hovering_element: false,
 			hovering_window: undefined,
 			recent_scissor: undefined,
@@ -387,7 +388,7 @@ function gmui_create_surface(window) {
 function gmui_update_input() {
     if (!global.gmui.initialized) return;
     
-    global.gmui.mouse_pos = [mouse_x, mouse_y];
+    global.gmui.mouse_pos = [device_mouse_x_to_gui(0), device_mouse_y_to_gui(0)];
     
 	var mbArray = [ mb_left, mb_right, mb_middle, mb_side1, mb_side2 ];
 	
@@ -770,8 +771,10 @@ function gmui_end(_no_repeat = false) {
     if (window.active_color_picker != undefined && !_no_repeat) {
 		var picker_width = style.color_picker_width;
 		var picker_height = style.color_picker_height + style.color_picker_hue_height + style.color_picker_alpha_height + style.color_picker_padding * 4;
-		if (gmui_begin(window.name + "_color_picker_" + string(window.dc.cursor_x * window.dc.cursor_y + 1), device_mouse_x_to_gui(0), device_mouse_y_to_gui(0), picker_width, picker_height, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+		var _id = "###" + window.name + "_color_picker";
+		if (gmui_begin(_id, global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], picker_width, picker_height, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
 			var w = global.gmui.current_window;
+			
 			w.active_color_picker			= window.active_color_picker;
 			w.color_picker_value			= window.color_picker_value;
 			w.color_picker_hue				= window.color_picker_hue;
@@ -780,7 +783,9 @@ function gmui_end(_no_repeat = false) {
 			w.color_picker_alpha			= window.color_picker_alpha;
 			w.color_picker_dragging			= window.color_picker_dragging;
 			w.color_picker_drag_type		= window.color_picker_drag_type;
+			
 			gmui_color_picker();
+			
 			window.active_color_picker		= w.active_color_picker;
 			window.color_picker_value		= w.color_picker_value;
 			window.color_picker_hue			= w.color_picker_hue;
@@ -789,7 +794,12 @@ function gmui_end(_no_repeat = false) {
 			window.color_picker_alpha		= w.color_picker_alpha;
 			window.color_picker_dragging	= w.color_picker_dragging;
 			window.color_picker_drag_type	= w.color_picker_drag_type;
+			
 			gmui_end(true);
+		};
+		if (global.gmui.to_delete_color_picker) {
+			variable_struct_remove(global.gmui.windows, _id);
+			global.gmui.to_delete_color_picker = false;
 		};
     }
 }
@@ -1106,6 +1116,8 @@ function gmui_render() {
     if (!global.gmui.initialized) return;
     
     var names = variable_struct_get_names(global.gmui.windows);
+	var secondaries = array_create(100);
+	var secondariesCount = 0;
 	
 	// hovering
 	global.gmui.hovering_window = undefined;
@@ -1120,6 +1132,25 @@ function gmui_render() {
 	// rendering
     for (var i = 0; i < array_length(names); i++) {
         var window = global.gmui.windows[$ names[i]];
+		
+		// push if secondary
+		if (string_copy(window.name, 1, 3) == "###") {
+			secondaries[secondariesCount] = window;
+			secondariesCount++;
+			continue;
+		};
+		
+        if (window.active && window.open) {
+            gmui_render_surface(window);
+            draw_surface(window.surface, window.x, window.y);
+            window.active = false;
+        }
+    }
+	
+	// render secondaries
+    for (var i = 0; i < secondariesCount; i++) {
+        var window = secondaries[i];
+		
         if (window.active && window.open) {
             gmui_render_surface(window);
             draw_surface(window.surface, window.x, window.y);
@@ -4293,20 +4324,22 @@ function gmui_draw_alpha_bar(x, y, width, height, rgb_color) {
     }
 }
 
-function gmui_color_button(color, size = -1) {
+function gmui_color_button(color_rgba, size = -1) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
     
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	
+	var arr_rgba = gmui_color_rgba_to_array(color_rgba);
     
     // Calculate button size
     var button_size = size > 0 ? size : style.color_button_size;
     
     // Check if button fits on current line
-    if (dc.cursor_x + button_size > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
-        gmui_new_line();
-    }
+    //if (dc.cursor_x + button_size > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //    gmui_new_line();
+    //}
     
     // Calculate button bounds
     var button_x = dc.cursor_x;
@@ -4336,7 +4369,7 @@ function gmui_color_button(color, size = -1) {
     gmui_draw_checkerboard_shader(button_x, button_y, button_size, button_size);
     
     // Draw color
-    gmui_add_rect(button_x, button_y, button_size, button_size, color);
+    gmui_add_rect_alpha(button_x, button_y, button_size, button_size, make_color_rgb(arr_rgba[0], arr_rgba[1], arr_rgba[2]), arr_rgba[3] / 255);
     
     // Draw border based on state
     var border_color = style.color_button_border_color;
@@ -4384,7 +4417,7 @@ function gmui_color_edit_4(label, rgba) {
 	if (label != "") {gmui_text(label); gmui_same_line();};
     
     // Draw color preview button
-    var preview_clicked = gmui_color_button(make_color_rgb(color_array[0], color_array[1], color_array[2]), style.color_button_size);
+    var preview_clicked = gmui_color_button(rgba, style.color_button_size);
     
     // If color button clicked, open color picker
     if (preview_clicked) {
@@ -4595,6 +4628,7 @@ function gmui_color_picker() {
     // Check for clicks outside picker to close it
     if (global.gmui.mouse_clicked[0] && !mouse_over_picker) {
         window.active_color_picker = undefined;
+		global.gmui.to_delete_color_picker = true;
     }
     
     // Handle dragging in color areas
