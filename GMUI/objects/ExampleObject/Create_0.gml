@@ -19,4 +19,5 @@ v4 = [ 0, 0, 0, 0 ];
 
 global.gmui.font = fnCascadiaCode;
 
-cbc = gmui_make_color_rgba(0, 0, 255, 255);
+editc4 = gmui_make_color_rgba(0, 0, 255, 255);
+buttonc4 = gmui_make_color_rgba(255, 0, 255, 255);

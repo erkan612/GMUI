@@ -59,7 +59,7 @@ function gmui_init() {
 			drag_textbox_start_mouse_x: 0,
 			textbox_cursor_timer: 0,
 			textbox_cursor_visible: true,
-            windows: {},
+            windows: ds_list_create(),
             window_stack: [],
             current_window: undefined,
             mouse_pos: [0, 0],
@@ -368,12 +368,20 @@ function gmui_window_state() {
 // Get or create window
 function gmui_get_window(name) {
     if (!global.gmui.initialized) return undefined;
+	
+	var window = undefined;
+	for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
+		var w = global.gmui.windows[| i];
+		if (w.name == name) { window = w; };
+	};
     
-    if (!variable_struct_exists(global.gmui.windows, name)) {
-        global.gmui.windows[$ name] = gmui_window_state();
-        global.gmui.windows[$ name].name = name;
-    }
-    return global.gmui.windows[$ name];
+    if (window == undefined) {
+        window = gmui_window_state();
+        window.name = name;
+		ds_list_add(global.gmui.windows, window);
+    };
+	
+    return window;
 }
 
 // Create window surface
@@ -798,7 +806,7 @@ function gmui_end(_no_repeat = false) {
 			gmui_end(true);
 		};
 		if (global.gmui.to_delete_color_picker) {
-			variable_struct_remove(global.gmui.windows, _id);
+			ds_list_delete(global.gmui.windows, ds_list_find_index(global.gmui.windows, gmui_get_window(_id)))
 			global.gmui.to_delete_color_picker = false;
 		};
     }
@@ -1121,8 +1129,8 @@ function gmui_render() {
 	
 	// hovering
 	global.gmui.hovering_window = undefined;
-    for (var i = array_length(names) - 1; i >= 0; i--) {
-        var window = global.gmui.windows[$ names[i]];
+    for (var i = ds_list_size(global.gmui.windows) - 1; i >= 0; i--) {
+        var window = global.gmui.windows[| i];
         if (window.active && window.open) {
 			var mouse_over = (device_mouse_x_to_gui(0) > window.x && device_mouse_x_to_gui(0) < window.x + window.width) && (device_mouse_y_to_gui(0) > window.y && device_mouse_y_to_gui(0) < window.y + window.height);
 			if (mouse_over) { global.gmui.hovering_window = window; break; };
@@ -1130,8 +1138,8 @@ function gmui_render() {
     }
 	
 	// rendering
-    for (var i = 0; i < array_length(names); i++) {
-        var window = global.gmui.windows[$ names[i]];
+    for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
+        var window = global.gmui.windows[| i];
 		
 		// push if secondary
 		if (string_copy(window.name, 1, 3) == "###") {
@@ -1162,15 +1170,15 @@ function gmui_render() {
 // Cleanup
 function gmui_cleanup() {
     if (global.gmui && global.gmui.initialized) {
-        var names = variable_struct_get_names(global.gmui.windows);
-        for (var i = 0; i < array_length(names); i++) {
-            var window = global.gmui.windows[$ names[i]];
+        for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
+            var window = global.gmui.windows[| i];
             if (surface_exists(window.surface)) surface_free(window.surface);
             // Destroy the treeview_open_nodes for this window
             if (ds_exists(window.treeview_open_nodes, ds_type_map)) {
                 ds_map_destroy(window.treeview_open_nodes);
             }
         }
+		ds_list_destroy(global.gmui.windows);
         global.gmui = undefined;
     }
 }
@@ -4392,6 +4400,87 @@ function gmui_color_button(color_rgba, size = -1) {
     gmui_new_line();
     
     return clicked && window.active;
+}
+
+function gmui_color_picker_open(rgba) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return rgba;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+	
+	var color_id = "color_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+	
+    var color_array = gmui_color_rgba_to_array(rgba);
+	
+	window.active_color_picker = color_id;
+	window.color_picker_value = color_array;
+	
+	// Convert RGB to HSV for the picker
+	var hsv = gmui_rgba_to_hsva(color_array[0], color_array[1], color_array[2], 255);
+	window.color_picker_hue = hsv[0];
+	window.color_picker_saturation = hsv[1];
+	window.color_picker_brightness = hsv[2];
+	window.color_picker_alpha = color_array[3];
+};
+
+function gmui_color_button_4(label, rgba) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return rgba;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Create a unique ID for this color editor
+    var color_edit_id = "color_edit_4_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    // Convert color to array
+    var color_array = gmui_color_rgba_to_array(rgba);
+    
+    // If this color editor has an active picker, use the picker's value
+    if (window.active_color_picker == color_edit_id) {
+        color_array = window.color_picker_value;
+        rgba = gmui_array_to_color_rgba(color_array);
+    }
+    
+    // Draw label
+	if (label != "") {gmui_text(label); gmui_same_line();};
+    
+    // Draw color preview button
+    var preview_clicked = gmui_color_button(rgba, style.color_button_size);
+    
+    // If color button clicked, open color picker
+    if (preview_clicked) {
+        window.active_color_picker = color_edit_id;
+        window.color_picker_value = color_array;
+        
+        // Convert RGB to HSV for the picker
+        var hsv = gmui_rgba_to_hsva(color_array[0], color_array[1], color_array[2], 255);
+        window.color_picker_hue = hsv[0];
+        window.color_picker_saturation = hsv[1];
+        window.color_picker_brightness = hsv[2];
+        window.color_picker_alpha = color_array[3];
+    }
+    
+    // Convert back to color
+    var new_color = gmui_array_to_color_rgba(color_array);
+    
+    // Update picker value if input fields changed
+    if (window.active_color_picker == color_edit_id && new_color != rgba) {
+        var new_array = gmui_color_rgba_to_array(new_color);
+        window.color_picker_value = new_array;
+        
+        // Update HSV for picker
+        var hsv = gmui_rgba_to_hsva(new_array[0], new_array[1], new_array[2], 255);
+        window.color_picker_hue = hsv[0];
+        window.color_picker_saturation = hsv[1];
+        window.color_picker_brightness = hsv[2];
+        window.color_picker_alpha = new_array[3];
+    }
+    
+    gmui_new_line();
+    
+    return new_color;
 }
 
 function gmui_color_edit_4(label, rgba) {

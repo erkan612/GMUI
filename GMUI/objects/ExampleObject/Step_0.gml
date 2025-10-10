@@ -5,14 +5,13 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL 
 	global.gmui.style.item_spacing[0] = 0;
 	if (gmui_selectable("Example 1", tabIdx == 1)) { tabIdx = 1; }; gmui_same_line();
 	if (gmui_selectable("Example 2", tabIdx == 2)) { tabIdx = 2; }; gmui_same_line();
-	if (gmui_selectable("Example 3", tabIdx == 3)) { tabIdx = 3; }; gmui_separator();
+	if (gmui_selectable("Example 3", tabIdx == 3)) { tabIdx = 3; }; gmui_same_line();
+	if (gmui_selectable("Example 4", tabIdx == 4)) { tabIdx = 4; }; gmui_separator();
 	global.gmui.style.item_spacing[0] = oldSpacingX;
 	
 	switch (tabIdx) {
 	case 1: {
 		if (gmui_button("Click Me!")) { show_debug_message("Hello World!"); };
-		cbc = gmui_color_edit_4("test", cbc);
-		gmui_color_button(cbc, 64);
 	} break;
 	
 	case 2: {
@@ -57,6 +56,11 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL 
 
 			gmui_collapsing_header_end();
 		};
+	} break;
+	
+	case 4: {
+		buttonc4 = gmui_color_button_4("Button Color 4", buttonc4);
+		editc4 = gmui_color_edit_4("Edit 4", editc4);
 	} break;
 	};
 	
