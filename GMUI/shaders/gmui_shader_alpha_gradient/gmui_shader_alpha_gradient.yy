@@ -1,10 +1,10 @@
 {
   "$GMShader":"",
-  "%Name":"shdHue",
-  "name":"shdHue",
+  "%Name":"gmui_shader_alpha_gradient",
+  "name":"gmui_shader_alpha_gradient",
   "parent":{
     "name":"Shaders",
-    "path":"folders/Shaders.yy",
+    "path":"folders/GMUI/Styles/Shaders.yy",
   },
   "resourceType":"GMShader",
   "resourceVersion":"2.0",

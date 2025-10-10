@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"gmui_style",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"gmui_style",
+  "parent":{
+    "name":"Styles",
+    "path":"folders/GMUI/Styles.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

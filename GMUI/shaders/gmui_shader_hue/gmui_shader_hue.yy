@@ -1,10 +1,10 @@
 {
   "$GMShader":"",
-  "%Name":"shdCheckerboard",
-  "name":"shdCheckerboard",
+  "%Name":"gmui_shader_hue",
+  "name":"gmui_shader_hue",
   "parent":{
     "name":"Shaders",
-    "path":"folders/Shaders.yy",
+    "path":"folders/GMUI/Styles/Shaders.yy",
   },
   "resourceType":"GMShader",
   "resourceVersion":"2.0",

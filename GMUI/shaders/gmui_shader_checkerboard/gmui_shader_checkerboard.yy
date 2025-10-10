@@ -1,10 +1,10 @@
 {
   "$GMShader":"",
-  "%Name":"shdSaturationBrightness",
-  "name":"shdSaturationBrightness",
+  "%Name":"gmui_shader_checkerboard",
+  "name":"gmui_shader_checkerboard",
   "parent":{
     "name":"Shaders",
-    "path":"folders/Shaders.yy",
+    "path":"folders/GMUI/Styles/Shaders.yy",
   },
   "resourceType":"GMShader",
   "resourceVersion":"2.0",

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"gmui_helpers",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"gmui_helpers",
+  "parent":{
+    "name":"Utilities",
+    "path":"folders/GMUI/Utilities.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

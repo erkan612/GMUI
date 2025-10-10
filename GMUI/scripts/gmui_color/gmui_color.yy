@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"gmui_color",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"gmui_color",
+  "parent":{
+    "name":"Elements",
+    "path":"folders/GMUI/Elements.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
