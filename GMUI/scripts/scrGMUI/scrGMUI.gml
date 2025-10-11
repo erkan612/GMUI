@@ -53,6 +53,7 @@ enum gmui_window_flags {
     SCROLL_WITH_MOUSE_WHEEL = 1 << 24, 
     SCROLLBAR_LEFT = 1 << 25,        
     SCROLLBAR_TOP = 1 << 26,         
+    POPUP = 1 << 27,
 	// TODO: add auto_hscroll and vscroll
 }
 
@@ -62,6 +63,7 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			modals: ds_list_create(),
 			to_delete_color_picker: false,
 			is_hovering_element: false,
 			hovering_window: undefined,
@@ -447,6 +449,8 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     if (!window) return false;
     
     var no_move = (flags & gmui_window_flags.NO_MOVE) == 0;
+	
+	var is_popup = (flags & gmui_window_flags.POPUP) != 0;
     
     // Handle initial positioning
     if (window.first_frame) {
@@ -455,6 +459,8 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
         if (w != -1) { window.width = w; window.initial_width = w; }
         if (h != -1) { window.height = h; window.initial_height = h; }
         window.first_frame = false;
+		
+		if (is_popup) { window.open = false; }; // if its a popup, initiate as closed
     } else if (!no_move) {
         if (x != -1) window.x = x;
         if (y != -1) window.y = y;
@@ -549,6 +555,27 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     return window.open;
 }
 
+function gmui_begin_modal(name, x, y, w, h, flags) {
+	if (gmui_begin(name + "_modal_background", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.POPUP)) {
+		gmui_end();
+	};
+	return gmui_begin(name, x, y, w, h, flags);
+};
+
+function gmui_open_modal(name) {
+	gmui_get_window(name + "_modal_background").open = true;
+	gmui_get_window(name).open = true;
+};
+
+function gmui_close_modal(name) {
+	gmui_get_window(name + "_modal_background").open = false;
+	gmui_get_window(name).open = false;
+};
+
+function gmui_add_modal(name, call, x = -1, y = -1, w = 300, h = 100, flags = gmui_window_flags.POPUP | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE) {
+	ds_list_add(global.gmui.modals, [ name, call, x, y, w, h, flags ]);
+};
+
 function gmui_end(_no_repeat = false) {
     if (!global.gmui.initialized || array_length(global.gmui.window_stack) == 0) return;
     
@@ -628,6 +655,7 @@ function gmui_cleanup() {
                 ds_map_destroy(window.treeview_open_nodes);
             }
         }
+		ds_list_destroy(global.gmui.modals);
         ds_list_destroy(global.gmui.windows);
         global.gmui = undefined;
     }
@@ -913,6 +941,28 @@ function gmui_update() {
 	gmui_update_input();
 };
 
+function gmui_handle_modals() {
+	var modals = global.gmui.modals;
+	for (var i = 0; i < ds_list_size(modals); i++) {
+		var modal = modals[| i];
+		var name = modal[0];
+		var call = modal[1];
+		var wx = modal[2];
+		var wy = modal[3];
+		var ww = modal[4];
+		var wh = modal[5];
+		var flags = modal[6];
+		
+		wx = wx == -1 ? surface_get_width(application_surface) / 2 - ww / 2 : wx;
+		wy = wy == -1 ? surface_get_height(application_surface) / 2 - wh / 2 : wy;
+		
+		if (gmui_begin_modal(name, wx, wy, ww, wh, flags)) {
+			call(gmui_get_window(name));
+			gmui_end();
+		};
+	};
+};
+
 //////////////////////////////////////
 // RENDER (Rendering, surface management)
 //////////////////////////////////////
@@ -1056,6 +1106,8 @@ function gmui_render_surface(window) {
 
 function gmui_render() {
     if (!global.gmui.initialized) return;
+	
+	gmui_handle_modals();
     
     var names = variable_struct_get_names(global.gmui.windows);
 	var secondaries = array_create(100);
