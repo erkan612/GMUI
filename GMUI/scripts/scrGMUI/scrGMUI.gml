@@ -64,6 +64,8 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			z_order_counter: 0,
+            window_z_order: ds_priority_create(),
 			modals: ds_list_create(),
 			to_delete_color_picker: false,
 			is_hovering_element: false,
@@ -390,6 +392,9 @@ function gmui_window_state() {
 		color_picker_alpha: 1,
 		color_picker_dragging: false,
 		color_picker_drag_type: 0, // 0 = none, 1 = hue, 2 = saturation/brightness, 3 = alpha
+		
+		z_index: 0,  // Current z-index (higher = more front)
+        z_id: 0,     // Unique ID for priority queue
         
         // Track content size for scroll calculations
         max_cursor_x: 0,
@@ -430,7 +435,14 @@ function gmui_get_window(name) {
     if (window == undefined) {
         window = gmui_window_state();
         window.name = name;
-		ds_list_add(global.gmui.windows, window);
+        
+        // Initialize z-order
+        global.gmui.z_order_counter++;
+        window.z_id = global.gmui.z_order_counter;
+        window.z_index = global.gmui.z_order_counter;
+        
+        ds_list_add(global.gmui.windows, window);
+        ds_priority_add(global.gmui.window_z_order, window, window.z_index);
     };
 	
     return window;
@@ -560,7 +572,10 @@ function gmui_begin_modal(name, x, y, w, h, flags) {
 	if (gmui_begin(name + "_modal_background", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.POPUP)) {
 		gmui_end();
 	};
-	return gmui_begin(name, x, y, w, h, flags);
+	gmui_bring_window_to_front(gmui_get_window(name + "_modal_background"));
+	var result = gmui_begin(name, x, y, w, h, flags);
+	gmui_bring_window_to_front(gmui_get_window(name));
+	return result;
 };
 
 function gmui_open_modal(name) {
@@ -658,6 +673,12 @@ function gmui_cleanup() {
         }
 		ds_list_destroy(global.gmui.modals);
         ds_list_destroy(global.gmui.windows);
+        
+        // Clean up z-order data structure
+        if (ds_exists(global.gmui.window_z_order, ds_type_priority)) {
+            ds_priority_destroy(global.gmui.window_z_order);
+        }
+		
         global.gmui = undefined;
     }
 }
@@ -1110,49 +1131,95 @@ function gmui_render() {
     if (!global.gmui.initialized) return;
 	
 	gmui_handle_modals();
-    
-    var names = variable_struct_get_names(global.gmui.windows);
-	var secondaries = array_create(100);
-	var secondariesCount = 0;
 	
-	// hovering
 	global.gmui.hovering_window = undefined;
-    for (var i = ds_list_size(global.gmui.windows) - 1; i >= 0; i--) {
-        var window = global.gmui.windows[| i];
-        if (window.active && window.open) {
-			var mouse_over = (device_mouse_x_to_gui(0) > window.x && device_mouse_x_to_gui(0) < window.x + window.width) && (device_mouse_y_to_gui(0) > window.y && device_mouse_y_to_gui(0) < window.y + window.height);
-			if (mouse_over) { global.gmui.hovering_window = window; break; };
-        }
-    }
+
+	// Check from highest z-index to lowest (front to back)
+	var hover_sorted = ds_priority_create();
+	for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
+	    var window = global.gmui.windows[| i];
+	    if (window.active && window.open) {
+	        ds_priority_add(hover_sorted, window, window.z_index);
+	    }
+	}
+
+	var hover_count = ds_priority_size(hover_sorted);
+	for (var i = 0; i < hover_count; i++) {
+	    var window = ds_priority_delete_max(hover_sorted); // Get from highest to lowest
+	    var mouse_over = (device_mouse_x_to_gui(0) > window.x && device_mouse_x_to_gui(0) < window.x + window.width) && 
+	                    (device_mouse_y_to_gui(0) > window.y && device_mouse_y_to_gui(0) < window.y + window.height);
+	    if (mouse_over) { 
+	        global.gmui.hovering_window = window; 
+	        break; 
+	    };
+	}
+
+	ds_priority_destroy(hover_sorted);
 	
-	// rendering
+	// Create a list of windows sorted by z-index (lowest first)
+    var sorted_windows = ds_priority_create();
     for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
         var window = global.gmui.windows[| i];
-		
-		// push if secondary
-		if (string_copy(window.name, 1, 3) == "###") {
-			secondaries[secondariesCount] = window;
-			secondariesCount++;
-			continue;
-		};
-		
         if (window.active && window.open) {
-            gmui_render_surface(window);
-            draw_surface(window.surface, window.x, window.y);
-            window.active = false;
+            ds_priority_add(sorted_windows, window, window.z_index);
         }
     }
+    
+    // Render windows from lowest z-index to highest (back to front)
+    var count = ds_priority_size(sorted_windows);
+    for (var i = 0; i < count; i++) {
+        var window = ds_priority_delete_min(sorted_windows);
+        gmui_render_surface(window);
+        draw_surface(window.surface, window.x, window.y);
+        window.active = false;
+    }
+    
+    ds_priority_destroy(sorted_windows);
 	
-	// render secondaries
-    for (var i = 0; i < secondariesCount; i++) {
-        var window = secondaries[i];
-		
-        if (window.active && window.open) {
-            gmui_render_surface(window);
-            draw_surface(window.surface, window.x, window.y);
-            window.active = false;
-        }
-    }
+	/////////////////////////////////////
+    
+    //var names = variable_struct_get_names(global.gmui.windows);
+	//var secondaries = array_create(100);
+	//var secondariesCount = 0;
+	//
+	//// hovering
+	//global.gmui.hovering_window = undefined;
+    //for (var i = ds_list_size(global.gmui.windows) - 1; i >= 0; i--) {
+    //    var window = global.gmui.windows[| i];
+    //    if (window.active && window.open) {
+	//		var mouse_over = (device_mouse_x_to_gui(0) > window.x && device_mouse_x_to_gui(0) < window.x + window.width) && (device_mouse_y_to_gui(0) > window.y && device_mouse_y_to_gui(0) < window.y + window.height);
+	//		if (mouse_over) { global.gmui.hovering_window = window; break; };
+    //    }
+    //}
+	//
+	//// rendering
+    //for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
+    //    var window = global.gmui.windows[| i];
+	//	
+	//	// push if secondary
+	//	if (string_copy(window.name, 1, 3) == "###") {
+	//		secondaries[secondariesCount] = window;
+	//		secondariesCount++;
+	//		continue;
+	//	};
+	//	
+    //    if (window.active && window.open) {
+    //        gmui_render_surface(window);
+    //        draw_surface(window.surface, window.x, window.y);
+    //        window.active = false;
+    //    }
+    //}
+	//
+	//// render secondaries
+    //for (var i = 0; i < secondariesCount; i++) {
+    //    var window = secondaries[i];
+	//	
+    //    if (window.active && window.open) {
+    //        gmui_render_surface(window);
+    //        draw_surface(window.surface, window.x, window.y);
+    //        window.active = false;
+    //    }
+    //}
 }
 
 function gmui_add_sprite(x, y, w, h, sprite, subimg = 0) {
@@ -4906,6 +4973,11 @@ function gmui_handle_window_interaction(window) {
 		window.title_bar_hovered = true;
     }
     
+    // BRING WINDOW TO FRONT ON CLICK
+    if (mouse_over_window && global.gmui.mouse_clicked[0] && !global.gmui.is_hovering_element && can_move) {
+        gmui_bring_window_to_front(window);
+    }
+    
     // Handle dragging
     if (can_move && has_title_bar && window.title_bar_hovered) {
         if (global.gmui.mouse_clicked[0]) {
@@ -4913,6 +4985,7 @@ function gmui_handle_window_interaction(window) {
             window.drag_offset_x = mouse_x_in_window;
             window.drag_offset_y = mouse_y_in_window;
             window.title_bar_active = true;
+			gmui_bring_window_to_front(window);
             
             // Double click detection for maximize/restore
 			if ((flags & gmui_window_flags.NO_COLLAPSE) == 0) {
@@ -5045,6 +5118,88 @@ function gmui_scissor_group(x, y, w, h, func) {
     gmui_begin_scissor(x, y, w, h);
     func();
     gmui_end_scissor();
+}
+
+function gmui_bring_window_to_front(window) {
+    if (!global.gmui.initialized || !window) return false;
+    
+    // Increment the global counter and update window z-index
+    global.gmui.z_order_counter++;
+    window.z_index = global.gmui.z_order_counter;
+    
+    // Update the priority queue
+    if (ds_priority_find_priority(global.gmui.window_z_order, window) != undefined) {
+        ds_priority_change_priority(global.gmui.window_z_order, window, window.z_index);
+    } else {
+        ds_priority_add(global.gmui.window_z_order, window, window.z_index);
+    }
+    
+    return true;
+}
+
+function gmui_send_window_to_back(window) {
+    if (!global.gmui.initialized || !window) return false;
+    
+    // Set to lowest possible z-index
+    window.z_index = 0;
+    
+    // Update the priority queue
+    if (ds_priority_find_priority(global.gmui.window_z_order, window) != undefined) {
+        ds_priority_change_priority(global.gmui.window_z_order, window, window.z_index);
+    } else {
+        ds_priority_add(global.gmui.window_z_order, window, window.z_index);
+    }
+    
+    return true;
+}
+
+function gmui_get_top_window() {
+    if (!global.gmui.initialized || ds_priority_size(global.gmui.window_z_order) == 0) 
+        return undefined;
+    
+    return ds_priority_find_max(global.gmui.window_z_order);
+}
+
+function gmui_get_window_z_order(window) {
+    if (!global.gmui.initialized || !window) return -1;
+    return window.z_index;
+}
+
+function gmui_set_window_z_order(window_name, z_index) {
+    if (!global.gmui.initialized) return false;
+    
+    var window = gmui_get_window(window_name);
+    if (!window) return false;
+    
+    window.z_index = z_index;
+    
+    // Update priority queue
+    if (ds_priority_find_value(global.gmui.window_z_order, window) != undefined) {
+        ds_priority_change_priority(global.gmui.window_z_order, window, z_index);
+    } else {
+        ds_priority_add(global.gmui.window_z_order, window, z_index);
+    }
+    
+    return true;
+}
+
+function gmui_get_all_windows_sorted() {
+    if (!global.gmui.initialized) return [];
+    
+    var sorted = ds_priority_create();
+    for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
+        var window = global.gmui.windows[| i];
+        ds_priority_add(sorted, window, window.z_index);
+    }
+    
+    var result = [];
+    var count = ds_priority_size(sorted);
+    for (var i = 0; i < count; i++) {
+        array_push(result, ds_priority_delete_min(sorted));
+    }
+    
+    ds_priority_destroy(sorted);
+    return result;
 }
 
 function gmui_demo() {
