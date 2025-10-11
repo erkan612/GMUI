@@ -1898,11 +1898,10 @@ function gmui_selectable(label, selected, width = -1, height = -1) {
 		global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_down[0]) {
             is_active = true;
+        }
+        if (global.gmui.mouse_released[0]) {
             clicked = true;
         }
-        //if (global.gmui.mouse_released[0]) {
-        //    clicked = true;
-        //}
     }
     
     // Draw selectable based on state and selection

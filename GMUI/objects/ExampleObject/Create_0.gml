@@ -6,6 +6,7 @@ scroll_y = 0;
 contentHeight = 0;
 
 tabIdx = 1;
+treeIdx = undefined;
 
 txD1 = "";
 

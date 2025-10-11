@@ -66,17 +66,20 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL 
 	
 	case 5: {
 		gmui_tree_node_reset();
-		var nodeBegin1 = gmui_tree_node_begin("Begin 1");
+		var nodeBegin1 = gmui_tree_node_begin("Begin 1", treeIdx == "Begin 1");
+		treeIdx = nodeBegin1[1] ? "Begin 1" : treeIdx;
 		if (nodeBegin1[0]) {
-			var nodeBegin11 = gmui_tree_node_begin("Begin 1.1");
+			var nodeBegin11 = gmui_tree_node_begin("Begin 1.1", treeIdx == "Begin 1.1");
+			treeIdx = nodeBegin11[1] ? "Begin 1.1" : treeIdx;
 			if (nodeBegin11[0]) {
-				gmui_tree_leaf("Leaf 1 of Begin 1.1");
+				if (gmui_tree_leaf("Leaf 1 of Begin 1.1", treeIdx == "Leaf 1 of Begin 1.1")) { treeIdx = "Leaf 1 of Begin 1.1"; };
 			};
 			gmui_tree_node_end();
 			
-			var nodeBegin12 = gmui_tree_node_begin("Begin 1.2");
+			var nodeBegin12 = gmui_tree_node_begin("Begin 1.2", treeIdx == "Begin 1.2");
+			treeIdx = nodeBegin12[1] ? "Begin 1.2" : treeIdx;
 			if (nodeBegin12[0]) {
-				gmui_tree_leaf("Leaf 1 of Begin 1.2");
+				if (gmui_tree_leaf("Leaf 1 of Begin 1.2", treeIdx == "Leaf 1 of Begin 1.2")) { treeIdx = "Leaf 1 of Begin 1.2"; };
 			};
 			gmui_tree_node_end();
 		};
