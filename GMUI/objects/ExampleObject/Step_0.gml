@@ -84,6 +84,12 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL 
 			gmui_tree_node_end();
 		};
 		gmui_tree_node_end();
+		
+		gmui_separator();
+		
+		var demo_items = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"];
+		
+		combo_index = gmui_combo("Simple Combo", combo_index, demo_items);
 	} break;
 	};
 	

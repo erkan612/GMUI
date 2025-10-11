@@ -18,7 +18,10 @@ v2 = [ 0, 0 ];
 v3 = [ 0, 0, 0 ];
 v4 = [ 0, 0, 0, 0 ];
 
-global.gmui.font = fnCascadiaCode;
+gmui_get().font = fnCascadiaCode;
 
 editc4 = gmui_make_color_rgba(0, 0, 255, 255);
 buttonc4 = gmui_make_color_rgba(255, 0, 255, 255);
+
+combo_index = 0;
+list_index = 0;
