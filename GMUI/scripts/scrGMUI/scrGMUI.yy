@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"gmui_scroll",
+  "%Name":"scrGMUI",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"gmui_scroll",
+  "name":"scrGMUI",
   "parent":{
-    "name":"Layout",
-    "path":"folders/GMUI/Layout.yy",
+    "name":"GMUI",
+    "path":"folders/GMUI.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

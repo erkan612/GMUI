@@ -4,7 +4,7 @@
   "name":"gmui_shader_checkerboard",
   "parent":{
     "name":"Shaders",
-    "path":"folders/GMUI/Styles/Shaders.yy",
+    "path":"folders/GMUI/Shaders.yy",
   },
   "resourceType":"GMShader",
   "resourceVersion":"2.0",

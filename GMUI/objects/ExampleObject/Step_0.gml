@@ -2,12 +2,13 @@ gmui_update();
 
 if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
-	global.gmui.style.item_spacing[0] = 0;
+	gmui_get().style.item_spacing[0] = 0;
 	if (gmui_selectable("Example 1", tabIdx == 1)) { tabIdx = 1; }; gmui_same_line();
 	if (gmui_selectable("Example 2", tabIdx == 2)) { tabIdx = 2; }; gmui_same_line();
 	if (gmui_selectable("Example 3", tabIdx == 3)) { tabIdx = 3; }; gmui_same_line();
-	if (gmui_selectable("Example 4", tabIdx == 4)) { tabIdx = 4; }; gmui_separator();
-	global.gmui.style.item_spacing[0] = oldSpacingX;
+	if (gmui_selectable("Example 4", tabIdx == 4)) { tabIdx = 4; }; gmui_same_line();
+	if (gmui_selectable("Example 5", tabIdx == 5)) { tabIdx = 5; }; gmui_separator();
+	gmui_get().style.item_spacing[0] = oldSpacingX;
 	
 	switch (tabIdx) {
 	case 1: {
@@ -17,7 +18,7 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL 
 	case 2: {
 		gmui_text("Hello! I'm GMUI! and you?");
 		txD1 = gmui_textbox(txD1, "Enter your name");
-		if (gmui_button("Enter") || (gmui_textbox_id() == gmui_get_focused_textbox_id() && keyboard_check_pressed(vk_enter))) { show_message("Hello " + txD1 + "!"); };
+		if (gmui_button("Enter") || (gmui_textbox_id() == gmui_get_focused_textbox_id() && keyboard_check_pressed(vk_enter))) { show_message("Hello " + txD1 + "!"); gmui_clear_textbox_focus(); };
 	} break;
 	
 	case 3: {
@@ -61,6 +62,25 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL 
 	case 4: {
 		buttonc4 = gmui_color_button_4("Button Color 4", buttonc4);
 		editc4 = gmui_color_edit_4("Edit 4", editc4);
+	} break;
+	
+	case 5: {
+		gmui_tree_node_reset();
+		var nodeBegin1 = gmui_tree_node_begin("Begin 1");
+		if (nodeBegin1[0]) {
+			var nodeBegin11 = gmui_tree_node_begin("Begin 1.1");
+			if (nodeBegin11[0]) {
+				gmui_tree_leaf("Leaf 1 of Begin 1.1");
+			};
+			gmui_tree_node_end();
+			
+			var nodeBegin12 = gmui_tree_node_begin("Begin 1.2");
+			if (nodeBegin12[0]) {
+				gmui_tree_leaf("Leaf 1 of Begin 1.2");
+			};
+			gmui_tree_node_end();
+		};
+		gmui_tree_node_end();
 	} break;
 	};
 	
