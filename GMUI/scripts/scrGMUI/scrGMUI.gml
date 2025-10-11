@@ -1,7 +1,24 @@
+/**************************************
+   ██████╗ ███╗   ███╗██╗   ██╗██╗
+  ██╔════╝ ████╗ ████║██║   ██║██║
+  ██║  ███╗██╔████╔██║██║   ██║██║
+  ██║   ██║██║╚██╔╝██║██║   ██║██║
+  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
+   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
+ GameMaker Immediate Mode UI Library
+           Version 1.0
+           
+           by erkan612
+           
+=======================================
+ A feature-rich ImGui-style UI system
+          for GameMaker
+=======================================
+**************************************/
+
 /************************************
  * CORE
  ***********************************/
-
 //////////////////////////////////////
 // CORE (Initialization, main loop, window management)
 //////////////////////////////////////
@@ -29,15 +46,14 @@ enum gmui_window_flags {
     NO_NAV_FOCUS = 1 << 17,
     UNSAVED_DOCUMENT = 1 << 18,
     NO_CLOSE = 1 << 19,
-    
-    // Scrollbar flags
     VERTICAL_SCROLL = 1 << 20,
     HORIZONTAL_SCROLL = 1 << 21,
-    AUTO_SCROLL = 1 << 22,           // Automatically show scrollbars when needed
-    ALWAYS_SCROLLBARS = 1 << 23,     // Always show scrollbars (even when not needed)
-    SCROLL_WITH_MOUSE_WHEEL = 1 << 24, // Enable mouse wheel scrolling
-    SCROLLBAR_LEFT = 1 << 25,        // Place vertical scrollbar on left side
-    SCROLLBAR_TOP = 1 << 26,         // Place horizontal scrollbar on top
+    AUTO_SCROLL = 1 << 22,           
+    ALWAYS_SCROLLBARS = 1 << 23,     
+    SCROLL_WITH_MOUSE_WHEEL = 1 << 24, 
+    SCROLLBAR_LEFT = 1 << 25,        
+    SCROLLBAR_TOP = 1 << 26,         
+	// TODO: add auto_hscroll and vscroll
 }
 
 function gmui_get() { return global.gmui; };
