@@ -1,5 +1,10 @@
 gmui_update();
 
+gmui_add_modal("Message", function(window) {
+	gmui_text("Hello World!");
+	if (gmui_button_width("OK", 300 - gmui_get().style.item_spacing[0] * 2)) { gmui_close_modal("Message"); };
+});
+
 if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
 	gmui_get().style.item_spacing[0] = 0;

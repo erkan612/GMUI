@@ -25,8 +25,3 @@ buttonc4 = gmui_make_color_rgba(255, 0, 255, 255);
 
 combo_index = 0;
 list_index = 0;
-
-gmui_add_modal("Message", function(window) {
-	gmui_text("Hello World!");
-	if (gmui_button_width("OK", 300 - gmui_get().style.item_spacing[0] * 2)) { gmui_close_modal("Message"); };
-});

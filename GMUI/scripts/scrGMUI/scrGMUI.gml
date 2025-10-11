@@ -940,6 +940,7 @@ function gmui_update_input() {
 function gmui_update() {
 	global.gmui.is_hovering_element = false;
 	gmui_update_input();
+	ds_list_clear(global.gmui.modals);
 };
 
 function gmui_handle_modals() {
