@@ -54,7 +54,8 @@ enum gmui_window_flags {
     SCROLLBAR_LEFT = 1 << 25,        
     SCROLLBAR_TOP = 1 << 26,         
     POPUP = 1 << 27,
-	// TODO: add auto_hscroll and vscroll
+    AUTO_HSCROLL = 1 << 28,
+    AUTO_VSCROLL = 1 << 29,
 }
 
 function gmui_get() { return global.gmui; };
@@ -4552,6 +4553,8 @@ function gmui_handle_scrollbars(window) {
     var has_vertical_scroll = (flags & gmui_window_flags.VERTICAL_SCROLL) != 0;
     var has_horizontal_scroll = (flags & gmui_window_flags.HORIZONTAL_SCROLL) != 0;
     var auto_scroll = (flags & gmui_window_flags.AUTO_SCROLL) != 0;
+    var auto_vscroll = (flags & gmui_window_flags.AUTO_VSCROLL) != 0;
+    var auto_hscroll = (flags & gmui_window_flags.AUTO_HSCROLL) != 0;
     var always_scrollbars = (flags & gmui_window_flags.ALWAYS_SCROLLBARS) != 0;
     var scroll_with_wheel = (flags & gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL) != 0;
     
@@ -4560,8 +4563,8 @@ function gmui_handle_scrollbars(window) {
     var content_area_height = window.height - window.dc.title_bar_height;
     
     // Determine if scrollbars are needed
-    var needs_vertical = has_vertical_scroll || (auto_scroll && window.content_height > content_area_height);
-    var needs_horizontal = has_horizontal_scroll || (auto_scroll && window.content_width > content_area_width);
+    var needs_vertical = has_vertical_scroll || (auto_scroll && window.content_height > content_area_height) || (auto_vscroll && window.content_height > content_area_height);
+    var needs_horizontal = has_horizontal_scroll || (auto_scroll && window.content_width > content_area_width) || (auto_hscroll && window.content_width > content_area_width);
     
     var show_vertical = needs_vertical || (always_scrollbars && has_vertical_scroll);
     var show_horizontal = needs_horizontal || (always_scrollbars && has_horizontal_scroll);
@@ -4980,8 +4983,8 @@ function gmui_handle_window_interaction(window) {
     }
 	
 	// Handle Scrollbar to make sure elements dont overlap over mouse
-	var has_scrollbar_vertical = (window.flags & gmui_window_flags.VERTICAL_SCROLL) != 0 || (window.flags & gmui_window_flags.AUTO_SCROLL) != 0;
-	var has_scrollbar_horizontal = (window.flags & gmui_window_flags.HORIZONTAL_SCROLLBAR) != 0 || (window.flags & gmui_window_flags.AUTO_SCROLL) != 0;
+	var has_scrollbar_vertical = (window.flags & gmui_window_flags.VERTICAL_SCROLL) != 0 || (window.flags & gmui_window_flags.AUTO_SCROLL) != 0 || (window.flags & gmui_window_flags.AUTO_VSCROLL) != 0;
+	var has_scrollbar_horizontal = (window.flags & gmui_window_flags.HORIZONTAL_SCROLLBAR) != 0 || (window.flags & gmui_window_flags.AUTO_SCROLL) != 0 || (window.flags & gmui_window_flags.AUTO_HSCROLL) != 0;
 	
 	if (has_scrollbar_vertical) {
 		var content_width = window.width - style.scrollbar_width;

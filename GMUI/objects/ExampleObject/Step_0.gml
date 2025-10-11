@@ -1,6 +1,6 @@
 gmui_update();
 
-if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_SCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
+if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
 	gmui_get().style.item_spacing[0] = 0;
 	if (gmui_selectable("Example 1", tabIdx == 1)) { tabIdx = 1; }; gmui_same_line();
