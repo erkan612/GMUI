@@ -448,6 +448,24 @@ function gmui_get_window(name) {
     return window;
 }
 
+function gmui_get_window_idx(name) {
+    if (!global.gmui.initialized) return undefined;
+	
+	var idx = -1;
+	for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
+		var w = global.gmui.windows[| i];
+		if (w.name == name) { idx = i; };
+	};
+	
+    return idx;
+}
+
+function gmui_get_windows() {
+    if (!global.gmui.initialized) return undefined;
+	
+    return global.gmui.windows;
+}
+
 function gmui_create_surface(window) {
     if (surface_exists(window.surface)) surface_free(window.surface);
     window.surface = surface_create(max(1, window.width), max(1, window.height));
@@ -568,8 +586,9 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     return window.open;
 }
 
-function gmui_begin_modal(name, x, y, w, h, flags) {
+function gmui_begin_modal(name, x, y, w, h, flags, onBgClick = undefined) {
 	if (gmui_begin(name + "_modal_background", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.POPUP)) {
+		if (onBgClick != undefined) { onBgClick(); };
 		gmui_end();
 	};
 	gmui_bring_window_to_front(gmui_get_window(name + "_modal_background"));
@@ -579,17 +598,19 @@ function gmui_begin_modal(name, x, y, w, h, flags) {
 };
 
 function gmui_open_modal(name) {
-	gmui_get_window(name + "_modal_background").open = true;
-	gmui_get_window(name).open = true;
+	var idx = gmui_get_window_idx(name + "_modal_background");
+	gmui_get_windows()[| idx    ].open = true;
+	gmui_get_windows()[| idx + 1].open = true;
 };
 
 function gmui_close_modal(name) {
-	gmui_get_window(name + "_modal_background").open = false;
-	gmui_get_window(name).open = false;
+	var idx = gmui_get_window_idx(name + "_modal_background");
+	gmui_get_windows()[| idx    ].open = false;
+	gmui_get_windows()[| idx + 1].open = false;
 };
 
-function gmui_add_modal(name, call, x = -1, y = -1, w = 300, h = 100, flags = gmui_window_flags.POPUP | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE) {
-	ds_list_add(global.gmui.modals, [ name, call, x, y, w, h, flags ]);
+function gmui_add_modal(name, call, x = -1, y = -1, w = 300, h = 100, flags = gmui_window_flags.POPUP | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE, onBgClick = undefined) {
+	ds_list_add(global.gmui.modals, [ name, call, x, y, w, h, flags, onBgClick ]);
 };
 
 function gmui_end(_no_repeat = false) {
@@ -975,11 +996,12 @@ function gmui_handle_modals() {
 		var ww = modal[4];
 		var wh = modal[5];
 		var flags = modal[6];
+		var onBgClick = modal[7];
 		
 		wx = wx == -1 ? surface_get_width(application_surface) / 2 - ww / 2 : wx;
 		wy = wy == -1 ? surface_get_height(application_surface) / 2 - wh / 2 : wy;
 		
-		if (gmui_begin_modal(name, wx, wy, ww, wh, flags)) {
+		if (gmui_begin_modal(name, wx, wy, ww, wh, flags, onBgClick)) {
 			call(gmui_get_window(name));
 			gmui_end();
 		};
@@ -2558,7 +2580,7 @@ function gmui_tree_leaf(label, selected = false) {
     // Calculate node bounds
     var node_x = dc.cursor_x + indent + style.treeview_indent; // one extra indent
     var node_y = dc.cursor_y;
-    var node_width = window.width - style.window_padding[0] * 2 - indent;
+    var node_width = window.width - style.window_padding[0] * 2 - indent - style.treeview_indent; // one extra indent
     var node_bounds = [node_x, node_y, node_x + node_width, node_y + item_height];
     
     // Check for mouse interaction
