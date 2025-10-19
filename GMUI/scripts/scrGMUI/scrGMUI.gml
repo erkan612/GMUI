@@ -64,6 +64,7 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			to_delete_combo: false,
 			z_order_counter: 0,
             window_z_order: ds_priority_create(),
 			modals: ds_list_create(),
@@ -371,7 +372,7 @@ function gmui_window_state() {
         active_combo: undefined,
         combo_items: undefined,
         combo_items_count: 0,
-        combo_current_index: 0,
+        combo_current_index: -1,
         combo_width: 0,
 		
 		// Scroll state
@@ -676,10 +677,54 @@ function gmui_end(_no_repeat = false) {
 			gmui_end(true);
 		};
 		if (global.gmui.to_delete_color_picker) {
-			ds_list_delete(global.gmui.windows, ds_list_find_index(global.gmui.windows, gmui_get_window(_id)))
+			ds_list_delete(global.gmui.windows, ds_list_find_index(global.gmui.windows, gmui_get_window(_id)));
 			global.gmui.to_delete_color_picker = false;
 		};
     }
+	
+	if (window.active_combo != undefined && !_no_repeat) {
+		var _id = "###" + window.name + "_combo_dropdown";
+        var dropdown_height = min(style.combo_dropdown_max_height, window.combo_items_count * style.combo_item_height);
+        var dropdown_width = window.combo_width;
+		
+		var dropdown_x = window.x + window.combo_x;
+        var dropdown_y = window.y + window.combo_y + window.combo_height;
+		
+		var screen_height = surface_get_height(application_surface);
+        if (dropdown_y + dropdown_height > screen_height) {
+            dropdown_y = window.y + window.combo_y - dropdown_height;
+        }
+		
+		if (gmui_begin(_id, dropdown_x, dropdown_y, dropdown_width, dropdown_height, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+			var w = global.gmui.current_window;
+			
+			w.active_combo				= window.active_combo;
+			w.combo_items				= window.combo_items;
+			w.combo_items_count			= window.combo_items_count;
+			w.combo_current_index		= window.combo_current_index;
+			w.combo_width				= window.combo_width;
+			w.combo_x					= window.combo_x;
+			w.combo_y					= window.combo_y;
+			w.combo_height				= window.combo_height;
+            
+            gmui_combo_dropdown();
+			
+			window.active_combo			= w.active_combo;
+			window.combo_items			= w.combo_items;
+			window.combo_items_count	= w.combo_items_count;
+			window.combo_current_index  = w.combo_current_index;
+			window.combo_width			= w.combo_width;
+			window.combo_x				= w.combo_x;
+			window.combo_y				= w.combo_y;
+			window.combo_height			= w.combo_height;
+            
+            gmui_end(true);
+		};
+		if (global.gmui.to_delete_combo) {
+			ds_list_delete(global.gmui.windows, ds_list_find_index(global.gmui.windows, gmui_get_window(_id)));
+			global.gmui.to_delete_combo = false;
+		};
+	};
 }
 
 function gmui_cleanup() {
@@ -1476,6 +1521,13 @@ function gmui_button(label, width = -1, height = -1) {
 	gmui_new_line();
     
     return clicked && window.active;
+}
+
+function gmui_button_width_fill(label, height = -1) {
+	var current_window = global.gmui.current_window;
+	var width = current_window.width - global.gmui.style.window_padding[0] * 2;
+	var button = gmui_button(label, width, height);
+	return button;
 }
 
 function gmui_button_small(label) {
@@ -4331,33 +4383,44 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
         }
         if (global.gmui.mouse_released[0]) {
             clicked = true;
-            // Toggle dropdown
-            if (is_active) {
-                window.active_combo = undefined;
-            } else {
+			// Open dropdown
+			if (window.active_combo != combo_id) {
                 window.active_combo = combo_id;
-                // Store combo state for dropdown
                 window.combo_items = items;
                 window.combo_items_count = items_count;
                 window.combo_current_index = current_index;
                 window.combo_width = combo_width;
-            }
+				window.combo_x = combo_x;
+				window.combo_y = combo_y;
+				window.combo_height = combo_height;
+			};
+            // Toggle dropdown
+            //if (is_active) {
+            //    window.active_combo = undefined;
+            //} else {
+            //    window.active_combo = combo_id;
+            //    // Store combo state for dropdown
+            //    window.combo_items = items;
+            //    window.combo_items_count = items_count;
+            //    window.combo_current_index = current_index;
+            //    window.combo_width = combo_width;
+            //}
         }
     }
     
     // Close dropdown if clicked outside
-    if (is_active && global.gmui.mouse_clicked[0] && !mouse_over) {
-        // Check if click is outside the dropdown too
-        var dropdown_height = min(style.combo_dropdown_max_height, items_count * style.combo_item_height);
-        var dropdown_bounds = [combo_x, combo_y + combo_height, combo_x + combo_width, combo_y + combo_height + dropdown_height];
-        var mouse_in_dropdown = gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
-                                                    global.gmui.mouse_pos[1] - window.y, 
-                                                    dropdown_bounds);
-        
-        if (!mouse_in_dropdown) {
-            window.active_combo = undefined;
-        }
-    }
+    //if (is_active && global.gmui.mouse_clicked[0] && !mouse_over) {
+    //    // Check if click is outside the dropdown too
+    //    var dropdown_height = min(style.combo_dropdown_max_height, items_count * style.combo_item_height);
+    //    var dropdown_bounds = [combo_x, combo_y + combo_height, combo_x + combo_width, combo_y + combo_height + dropdown_height];
+    //    var mouse_in_dropdown = gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+    //                                                global.gmui.mouse_pos[1] - window.y, 
+    //                                                dropdown_bounds);
+    //    
+    //    if (!mouse_in_dropdown) {
+    //        window.active_combo = undefined;
+    //    }
+    //}
     
     // Draw combo box background
     var bg_color = style.combo_bg_color;
@@ -4432,14 +4495,19 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
                      arrow_color);
     
     // Draw dropdown if active
-    if (is_active && items_count > 0) {
-        gmui_draw_combo_dropdown(window, combo_id, combo_x, combo_y + combo_height, combo_width);
-        
-        // Update current_index if selection changed in dropdown
-        if (window.combo_current_index != current_index) {
-            current_index = window.combo_current_index;
-        }
-    }
+    //if (is_active && items_count > 0) {
+    //    gmui_draw_combo_dropdown(window, combo_id, combo_x, combo_y + combo_height, combo_width);
+    //    
+    //    // Update current_index if selection changed in dropdown
+    //    if (window.combo_current_index != current_index) {
+    //        current_index = window.combo_current_index;
+    //    }
+    //}
+	
+	if (window.combo_current_index != -1) {
+		current_index = window.combo_current_index;
+		window.combo_current_index = -1;
+	};
     
     // Update cursor position
     dc.cursor_previous_x = dc.cursor_x;
@@ -4455,7 +4523,13 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
     return current_index;
 }
 
-function gmui_draw_combo_dropdown(window, combo_id, x, y, width) {
+function gmui_combo_dropdown() {
+	var window = global.gmui.current_window;
+	var combo_id = window.active_combo;
+	var cx = 0;
+	var cy = 0;
+	var width = window.combo_width;
+	
     var style = global.gmui.style;
     var items = window.combo_items;
     var items_count = window.combo_items_count;
@@ -4467,22 +4541,22 @@ function gmui_draw_combo_dropdown(window, combo_id, x, y, width) {
     
     // Adjust position if dropdown would go off screen
     var screen_height = window_get_height();
-    if (y + dropdown_height > screen_height) {
-        y = max(0, y - dropdown_height - style.combo_height);
+    if (cy + dropdown_height > screen_height) {
+        cy = max(0, cy - dropdown_height - style.combo_height);
     }
     
-    var dropdown_bounds = [x, y, x + width, y + dropdown_height];
+    var dropdown_bounds = [cx, cy, cx + width, cy + dropdown_height];
     
     // Draw dropdown background
-    gmui_add_rect(x, y, width, dropdown_height, style.combo_dropdown_bg_color);
+    gmui_add_rect(cx, cy, width, dropdown_height, style.combo_dropdown_bg_color);
     
     // Draw border
     if (style.combo_border_size > 0) {
-        gmui_add_rect_outline(x, y, width, dropdown_height, style.combo_dropdown_border_color, style.combo_border_size);
+        gmui_add_rect_outline(cx, cy, width, dropdown_height, style.combo_dropdown_border_color, style.combo_border_size);
     }
     
     // Setup scissor for dropdown content
-    gmui_begin_scissor(x, y, width, dropdown_height);
+    gmui_begin_scissor(cx, cy, width, dropdown_height);
     
     // Draw items
     var mouse_over_dropdown = gmui_is_mouse_over_window(window) && 
@@ -4490,9 +4564,14 @@ function gmui_draw_combo_dropdown(window, combo_id, x, y, width) {
                                                   global.gmui.mouse_pos[1] - window.y, 
                                                   dropdown_bounds);
     
+	if (global.gmui.mouse_clicked[0] && !mouse_over_dropdown) {
+		window.active_combo = undefined;
+		global.gmui.to_delete_combo = true;
+	}
+	
     for (var i = 0; i < items_count; i++) {
-        var item_y = y + i * item_height;
-        var item_bounds = [x, item_y, x + width, item_y + item_height];
+        var item_y = cy + i * item_height;
+        var item_bounds = [cx, item_y, cx + width, item_y + item_height];
         
         var item_mouse_over = mouse_over_dropdown && 
                               gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
@@ -4510,11 +4589,11 @@ function gmui_draw_combo_dropdown(window, combo_id, x, y, width) {
         }
         
         // Draw item background
-        gmui_add_rect(x, item_y, width, item_height, bg_color);
+        gmui_add_rect(cx, item_y, width, item_height, bg_color);
         
         // Draw item text
         var text_size = gmui_calc_text_size(items[i]);
-        var text_x = x + style.combo_padding[0];
+        var text_x = cx + style.combo_padding[0];
         var text_y = item_y + (item_height - text_size[1]) / 2;
         
         // Clip text if too long
@@ -4536,6 +4615,7 @@ function gmui_draw_combo_dropdown(window, combo_id, x, y, width) {
         if (item_mouse_over && global.gmui.mouse_released[0]) {
             window.combo_current_index = i;
             window.active_combo = undefined; // Close dropdown
+			global.gmui.to_delete_combo = true;
         }
     }
     

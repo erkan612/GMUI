@@ -2,18 +2,18 @@ gmui_update();
 
 gmui_add_modal("Message", function(window) {
 	gmui_text("Hello World!");
-	if (gmui_button_width("OK", 300 - gmui_get().style.item_spacing[0] * 2)) { gmui_close_modal("Message"); };
+	if (gmui_button_width_fill("OK")) { gmui_close_modal("Message"); };
 });
 
 if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
-	gmui_get().style.item_spacing[0] = 0;
+	global.gmui.style.item_spacing[0] = 0;
 	if (gmui_selectable("Example 1", tabIdx == 1)) { tabIdx = 1; }; gmui_same_line();
 	if (gmui_selectable("Example 2", tabIdx == 2)) { tabIdx = 2; }; gmui_same_line();
 	if (gmui_selectable("Example 3", tabIdx == 3)) { tabIdx = 3; }; gmui_same_line();
 	if (gmui_selectable("Example 4", tabIdx == 4)) { tabIdx = 4; }; gmui_same_line();
 	if (gmui_selectable("Example 5", tabIdx == 5)) { tabIdx = 5; }; gmui_separator();
-	gmui_get().style.item_spacing[0] = oldSpacingX;
+	global.gmui.style.item_spacing[0] = oldSpacingX;
 	
 	switch (tabIdx) {
 	case 1: {
