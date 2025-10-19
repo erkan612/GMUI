@@ -1,6 +1,6 @@
 # GMUI - GameMaker Immediate Mode UI Library
 
-A feature-rich, ImGui-style immediate mode UI system for GameMaker 2.3+. GMUI provides a comprehensive set of UI components with a clean, intuitive API that feels natural to GameMaker developers.
+A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehensive set of UI components with a clean, intuitive API that feels natural to GameMaker developers.
 
 ![GMUI Demo](https://img.shields.io/badge/GameMaker-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
