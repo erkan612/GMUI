@@ -45,6 +45,7 @@
     {"id":{"name":"gmui_shader_checkerboard","path":"shaders/gmui_shader_checkerboard/gmui_shader_checkerboard.yy",},},
     {"id":{"name":"gmui_shader_hue","path":"shaders/gmui_shader_hue/gmui_shader_hue.yy",},},
     {"id":{"name":"gmui_shader_saturation_brightness","path":"shaders/gmui_shader_saturation_brightness/gmui_shader_saturation_brightness.yy",},},
+    {"id":{"name":"Sprite1","path":"sprites/Sprite1/Sprite1.yy",},},
   ],
   "resourceType":"GMProject",
   "resourceVersion":"2.0",

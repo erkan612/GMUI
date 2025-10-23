@@ -1132,6 +1132,12 @@ function gmui_render_surface(window) {
 			        surface_free(cmd.surface);
 			    }
 			    break;
+                
+			case "surface_o":
+			    if (surface_exists(cmd.surface)) {
+			        draw_surface(cmd.surface, cmd.x, cmd.y);
+			    }
+			    break;
 			    
 			case "triangle":
 			    draw_set_color(cmd.color);
@@ -1370,6 +1376,14 @@ function gmui_add_shader_rect(x, y, w, h, shader, uniforms) {
     });
 }
 
+function gmui_add_surface(x, y, surface) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "surface_o",
+        x: x, y: y, surface: surface
+    });
+};
+
 /************************************
  * ELEMENTS
  ***********************************/
@@ -1586,6 +1600,23 @@ function gmui_button_disabled(label, width = -1, height = -1) {
     
     return false; // Disabled buttons never return true
 }
+
+function gmui_surface(surface) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+	gmui_add_surface(dc.cursor_x, dc.cursor_y, surface);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += surface_get_width(surface) + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, surface_get_height(surface));
+	
+	gmui_new_line();
+};
 
 //////////////////////////////////////
 // COLOR
