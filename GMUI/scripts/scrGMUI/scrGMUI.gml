@@ -592,9 +592,9 @@ function gmui_begin_modal(name, x, y, w, h, flags, onBgClick = undefined) {
 		if (onBgClick != undefined) { onBgClick(); };
 		gmui_end();
 	};
-	gmui_bring_window_to_front(gmui_get_window(name + "_modal_background"));
+	//gmui_bring_window_to_front(gmui_get_window(name + "_modal_background"));
 	var result = gmui_begin(name, x, y, w, h, flags);
-	gmui_bring_window_to_front(gmui_get_window(name));
+	//gmui_bring_window_to_front(gmui_get_window(name));
 	return result;
 };
 
@@ -602,6 +602,8 @@ function gmui_open_modal(name) {
 	var idx = gmui_get_window_idx(name + "_modal_background");
 	gmui_get_windows()[| idx    ].open = true;
 	gmui_get_windows()[| idx + 1].open = true;
+	gmui_bring_window_to_front(gmui_get_windows()[| idx]);
+	gmui_bring_window_to_front(gmui_get_windows()[| idx + 1]);
 };
 
 function gmui_close_modal(name) {
