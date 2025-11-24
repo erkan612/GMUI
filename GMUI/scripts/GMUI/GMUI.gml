@@ -588,7 +588,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
 }
 
 function gmui_begin_modal(name, x, y, w, h, flags, onBgClick = undefined) {
-	if (gmui_begin(name + "_modal_background", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.POPUP)) {
+	if (gmui_begin(name + "_modal_background", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_MOVE | gmui_window_flags.POPUP)) {
 		if (onBgClick != undefined) { onBgClick(); };
 		gmui_end();
 	};

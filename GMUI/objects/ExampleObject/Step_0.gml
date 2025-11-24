@@ -5,6 +5,11 @@ gmui_add_modal("Message", function(window) {
 	if (gmui_button_width_fill("OK")) { gmui_close_modal("Message"); };
 });
 
+gmui_add_modal("Hey!", function(window) {
+	gmui_text("Hello " + txD1 + "!");
+	if (gmui_button_width_fill("OK")) { gmui_close_modal("Hey!"); };
+});
+
 if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
 	global.gmui.style.item_spacing[0] = 0;
@@ -18,13 +23,15 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 	switch (tabIdx) {
 	case 1: {
 		if (gmui_button("Click Me!")) { gmui_open_modal("Message"); };
-		gmui_surface(sprSurf);
 	} break;
 	
 	case 2: {
 		gmui_text("Hello! I'm GMUI! and you?");
 		txD1 = gmui_textbox(txD1, "Enter your name");
-		if (gmui_button("Enter") || (gmui_textbox_id() == gmui_get_focused_textbox_id() && keyboard_check_pressed(vk_enter))) { show_message("Hello " + txD1 + "!"); gmui_clear_textbox_focus(); };
+		if ((gmui_button("Enter") || (gmui_textbox_id() == gmui_get_focused_textbox_id() && keyboard_check_pressed(vk_enter))) && txD1 != "") {
+			gmui_clear_textbox_focus();
+			gmui_open_modal("Hey!");
+		};
 	} break;
 	
 	case 3: {

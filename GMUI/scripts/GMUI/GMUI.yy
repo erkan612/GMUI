@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"scrGMUI",
+  "%Name":"GMUI",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scrGMUI",
+  "name":"GMUI",
   "parent":{
     "name":"GMUI",
     "path":"folders/GMUI.yy",

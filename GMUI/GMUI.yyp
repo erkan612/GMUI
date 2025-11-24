@@ -33,14 +33,15 @@
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.14.0.207",
+    "IDEVersion":"2024.14.1.210",
   },
   "name":"GMUI",
   "resources":[
     {"id":{"name":"fnCascadiaCode","path":"fonts/fnCascadiaCode/fnCascadiaCode.yy",},},
     {"id":{"name":"ExampleObject","path":"objects/ExampleObject/ExampleObject.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
-    {"id":{"name":"scrGMUI","path":"scripts/scrGMUI/scrGMUI.yy",},},
+    {"id":{"name":"cUtils","path":"scripts/cUtils/cUtils.yy",},},
+    {"id":{"name":"GMUI","path":"scripts/GMUI/GMUI.yy",},},
     {"id":{"name":"gmui_shader_alpha_gradient","path":"shaders/gmui_shader_alpha_gradient/gmui_shader_alpha_gradient.yy",},},
     {"id":{"name":"gmui_shader_checkerboard","path":"shaders/gmui_shader_checkerboard/gmui_shader_checkerboard.yy",},},
     {"id":{"name":"gmui_shader_hue","path":"shaders/gmui_shader_hue/gmui_shader_hue.yy",},},
