@@ -33,7 +33,6 @@ gmui_init();
 // Step Event
 gmui_update();
 
-// Draw GUI Event
 if (gmui_begin("My Window", 100, 100, 400, 300)) {
     gmui_text("Hello GMUI!");
     
@@ -47,6 +46,7 @@ if (gmui_begin("My Window", 100, 100, 400, 300)) {
     gmui_end();
 }
 
+// Draw GUI Event
 gmui_render();
 ```
 
