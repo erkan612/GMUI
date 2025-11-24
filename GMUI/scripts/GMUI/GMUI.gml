@@ -340,8 +340,8 @@ function gmui_init() {
 				combo_item_selected_text_color: make_color_rgb(255, 255, 255),
             },
             font: draw_get_font(),
-			styler: {
-				button: function(data) { gmui_add_rect(data.x, data.y, data.width, data.height, data.color); },
+			styler: { // TODO: do this...
+				button: function(data) { gmui_add_rect(data.x, data.y, data.width, data.height, data.color); }, // here's an example
 			}
         };
     }
