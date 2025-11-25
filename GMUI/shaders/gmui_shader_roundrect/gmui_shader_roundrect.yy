@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"gmui_shader_roundrect",
+  "name":"gmui_shader_roundrect",
+  "parent":{
+    "name":"Shaders",
+    "path":"folders/GMUI/Shaders.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}

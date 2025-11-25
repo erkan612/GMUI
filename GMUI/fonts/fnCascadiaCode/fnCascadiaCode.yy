@@ -119,8 +119,8 @@
   "maintainGms1Font":false,
   "name":"fnCascadiaCode",
   "parent":{
-    "name":"Notes",
-    "path":"folders/Notes.yy",
+    "name":"Fonts",
+    "path":"folders/Fonts.yy",
   },
   "pointRounding":0,
   "ranges":[

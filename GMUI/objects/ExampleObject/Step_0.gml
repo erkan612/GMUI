@@ -10,8 +10,10 @@ gmui_add_modal("Hey!", function(window) {
 	if (gmui_button_width_fill("OK")) { gmui_close_modal("Hey!"); };
 });
 
-if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
+if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.AUTO_HSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
+	var oldRounding = global.gmui.style.selectable_rounding;
+	global.gmui.style.selectable_rounding = -1;
 	global.gmui.style.item_spacing[0] = 0;
 	if (gmui_selectable("Example 1", tabIdx == 1)) { tabIdx = 1; }; gmui_same_line();
 	if (gmui_selectable("Example 2", tabIdx == 2)) { tabIdx = 2; }; gmui_same_line();
@@ -19,6 +21,7 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 	if (gmui_selectable("Example 4", tabIdx == 4)) { tabIdx = 4; }; gmui_same_line();
 	if (gmui_selectable("Example 5", tabIdx == 5)) { tabIdx = 5; }; gmui_separator();
 	global.gmui.style.item_spacing[0] = oldSpacingX;
+	global.gmui.style.selectable_rounding = oldRounding;
 	
 	switch (tabIdx) {
 	case 1: {

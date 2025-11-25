@@ -90,10 +90,11 @@ function gmui_init() {
             mouse_down: [false, false, false, false, false],
             mouse_clicked: [false, false, false, false, false],
             mouse_released: [false, false, false, false, false],
+			default_modal_flags: gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.POPUP,
             frame_count: 0,
             style: {
                 window_padding: [8, 8],
-                window_rounding: 0,
+                window_rounding: 8,
                 window_border_size: 1,
                 window_min_size: [32, 32],
                 background_color: make_color_rgb(30, 30, 30),
@@ -284,13 +285,11 @@ function gmui_init() {
 				color_picker_alpha_height: 20,
 				color_picker_preview_size: 40,
 				color_picker_padding: 8,
-				color_picker_rounding: 4,
 				color_picker_border_size: 1,
 				color_picker_border_color: make_color_rgb(80, 80, 80),
 
 				// Color button styles
 				color_button_size: 20,
-				color_button_rounding: 4,
 				color_button_border_size: 1,
 				color_button_border_color: make_color_rgb(100, 100, 100),
 				color_button_hover_border_color: make_color_rgb(150, 150, 150),
@@ -298,7 +297,6 @@ function gmui_init() {
 
 				// Color edit styles
 				color_edit_height: 24,
-				color_edit_rounding: 4,
 				color_edit_border_size: 1,
 				color_edit_border_color: make_color_rgb(80, 80, 80),
 				color_edit_focused_border_color: make_color_rgb(100, 100, 255),
@@ -563,6 +561,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     // Draw background
     if ((flags & gmui_window_flags.NO_BACKGROUND) == 0) {
         gmui_add_rect_alpha(0, 0, window.width, window.height, global.gmui.style.background_color, global.gmui.style.background_alpha);
+		//gmui_add_shader_rect(0, 0, window.width, window.height, gmui_shader_roundrect, [ { type: "vec2", name: "u_size", value: [ window.width, window.height ] }, { type: "float", name: "u_radius", value: global.gmui.style.window_rounding }, { type: "float", name: "u_smooth", value: 2 }, { type: "vec4", name: "u_color", value: [ 0, 0, 0, 0 ] } ])
         if (global.gmui.style.window_border_size > 0) {
             gmui_add_rect_outline_alpha(0, 0, window.width, window.height, global.gmui.style.border_color, global.gmui.style.window_border_size, global.gmui.style.background_alpha);
         }
@@ -612,7 +611,7 @@ function gmui_close_modal(name) {
 	gmui_get_windows()[| idx + 1].open = false;
 };
 
-function gmui_add_modal(name, call, x = -1, y = -1, w = 300, h = 100, flags = gmui_window_flags.POPUP | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE, onBgClick = undefined) {
+function gmui_add_modal(name, call, x = -1, y = -1, w = 300, h = 100, flags = global.gmui.default_modal_flags, onBgClick = undefined) {
 	ds_list_add(global.gmui.modals, [ name, call, x, y, w, h, flags, onBgClick ]);
 };
 
@@ -1113,6 +1112,27 @@ function gmui_render_surface(window) {
                 draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, true);
                 draw_set_alpha(1);
                 break;
+			
+			case "rect_round":
+				draw_set_color(cmd.color);
+				draw_roundrect_ext(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.rounding, cmd.rounding, false);
+				break;
+			case "rect_round_outline":
+				draw_set_color(cmd.color);
+				draw_roundrect_ext(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.rounding, cmd.rounding, true);
+				break;
+			case "rect_round_alpha":
+				draw_set_alpha(cmd.alpha);
+				draw_set_color(cmd.color);
+				draw_roundrect_ext(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.rounding, cmd.rounding, false);
+				draw_set_alpha(1);
+				break;
+			case "rect_round_outline_alpha":
+				draw_set_alpha(cmd.alpha);
+				draw_set_color(cmd.color);
+				draw_roundrect_ext(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.rounding, cmd.rounding, true);
+				draw_set_alpha(1);
+				break;
                 
             case "text":
 				var oldBlendMode = gpu_get_blendmode();
@@ -1245,7 +1265,16 @@ function gmui_render() {
     for (var i = 0; i < count; i++) {
         var window = ds_priority_delete_min(sorted_windows);
         gmui_render_surface(window);
+		
+		// //gmui_add_shader_rect(0, 0, window.width, window.height, gmui_shader_roundrect, [ { type: "vec2", name: "u_size", value: [ window.width, window.height ] }, { type: "float", name: "u_radius", value: global.gmui.style.window_rounding }, { type: "float", name: "u_smooth", value: 2 }, { type: "vec4", name: "u_color", value: [ 0, 0, 0, 0 ] } ])
+		shader_set(gmui_shader_roundrect);
+		shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_size"), window.width, window.height);
+		shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_radius"), global.gmui.style.window_rounding);
+		shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_smooth"), 2);
+		shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_color"), 1, 1, 1, 1);
         draw_surface(window.surface, window.x, window.y);
+		shader_reset();
+		
         window.active = false;
     }
     
@@ -1329,6 +1358,34 @@ function gmui_add_rect_outline_alpha(x, y, w, h, col, thickness, a) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_outline", x: x, y: y, width: w, height: h, color: col, thickness: thickness, alpha: a
+    });
+}
+
+function gmui_add_rect_round(x, y, w, h, col, rnd) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "rect_round", x: x, y: y, width: w, height: h, color: col, rounding: rnd
+    });
+}
+
+function gmui_add_rect_round_outline(x, y, w, h, col, rnd, thickness) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "rect_round_outline", x: x, y: y, width: w, height: h, color: col, rounding: rnd, thickness: thickness
+    });
+}
+
+function gmui_add_rect_round_outline_alpha(x, y, w, h, col, rnd, thickness, a) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "rect_round_outline_alpha", x: x, y: y, width: w, height: h, color: col, rounding: rnd, thickness: thickness, alpha: a
+    });
+}
+
+function gmui_add_rect_round_alpha(x, y, w, h, col, rnd, a) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    array_push(global.gmui.current_window.draw_list, {
+        type: "rect_round_alpha", x: x, y: y, width: w, height: h, color: col, rounding: rnd, alpha: a
     });
 }
 
@@ -1517,11 +1574,11 @@ function gmui_button(label, width = -1, height = -1) {
     }
     
     // Draw button background
-    gmui_add_rect(button_x, button_y, button_width, button_height, bg_color);
+    gmui_add_rect_round(button_x, button_y, button_width, button_height, bg_color, style.button_rounding);
     
     // Draw border
     if (style.button_border_size > 0) {
-        gmui_add_rect_outline(button_x, button_y, button_width, button_height, border_color, style.button_border_size);
+        gmui_add_rect_round_outline(button_x, button_y, button_width, button_height, border_color, style.button_rounding, style.button_border_size);
     }
     
     // Draw text centered
@@ -1582,10 +1639,10 @@ function gmui_button_disabled(label, width = -1, height = -1) {
     var button_y = dc.cursor_y;
     
     // Draw disabled button
-    gmui_add_rect(button_x, button_y, button_width, button_height, style.button_disabled_bg_color);
+    gmui_add_rect_round(button_x, button_y, button_width, button_height, style.button_disabled_bg_color, style.button_rounding);
     
     if (style.button_border_size > 0) {
-        gmui_add_rect_outline(button_x, button_y, button_width, button_height, style.button_disabled_border_color, style.button_border_size);
+        gmui_add_rect_round_outline(button_x, button_y, button_width, button_height, style.button_disabled_border_color, style.button_rounding, style.button_border_size);
     }
     
     // Draw text centered
@@ -2219,11 +2276,11 @@ function gmui_selectable(label, selected, width = -1, height = -1) {
     }
     
     // Draw selectable background
-    gmui_add_rect(selectable_x, selectable_y, selectable_width, selectable_height, bg_color);
+    gmui_add_rect_round(selectable_x, selectable_y, selectable_width, selectable_height, bg_color, style.selectable_rounding);
     
     // Draw border
     if (style.selectable_border_size > 0) {
-        gmui_add_rect_outline(selectable_x, selectable_y, selectable_width, selectable_height, border_color, style.selectable_border_size);
+        gmui_add_rect_round_outline(selectable_x, selectable_y, selectable_width, selectable_height, border_color, style.selectable_rounding, style.selectable_border_size);
     }
     
     // Draw text centered
@@ -2952,12 +3009,12 @@ function gmui_collapsing_header(label, is_open) {
     }
     
     // Draw header background
-    gmui_add_rect(header_x, header_y, header_width, header_height, bg_color);
+    gmui_add_rect_round(header_x, header_y, header_width, header_height, bg_color, style.collapsible_header_rounding);
     
     // Draw border
     if (style.collapsible_header_border_size > 0) {
-        gmui_add_rect_outline(header_x, header_y, header_width, header_height, 
-                            border_color, style.collapsible_header_border_size);
+        gmui_add_rect_round_outline(header_x, header_y, header_width, header_height, 
+                            border_color, style.collapsible_header_rounding, style.collapsible_header_border_size);
     }
     
     // Draw arrow
@@ -3107,12 +3164,12 @@ function gmui_checkbox(label, value) {
     gmui_add_text(label_x, label_y, label, text_color);
     
     // Draw checkbox background (on the right)
-    gmui_add_rect(checkbox_x, checkbox_y, style.checkbox_size, style.checkbox_size, bg_color);
+    gmui_add_rect_round(checkbox_x, checkbox_y, style.checkbox_size, style.checkbox_size, bg_color, style.checkbox_rounding);
     
     // Draw border
     if (style.checkbox_border_size > 0) {
-        gmui_add_rect_outline(checkbox_x, checkbox_y, style.checkbox_size, style.checkbox_size, 
-                            border_color, style.checkbox_border_size);
+        gmui_add_rect_round_outline(checkbox_x, checkbox_y, style.checkbox_size, style.checkbox_size, 
+                            border_color, style.checkbox_rounding, style.checkbox_border_size);
     }
     
     // Draw checkmark if checked
@@ -3167,12 +3224,12 @@ function gmui_checkbox_disabled(label, value) {
     gmui_add_text(label_x, label_y, label, style.checkbox_text_disabled_color);
     
     // Draw disabled checkbox (on the right)
-    gmui_add_rect(checkbox_x, checkbox_y, style.checkbox_size, style.checkbox_size, 
-                 style.checkbox_disabled_bg_color);
+    gmui_add_rect_round(checkbox_x, checkbox_y, style.checkbox_size, style.checkbox_size, 
+                 style.checkbox_disabled_bg_color, style.checkbox_rounding);
     
     if (style.checkbox_border_size > 0) {
-        gmui_add_rect_outline(checkbox_x, checkbox_y, style.checkbox_size, style.checkbox_size, 
-                            style.checkbox_disabled_border_color, style.checkbox_border_size);
+        gmui_add_rect_round_outline(checkbox_x, checkbox_y, style.checkbox_size, style.checkbox_size, 
+                            style.checkbox_disabled_border_color, style.checkbox_rounding, style.checkbox_border_size);
     }
     
     // Draw checkmark if checked (disabled style)
@@ -3251,11 +3308,11 @@ function gmui_checkbox_box(value, size = -1) {
     }
     
     // Draw checkbox
-    gmui_add_rect(checkbox_x, checkbox_y, checkbox_size, checkbox_size, bg_color);
+    gmui_add_rect_round(checkbox_x, checkbox_y, checkbox_size, checkbox_size, bg_color, style.checkbox_rounding);
     
     if (style.checkbox_border_size > 0) {
-        gmui_add_rect_outline(checkbox_x, checkbox_y, checkbox_size, checkbox_size, 
-                            border_color, style.checkbox_border_size);
+        gmui_add_rect_round_outline(checkbox_x, checkbox_y, checkbox_size, checkbox_size, 
+                            border_color, style.checkbox_rounding, style.checkbox_border_size);
     }
     
     // Draw checkmark if checked
@@ -3382,18 +3439,18 @@ function gmui_slider(label, value, min_value, max_value, width = -1) {
     
     // Draw track background
     var track_bg_color = window.active ? style.slider_track_bg_color : make_color_rgb(50, 50, 50);
-    gmui_add_rect(track_bounds[0], track_bounds[1], slider_width, style.slider_track_height, track_bg_color);
+    gmui_add_rect_round(track_bounds[0], track_bounds[1], slider_width, style.slider_track_height, track_bg_color, style.slider_track_rounding);
     
     // Draw track fill
     if (window.active) {
         var fill_width = (handle_x - slider_x) + style.slider_handle_width / 2;
-        gmui_add_rect(track_bounds[0], track_bounds[1], fill_width, style.slider_track_height, style.slider_track_fill_color);
+        gmui_add_rect_round(track_bounds[0], track_bounds[1], fill_width, style.slider_track_height, style.slider_track_fill_color, style.slider_track_rounding);
     }
     
     // Draw track border
     if (style.slider_track_border_size > 0) {
         var track_border_color = window.active ? style.slider_track_border_color : make_color_rgb(70, 70, 70);
-        gmui_add_rect_outline(track_bounds[0], track_bounds[1], slider_width, style.slider_track_height, track_border_color, style.slider_track_border_size);
+        gmui_add_rect_round_outline(track_bounds[0], track_bounds[1], slider_width, style.slider_track_height, track_border_color, style.slider_track_rounding, style.slider_track_border_size);
     }
     
     // Draw handle based on state
@@ -3414,10 +3471,10 @@ function gmui_slider(label, value, min_value, max_value, width = -1) {
     }
     
     // Draw handle
-    gmui_add_rect(handle_x, handle_y, style.slider_handle_width, style.slider_handle_height, handle_bg_color);
+    gmui_add_rect_round(handle_x, handle_y, style.slider_handle_width, style.slider_handle_height, handle_bg_color, style.slider_handle_rounding);
     
     if (style.slider_handle_border_size > 0) {
-        gmui_add_rect_outline(handle_x, handle_y, style.slider_handle_width, style.slider_handle_height, handle_border_color, style.slider_handle_border_size);
+        gmui_add_rect_round_outline(handle_x, handle_y, style.slider_handle_width, style.slider_handle_height, handle_border_color, style.slider_handle_rounding, style.slider_handle_border_size);
     }
     
     // Update cursor position
@@ -3471,22 +3528,22 @@ function gmui_slider_disabled(label, value, min_value, max_value, width = -1) {
     gmui_add_text(dc.cursor_x, text_y, label, style.slider_text_disabled_color);
     
     // Draw disabled track background
-    gmui_add_rect(slider_x, track_y, slider_width, style.slider_track_height, make_color_rgb(50, 50, 50));
+    gmui_add_rect_round(slider_x, track_y, slider_width, style.slider_track_height, make_color_rgb(50, 50, 50), style.slider_track_rounding);
     
     // Draw disabled track fill (partial)
     var fill_width = (handle_x - slider_x) + style.slider_handle_width / 2;
-    gmui_add_rect(slider_x, track_y, fill_width, style.slider_track_height, make_color_rgb(80, 80, 80));
+    gmui_add_rect_round(slider_x, track_y, fill_width, style.slider_track_height, make_color_rgb(80, 80, 80), style.slider_track_rounding);
     
     // Draw track border
     if (style.slider_track_border_size > 0) {
-        gmui_add_rect_outline(slider_x, track_y, slider_width, style.slider_track_height, make_color_rgb(70, 70, 70), style.slider_track_border_size);
+        gmui_add_rect_round_outline(slider_x, track_y, slider_width, style.slider_track_height, make_color_rgb(70, 70, 70), style.slider_track_rounding, style.slider_track_border_size);
     }
     
     // Draw disabled handle
-    gmui_add_rect(handle_x, handle_y, style.slider_handle_width, style.slider_handle_height, style.slider_handle_disabled_bg_color);
+    gmui_add_rect_round(handle_x, handle_y, style.slider_handle_width, style.slider_handle_height, style.slider_handle_disabled_bg_color, style.slider_handle_rounding);
     
     if (style.slider_handle_border_size > 0) {
-        gmui_add_rect_outline(handle_x, handle_y, style.slider_handle_width, style.slider_handle_height, style.slider_handle_disabled_border_color, style.slider_handle_border_size);
+        gmui_add_rect_round_outline(handle_x, handle_y, style.slider_handle_width, style.slider_handle_height, style.slider_handle_disabled_border_color, style.slider_handle_rounding, style.slider_handle_border_size);
     }
     
     // Update cursor position
@@ -3608,12 +3665,12 @@ function gmui_textbox(text, placeholder = "", width = -1) {
     var bg_color = style.textbox_bg_color;
     var border_color = is_focused ? style.textbox_focused_border_color : style.textbox_border_color;
     
-    gmui_add_rect(textbox_x, textbox_y, textbox_width, textbox_height, bg_color);
+    gmui_add_rect_round(textbox_x, textbox_y, textbox_width, textbox_height, bg_color, style.textbox_rounding);
     
     // Draw border
     if (style.textbox_border_size > 0) {
-        gmui_add_rect_outline(textbox_x, textbox_y, textbox_width, textbox_height, 
-                            border_color, style.textbox_border_size);
+        gmui_add_rect_round_outline(textbox_x, textbox_y, textbox_width, textbox_height, 
+                            border_color, style.textbox_rounding, style.textbox_border_size);
     }
     
     // Create a surface for text clipping
@@ -3654,7 +3711,8 @@ function gmui_textbox(text, placeholder = "", width = -1) {
                     var selected_width = string_width(selected_text);
                     
                     draw_set_color(style.textbox_selection_color);
-                    draw_rectangle(prefix_width, 0, prefix_width + selected_width, text_size[1], false);
+                    //draw_rectangle(prefix_width, 0, prefix_width + selected_width, text_size[1], false);
+					draw_roundrect_ext(prefix_width, 0, prefix_width + selected_width, text_size[1] - 1, style.textbox_rounding, style.textbox_rounding, false);
                 }
                 
                 // Draw text
@@ -3996,12 +4054,12 @@ function gmui_input_float(value, step = 1, min_value = -1000000, max_value = 100
         bg_color = make_color_rgb(60, 60, 60);
     }
     
-    gmui_add_rect(textbox_x, textbox_y, textbox_width, textbox_height, bg_color);
+    gmui_add_rect_round(textbox_x, textbox_y, textbox_width, textbox_height, bg_color, style.drag_textbox_rounding);
     
     // Draw border
     if (style.drag_textbox_border_size > 0) {
-        gmui_add_rect_outline(textbox_x, textbox_y, textbox_width, textbox_height, 
-                            border_color, style.drag_textbox_border_size);
+        gmui_add_rect_round_outline(textbox_x, textbox_y, textbox_width, textbox_height, 
+                            border_color, style.drag_textbox_rounding, style.drag_textbox_border_size);
     }
     
     // Draw drag zone indicator (vertical line or dots)
@@ -4060,7 +4118,8 @@ function gmui_input_float(value, step = 1, min_value = -1000000, max_value = 100
                     var selected_width = string_width(selected_text);
                     
                     draw_set_color(style.drag_textbox_selection_color);
-                    draw_rectangle(prefix_width, 0, prefix_width + selected_width, text_size[1], false);
+                    //draw_rectangle(prefix_width, 0, prefix_width + selected_width, text_size[1], false);
+                    draw_roundrect_ext(prefix_width, 0, prefix_width + selected_width, text_size[1] - 1, style.drag_textbox_rounding, style.drag_textbox_rounding, false);
                 }
                 
                 // Draw text
@@ -4260,11 +4319,11 @@ function gmui_input_int(value, step = 1, min_value = -1000000, max_value = 10000
         bg_color = make_color_rgb(60, 60, 60);
     }
     
-    gmui_add_rect(textbox_x, textbox_y, textbox_width, textbox_height, bg_color);
+    gmui_add_rect_round(textbox_x, textbox_y, textbox_width, textbox_height, bg_color, style.drag_textbox_rounding);
     
     if (style.drag_textbox_border_size > 0) {
-        gmui_add_rect_outline(textbox_x, textbox_y, textbox_width, textbox_height, 
-                            border_color, style.drag_textbox_border_size);
+        gmui_add_rect_round_outline(textbox_x, textbox_y, textbox_width, textbox_height, 
+                            border_color, style.drag_textbox_rounding, style.drag_textbox_border_size);
     }
     
     if (!is_focused) {
@@ -4316,7 +4375,8 @@ function gmui_input_int(value, step = 1, min_value = -1000000, max_value = 10000
                     var selected_width = string_width(selected_text);
                     
                     draw_set_color(style.drag_textbox_selection_color);
-                    draw_rectangle(prefix_width, 0, prefix_width + selected_width, text_size[1], false);
+                    //draw_rectangle(prefix_width, 0, prefix_width + selected_width, text_size[1], false);
+                    draw_roundrect_ext(prefix_width, 0, prefix_width + selected_width, text_size[1] - 1, style.drag_textbox_rounding, style.drag_textbox_rounding, false);
                 }
                 
                 draw_set_color(style.drag_textbox_text_color);
@@ -4470,11 +4530,11 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
         border_color = style.combo_hover_border_color;
     }
     
-    gmui_add_rect(combo_x, combo_y, combo_width, combo_height, bg_color);
+    gmui_add_rect_round(combo_x, combo_y, combo_width, combo_height, bg_color, style.combo_rounding);
     
     // Draw border
     if (style.combo_border_size > 0) {
-        gmui_add_rect_outline(combo_x, combo_y, combo_width, combo_height, border_color, style.combo_border_size);
+        gmui_add_rect_round_outline(combo_x, combo_y, combo_width, combo_height, border_color, style.combo_rounding, style.combo_border_size);
     }
     
     // Draw current selection text
@@ -4581,11 +4641,11 @@ function gmui_combo_dropdown() {
     var dropdown_bounds = [cx, cy, cx + width, cy + dropdown_height];
     
     // Draw dropdown background
-    gmui_add_rect(cx, cy, width, dropdown_height, style.combo_dropdown_bg_color);
+    gmui_add_rect_round(cx, cy, width - 1, dropdown_height - 1, style.combo_dropdown_bg_color, style.combo_dropdown_rounding);
     
     // Draw border
     if (style.combo_border_size > 0) {
-        gmui_add_rect_outline(cx, cy, width, dropdown_height, style.combo_dropdown_border_color, style.combo_border_size);
+        gmui_add_rect_round_outline(cx, cy, width - 2, dropdown_height - 2, style.combo_dropdown_border_color, style.combo_dropdown_rounding, style.combo_border_size);
     }
     
     // Setup scissor for dropdown content
@@ -4622,7 +4682,7 @@ function gmui_combo_dropdown() {
         }
         
         // Draw item background
-        gmui_add_rect(cx, item_y, width, item_height, bg_color);
+        gmui_add_rect(cx + 5, item_y, width - 10, item_height, bg_color);
         
         // Draw item text
         var text_size = gmui_calc_text_size(items[i]);
@@ -4814,8 +4874,8 @@ function gmui_draw_vertical_scrollbar(window, content_width, content_height) {
     var scrollbar_height = content_height;
     
     // Draw scrollbar background
-    gmui_add_rect(scrollbar_x, scrollbar_y, scrollbar_width, scrollbar_height, 
-                 style.scrollbar_background_color);
+    gmui_add_rect_round(scrollbar_x, scrollbar_y, scrollbar_width - 1, scrollbar_height, 
+                 style.scrollbar_background_color, style.scrollbar_rounding);
     
     // Calculate anchor size and position
     var max_scroll = max(0, window.content_height - content_height);
@@ -4855,7 +4915,7 @@ function gmui_draw_vertical_scrollbar(window, content_width, content_height) {
         anchor_color = style.scrollbar_anchor_hover_color;
     }
     
-    gmui_add_rect(scrollbar_x, anchor_y, scrollbar_width, anchor_height, anchor_color);
+    gmui_add_rect_round(scrollbar_x, anchor_y, scrollbar_width - 1, anchor_height, anchor_color, style.scrollbar_rounding);
 }
 
 function gmui_draw_horizontal_scrollbar(window, content_width, content_height) {
@@ -4870,8 +4930,8 @@ function gmui_draw_horizontal_scrollbar(window, content_width, content_height) {
     var scrollbar_width = content_width;
     
     // Draw scrollbar background
-    gmui_add_rect(scrollbar_x, scrollbar_y, scrollbar_width, scrollbar_height, 
-                 style.scrollbar_background_color);
+    gmui_add_rect_round(scrollbar_x, scrollbar_y, scrollbar_width, scrollbar_height - 1, 
+                 style.scrollbar_background_color, style.scrollbar_rounding);
     
     // Calculate anchor size and position
     var max_scroll = max(0, window.content_width - content_width);
@@ -4911,7 +4971,7 @@ function gmui_draw_horizontal_scrollbar(window, content_width, content_height) {
         anchor_color = style.scrollbar_anchor_hover_color;
     }
     
-    gmui_add_rect(anchor_x, scrollbar_y, anchor_width, scrollbar_height, anchor_color);
+    gmui_add_rect_round(anchor_x, scrollbar_y, anchor_width, scrollbar_height - 1, anchor_color, style.scrollbar_rounding);
 }
 
 function gmui_is_scrollbar_interacting(window, bounds) {
