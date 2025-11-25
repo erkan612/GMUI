@@ -1467,6 +1467,129 @@ function gmui_text(text) {
     return false;
 }
 
+function gmui_text_wrap(text, wrap_width = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Use window width minus padding if no specific width provided
+    if (wrap_width == -1) {
+        wrap_width = window.width - style.window_padding[0] * 2 - dc.cursor_x;
+    }
+    
+    var words = string_split(text, " ");
+    var current_line = "";
+    var line_height = 0;
+    
+    for (var i = 0; i < array_length(words); i++) {
+        var word = words[i];
+        var test_line = current_line == "" ? word : current_line + " " + word;
+        var test_width = string_width(test_line);
+        
+        if (test_width <= wrap_width || current_line == "") {
+            // Word fits on current line (or it's the first word)
+            current_line = test_line;
+        } else {
+            // Word doesn't fit, draw current line and start new line
+            if (current_line != "") {
+                gmui_add_text(dc.cursor_x, dc.cursor_y, current_line, global.gmui.style.text_color);
+                var line_size = gmui_calc_text_size(current_line);
+                line_height = max(line_height, line_size[1]);
+                
+                // Move to next line
+                dc.cursor_previous_x = dc.cursor_x;
+                dc.cursor_x = dc.cursor_start_x + dc.scroll_offset_x;
+                dc.cursor_y += line_height + style.item_spacing[1];
+                dc.line_height = 0;
+            }
+            
+            // Start new line with current word
+            current_line = word;
+        }
+    }
+    
+    // Draw the last line
+    if (current_line != "") {
+        gmui_add_text(dc.cursor_x, dc.cursor_y, current_line, global.gmui.style.text_color);
+        var line_size = gmui_calc_text_size(current_line);
+        line_height = max(line_height, line_size[1]);
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x = dc.cursor_start_x + dc.scroll_offset_x;
+    dc.cursor_y += line_height + style.item_spacing[1];
+    dc.line_height = 0;
+    
+    return true;
+}
+
+function gmui_text_wrapped(text, wrap_width = -1, color = -1, line_spacing = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Use defaults if not specified
+    if (wrap_width == -1) {
+        wrap_width = window.width - style.window_padding[0] * 2 - dc.cursor_x;
+    }
+    if (color == -1) {
+        color = global.gmui.style.text_color;
+    }
+    if (line_spacing == -1) {
+        line_spacing = style.item_spacing[1];
+    }
+    
+    var words = string_split(text, " ");
+    var current_line = "";
+    var line_height = 0;
+    var lines_drawn = 0;
+    
+    for (var i = 0; i < array_length(words); i++) {
+        var word = words[i];
+        var test_line = current_line == "" ? word : current_line + " " + word;
+        var test_width = string_width(test_line);
+        
+        if (test_width <= wrap_width || current_line == "") {
+            current_line = test_line;
+        } else {
+            // Draw current line
+            gmui_add_text(dc.cursor_x, dc.cursor_y, current_line, color);
+            var line_size = gmui_calc_text_size(current_line);
+            line_height = max(line_height, line_size[1]);
+            
+            // Move to next line
+            dc.cursor_previous_x = dc.cursor_x;
+            dc.cursor_x = dc.cursor_start_x + dc.scroll_offset_x;
+            dc.cursor_y += line_height + line_spacing;
+            dc.line_height = 0;
+            lines_drawn++;
+            
+            current_line = word;
+        }
+    }
+    
+    // Draw the last line
+    if (current_line != "") {
+        gmui_add_text(dc.cursor_x, dc.cursor_y, current_line, color);
+        var line_size = gmui_calc_text_size(current_line);
+        line_height = max(line_height, line_size[1]);
+        lines_drawn++;
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x = dc.cursor_start_x + dc.scroll_offset_x;
+    dc.cursor_y += line_height + line_spacing;
+    dc.line_height = 0;
+    
+    return lines_drawn;
+}
+
 function gmui_text_disabled(text) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
     
@@ -5402,17 +5525,22 @@ function gmui_demo() { // TODO: finish this properly
     
     static show_demo_window = true;
     if (!show_demo_window) return;
-    
-    if (gmui_begin("GMUI Demo & Documentation", 20, 20, 600, 600, gmui_window_flags.NO_RESIZE | gmui_window_flags.AUTO_SCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
+	
+	static window_flags = gmui_window_flags.NO_RESIZE | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL;
+	
+    if (gmui_begin("GMUI Demo & Documentation", 20, 20, 600, 600, window_flags)) {
         
         // Demo window controls
-        gmui_text("GMUI v1.0 - ImGui-like UI Library for GameMaker");
-        gmui_text_disabled("Interactive demo showing all features");
+        gmui_text("GMUI v1.0 - Immediate-mode UI Library for GameMaker");
+        gmui_text_disabled("Interactive demo showing some of the features");
         gmui_separator();
         
         // Window information
-        if (gmui_collapsing_header("Help & About", true)[0]) {
-            gmui_text("GMUI provides an immediate-mode GUI system for GameMaker.");
+		static cho0 = true;
+		var header = gmui_collapsing_header("Help & About", cho0);
+		cho0 = header[1] ? !cho0 : cho0;
+        if (cho0) {
+            gmui_text("GMUI provides an immediate-mode UI system for GameMaker.");
             gmui_text("Features:");
             gmui_text("- Windows with dragging and resizing");
             gmui_text("- Comprehensive input handling");
@@ -5423,14 +5551,20 @@ function gmui_demo() { // TODO: finish this properly
             gmui_text("HOW TO USE:");
             gmui_text("1. Call gmui_init() in Create Event");
             gmui_text("2. Call gmui_update() in Step Event");
-            gmui_text("3. Create UI between gmui_begin()/gmui_end() in Draw Event");
-            gmui_text("4. Call gmui_render() after all windows");
+            gmui_text("3. Create UI between gmui_begin()/gmui_end() in Step Event");
+            gmui_text("4. Call gmui_render() in Draw GUI Event");
             gmui_text("5. Call gmui_cleanup() when done");
+            gmui_text("CONTACT:");
+			gmui_text("You can contact me from discord, erkan612");
+			gmui_text("If you've found a bug or problem, feel free to DM me!");
             gmui_collapsing_header_end();
         }
         
         // Basic widgets
-        if (gmui_collapsing_header("Basic Widgets", true)[0]) {
+		static cho1 = true;
+		header = gmui_collapsing_header("Basic Widgets", cho1);
+		cho1 = header[1] ? !cho1 : cho1;
+        if (cho1) {
             static basic_int = 0;
             static basic_float = 0.0;
             static basic_text = "Hello GMUI";
@@ -5442,12 +5576,12 @@ function gmui_demo() { // TODO: finish this properly
             gmui_same_line();
             if (gmui_button("Small", 80, 20)) { basic_int--; }
             gmui_same_line();
+            if (gmui_button_large("large")) { basic_int++; }
+            gmui_same_line();
             gmui_button_disabled("Disabled");
             
             gmui_text("Checkboxes");
             basic_check = gmui_checkbox("Checkbox", basic_check);
-            gmui_same_line();
-            basic_check = gmui_checkbox_box(basic_check);
             
             gmui_text("Selectables");
             if (gmui_selectable("Option A", basic_selectable == 0)) { basic_selectable = 0; } gmui_same_line();
@@ -5470,7 +5604,10 @@ function gmui_demo() { // TODO: finish this properly
         }
         
         // Sliders
-        if (gmui_collapsing_header("Sliders & Progress", true)[0]) {
+		static cho2 = true;
+		header = gmui_collapsing_header("Sliders & Progress", cho2);
+		cho2 = header[1] ? !cho2 : cho2;
+        if (cho2) {
             static slider_int = 50;
             static slider_float = 0.5;
             static slider_angle = 0.0;
@@ -5498,11 +5635,14 @@ function gmui_demo() { // TODO: finish this properly
         }
         
         // Color Picker
-        if (gmui_collapsing_header("Color Picker", true)[0]) {
+		static cho3 = true;
+		header = gmui_collapsing_header("Color Picker", cho3);
+		cho3 = header[1] ? !cho3 : cho3;
+        if (cho3) {
             static color = gmui_make_color_rgba(255, 128, 64, 255);
             
             gmui_text("Color Editor");
-            color = gmui_color_edit_4("MyColor##4", color);
+            color = gmui_color_edit_4("Color with inputs", color);
             
             color = gmui_color_button_4("Color Button", color);
             
@@ -5533,42 +5673,52 @@ function gmui_demo() { // TODO: finish this properly
         }
 		
         // Tree View
-        if (gmui_collapsing_header("Tree View", true)[0]) {
+		static cho4 = true;
+		header = gmui_collapsing_header("Tree View", cho4);
+		cho4 = header[1] ? !cho4 : cho4;
+        if (cho4) {
             gmui_text("Tree View Demo");
+            static selected_tree_item = -1;
             
 			gmui_tree_node_reset();
-            if (gmui_tree_node_begin("Basic trees", false)[0]) {
-                if (gmui_tree_node_begin("Node A", false)[0]) {
-                    if (gmui_tree_leaf("Node A.1")) {
-                        show_debug_message("Clicked A.1");
+			var node = gmui_tree_node_begin("Basic trees", selected_tree_item == "Basic trees");
+			selected_tree_item = node[1] ? "Basic trees" : selected_tree_item;
+            if (node[0]) {
+				node = gmui_tree_node_begin("Node A", selected_tree_item == "Node A");
+				selected_tree_item = node[1] ? "Node A" : selected_tree_item;
+                if (node[0]) {
+                    if (gmui_tree_leaf("Node A.1", selected_tree_item == "Node A.1")) {
+						selected_tree_item = "Node A.1";
                     }
-                    if (gmui_tree_leaf("Node A.2")) {
-                        show_debug_message("Clicked A.2");
+                    if (gmui_tree_leaf("Node A.2", selected_tree_item == "Node A.2")) {
+						selected_tree_item = "Node A.2";
                     }
-					gmui_tree_node_end();
                 }
+				gmui_tree_node_end();
                 
-                if (gmui_tree_node_begin("Node B", false)[0]) {
-                    if (gmui_tree_leaf("Node B.1")) {
-                        show_debug_message("Clicked B.1");
+				node = gmui_tree_node_begin("Node B", selected_tree_item == "Node B");
+				selected_tree_item = node[1] ? "Node B" : selected_tree_item;
+                if (node[0]) {
+                    if (gmui_tree_leaf("Node B.1", selected_tree_item == "Node B.1")) {
+						selected_tree_item = "Node B.1";
                     }
-                    if (gmui_tree_node_begin("Node B.2", false)[0]) {
-                        if (gmui_tree_leaf("Node B.2.1")) {
-                            show_debug_message("Clicked B.2.1");
+					node = gmui_tree_node_begin("Node B.2", selected_tree_item == "Node B.2");
+					selected_tree_item = node[1] ? "Node B.2" : selected_tree_item;
+                    if (node[0]) {
+                        if (gmui_tree_leaf("Node B.2.1", selected_tree_item == "Node B.2.1")) {
+							selected_tree_item = "Node B.2.1";
                         }
-						gmui_tree_node_end();
                     }
 					gmui_tree_node_end();
                 }
 				gmui_tree_node_end();
             }
+			gmui_tree_node_end();
             
             gmui_text("Selectable Tree Items");
-            static selected_tree_item = -1;
             for (var i = 0; i < 5; i++) {
                 if (gmui_tree_leaf("Tree Item " + string(i), selected_tree_item == i)) {
                     selected_tree_item = i;
-                    show_debug_message("Selected tree item: " + string(i));
                 }
             }
             
@@ -5576,7 +5726,10 @@ function gmui_demo() { // TODO: finish this properly
         }
         
         // Layout & Groups
-        if (gmui_collapsing_header("Layout & Groups", true)[0]) {
+		static cho5 = true;
+		header = gmui_collapsing_header("Layout & Groups", cho5);
+		cho5 = header[1] ? !cho5 : cho5;
+        if (cho5) {
             gmui_text("Same Line");
             if (gmui_button("Button A")) { }
             gmui_same_line();
@@ -5610,7 +5763,10 @@ function gmui_demo() { // TODO: finish this properly
         }
         
         // Text Display
-        if (gmui_collapsing_header("Text Display", true)[0]) {
+		static cho6 = true;
+		header = gmui_collapsing_header("Text Display", cho6);
+		cho6 = header[1] ? !cho6 : cho6;
+        if (cho6) {
             gmui_text("This is normal text");
             gmui_text_disabled("This is disabled text");
             
@@ -5620,26 +5776,16 @@ function gmui_demo() { // TODO: finish this properly
             gmui_label_text("Mouse Position", string(device_mouse_x_to_gui(0)) + ", " + string(device_mouse_y_to_gui(0)));
             
             gmui_text("Wrapping text demonstration:");
-            gmui_text("This is a longer piece of text that should wrap within the window boundaries and demonstrate how text flows in the GMUI system."); // add gmui_text_wrap
-            
-            gmui_collapsing_header_end();
-        }
-        
-        // Scrolling
-        if (gmui_collapsing_header("Scrolling", true)[0]) {
-            gmui_text("This section demonstrates scrolling functionality.");
-            gmui_text("Scroll with mouse wheel or scrollbars.");
-            
-            // Add enough content to require scrolling
-            for (var i = 0; i < 30; i++) {
-                gmui_selectable("Scrollable Item " + string(i), false);
-            }
+            gmui_text_wrap("This is a longer piece of text that should wrap within the window boundaries and demonstrate how text flows in the GMUI system."); // add gmui_text_wrap
             
             gmui_collapsing_header_end();
         }
         
         // Input Focus
-        if (gmui_collapsing_header("Input Focus", true)[0]) {
+		static cho7 = true;
+		header = gmui_collapsing_header("Input Focus", cho7);
+		cho7 = header[1] ? !cho7 : cho7;
+        if (cho7) {
             static focus_text1 = "";
             static focus_text2 = "";
             
@@ -5665,77 +5811,225 @@ function gmui_demo() { // TODO: finish this properly
         }
         
         // Window Flags Demo
-        if (gmui_collapsing_header("Window Flags", true)[0]) {
-            static flag_window_visible = false;
-            static window_flags = gmui_window_flags.NO_CLOSE;
-            
-            gmui_text("Window Flags Configuration");
-            if (gmui_checkbox("No Title Bar", (window_flags & gmui_window_flags.NO_TITLE_BAR) != 0)) {
-                window_flags ^= gmui_window_flags.NO_TITLE_BAR;
-            }
-            if (gmui_checkbox("No Resize", (window_flags & gmui_window_flags.NO_RESIZE) != 0)) {
-                window_flags ^= gmui_window_flags.NO_RESIZE;
-            }
-            if (gmui_checkbox("No Move", (window_flags & gmui_window_flags.NO_MOVE) != 0)) {
-                window_flags ^= gmui_window_flags.NO_MOVE;
-            }
-            if (gmui_checkbox("No Scrollbar", (window_flags & gmui_window_flags.NO_SCROLLBAR) != 0)) {
-                window_flags ^= gmui_window_flags.NO_SCROLLBAR;
-            }
-            if (gmui_checkbox("No Background", (window_flags & gmui_window_flags.NO_BACKGROUND) != 0)) {
-                window_flags ^= gmui_window_flags.NO_BACKGROUND;
-            }
-            if (gmui_checkbox("Auto Resize", (window_flags & gmui_window_flags.ALWAYS_AUTO_RESIZE) != 0)) {
-                window_flags ^= gmui_window_flags.ALWAYS_AUTO_RESIZE;
-            }
-            
-            if (gmui_button("Show/Hide Flag Window")) {
-                flag_window_visible = !flag_window_visible;
-            }
-            
-            if (flag_window_visible) {
-                if (gmui_begin("Flag Test Window", 650, 100, 300, 200, window_flags)) {
-                    gmui_text("This window demonstrates the selected flags.");
-                    gmui_text("Flags: " + string(window_flags));
-                    gmui_text("Try dragging, resizing, and scrolling!");
-                    gmui_end();
-                }
-            }
+		static cho8 = true;
+		header = gmui_collapsing_header("Window Flags", cho8);
+		cho8 = header[1] ? !cho8 : cho8;
+        if (cho8) {
+			gmui_text("Window Flags Configuration");
+			gmui_text("Title Bar");		gmui_same_line(); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_TITLE_BAR;	};
+			gmui_text("Resize");		gmui_same_line(); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_RESIZE;		};
+			gmui_text("Background");	gmui_same_line(); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_BACKGROUND; };
+			gmui_text("Move");			gmui_same_line(); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_MOVE;		};
             
             gmui_collapsing_header_end();
         }
         
         // Style Editor
-        if (gmui_collapsing_header("Style Editor", true)[0]) {
-            static style_editor_visible = false;
+		static cho9 = true;
+		header = gmui_collapsing_header("Style Editor", cho9);
+		cho9 = header[1] ? !cho9 : cho9;
+		if (cho9) {
+		    static style_editor_visible = false;
+    
+		    if (gmui_button("Show/Hide Style Editor")) {
+		        style_editor_visible = !style_editor_visible;
+		    }
+    
+		    if (style_editor_visible) {
+		        if (gmui_begin("Style Editor", 650, 20, 400, 500, gmui_window_flags.NO_CLOSE | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
+		            var style = global.gmui.style;
             
-            if (gmui_button("Show Style Editor")) {
-                style_editor_visible = !style_editor_visible;
-            }
+		            // Window Styles
+		            gmui_text("Window Padding");
+		            gmui_same_line();
+		            global.gmui.style.window_padding[0] = gmui_input_int(global.gmui.style.window_padding[0], 1, 0, 50);
+		            gmui_same_line();
+		            global.gmui.style.window_padding[1] = gmui_input_int(global.gmui.style.window_padding[1], 1, 0, 50);
             
-            if (style_editor_visible) {
-                if (gmui_begin("Style Editor", 650, 320, 300, 300, gmui_window_flags.NO_CLOSE)) {
-                    var style = global.gmui.style;
-                    
-                    gmui_text("Window Style");
-                    style.window_padding[0] = gmui_input_int(style.window_padding[0], 1, 0, 50);
-                    style.window_padding[1] = gmui_input_int(style.window_padding[1], 1, 0, 50);
-                    
-                    gmui_text("Colors");
-                    // Note: Color editing for styles would need additional implementation
-                    gmui_text_disabled("Color editing requires additional implementation");
-                    
-                    gmui_end();
-                }
-            }
+		            gmui_text("Window Rounding");
+		            gmui_same_line();
+		            global.gmui.style.window_rounding = gmui_input_int(global.gmui.style.window_rounding, 1, 0, 50);
             
-            gmui_collapsing_header_end();
-        }
+		            gmui_text("Window Border Size");
+		            gmui_same_line();
+		            global.gmui.style.window_border_size = gmui_input_int(global.gmui.style.window_border_size, 1, 0, 10);
+            
+		            gmui_text("Window Min Size");
+		            gmui_same_line();
+		            global.gmui.style.window_min_size[0] = gmui_input_int(global.gmui.style.window_min_size[0], 1, 10, 500);
+		            gmui_same_line();
+		            global.gmui.style.window_min_size[1] = gmui_input_int(global.gmui.style.window_min_size[1], 1, 10, 500);
+            
+		            // Colors
+		            static sBackgroundColor = gmui_color_rgb_to_color_rgba(global.gmui.style.background_color);
+		            sBackgroundColor = gmui_color_button_4("Background Color", sBackgroundColor);
+		            global.gmui.style.background_color = gmui_color_rgba_to_color_rgb(sBackgroundColor);
+            
+		            static sBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.border_color);
+		            sBorderColor = gmui_color_button_4("Border Color", sBorderColor);
+		            global.gmui.style.border_color = gmui_color_rgba_to_color_rgb(sBorderColor);
+            
+		            static sTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.text_color);
+		            sTextColor = gmui_color_button_4("Text Color", sTextColor);
+		            global.gmui.style.text_color = gmui_color_rgba_to_color_rgb(sTextColor);
+            
+		            static sTextDisabledColor = gmui_color_rgb_to_color_rgba(global.gmui.style.text_disabled_color);
+		            sTextDisabledColor = gmui_color_button_4("Text Disabled Color", sTextDisabledColor);
+		            global.gmui.style.text_disabled_color = gmui_color_rgba_to_color_rgb(sTextDisabledColor);
+            
+		            // Button Colors
+		            static sButtonTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.button_text_color);
+		            sButtonTextColor = gmui_color_button_4("Button Text Color", sButtonTextColor);
+		            global.gmui.style.button_text_color = gmui_color_rgba_to_color_rgb(sButtonTextColor);
+            
+		            static sButtonBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.button_bg_color);
+		            sButtonBgColor = gmui_color_button_4("Button BG Color", sButtonBgColor);
+		            global.gmui.style.button_bg_color = gmui_color_rgba_to_color_rgb(sButtonBgColor);
+            
+		            static sButtonBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.button_border_color);
+		            sButtonBorderColor = gmui_color_button_4("Button Border Color", sButtonBorderColor);
+		            global.gmui.style.button_border_color = gmui_color_rgba_to_color_rgb(sButtonBorderColor);
+            
+		            static sButtonHoverBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.button_hover_bg_color);
+		            sButtonHoverBgColor = gmui_color_button_4("Button Hover BG", sButtonHoverBgColor);
+		            global.gmui.style.button_hover_bg_color = gmui_color_rgba_to_color_rgb(sButtonHoverBgColor);
+            
+		            static sButtonHoverBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.button_hover_border_color);
+		            sButtonHoverBorderColor = gmui_color_button_4("Button Hover Border", sButtonHoverBorderColor);
+		            global.gmui.style.button_hover_border_color = gmui_color_rgba_to_color_rgb(sButtonHoverBorderColor);
+            
+		            // Button Sizes
+		            gmui_text("Button Rounding");
+		            gmui_same_line();
+		            global.gmui.style.button_rounding = gmui_input_int(global.gmui.style.button_rounding, 1, 0, 50);
+            
+		            gmui_text("Button Border Size");
+		            gmui_same_line();
+		            global.gmui.style.button_border_size = gmui_input_int(global.gmui.style.button_border_size, 1, 0, 10);
+            
+		            gmui_text("Button Padding");
+		            gmui_same_line();
+		            global.gmui.style.button_padding[0] = gmui_input_int(global.gmui.style.button_padding[0], 1, 0, 50);
+		            gmui_same_line();
+		            global.gmui.style.button_padding[1] = gmui_input_int(global.gmui.style.button_padding[1], 1, 0, 50);
+            
+		            gmui_text("Button Min Size");
+		            gmui_same_line();
+		            global.gmui.style.button_min_size[0] = gmui_input_int(global.gmui.style.button_min_size[0], 1, 10, 500);
+		            gmui_same_line();
+		            global.gmui.style.button_min_size[1] = gmui_input_int(global.gmui.style.button_min_size[1], 1, 10, 500);
+            
+		            // Title Bar Colors
+		            static sTitleBarColor = gmui_color_rgb_to_color_rgba(global.gmui.style.title_bar_color);
+		            sTitleBarColor = gmui_color_button_4("Title Bar Color", sTitleBarColor);
+		            global.gmui.style.title_bar_color = gmui_color_rgba_to_color_rgb(sTitleBarColor);
+            
+		            static sTitleBarHoverColor = gmui_color_rgb_to_color_rgba(global.gmui.style.title_bar_hover_color);
+		            sTitleBarHoverColor = gmui_color_button_4("Title Bar Hover", sTitleBarHoverColor);
+		            global.gmui.style.title_bar_hover_color = gmui_color_rgba_to_color_rgb(sTitleBarHoverColor);
+            
+		            static sTitleTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.title_text_color);
+		            sTitleTextColor = gmui_color_button_4("Title Text Color", sTitleTextColor);
+		            global.gmui.style.title_text_color = gmui_color_rgba_to_color_rgb(sTitleTextColor);
+            
+		            // Title Bar Sizes
+		            gmui_text("Title Bar Height");
+		            gmui_same_line();
+		            global.gmui.style.title_bar_height = gmui_input_int(global.gmui.style.title_bar_height, 1, 10, 100);
+            
+		            gmui_text("Title Padding");
+		            gmui_same_line();
+		            global.gmui.style.title_padding[0] = gmui_input_int(global.gmui.style.title_padding[0], 1, 0, 50);
+		            gmui_same_line();
+		            global.gmui.style.title_padding[1] = gmui_input_int(global.gmui.style.title_padding[1], 1, 0, 50);
+            
+		            // Checkbox Colors
+		            static sCheckboxBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.checkbox_bg_color);
+		            sCheckboxBgColor = gmui_color_button_4("Checkbox BG Color", sCheckboxBgColor);
+		            global.gmui.style.checkbox_bg_color = gmui_color_rgba_to_color_rgb(sCheckboxBgColor);
+            
+		            static sCheckboxBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.checkbox_border_color);
+		            sCheckboxBorderColor = gmui_color_button_4("Checkbox Border Color", sCheckboxBorderColor);
+		            global.gmui.style.checkbox_border_color = gmui_color_rgba_to_color_rgb(sCheckboxBorderColor);
+            
+		            static sCheckboxCheckColor = gmui_color_rgb_to_color_rgba(global.gmui.style.checkbox_check_color);
+		            sCheckboxCheckColor = gmui_color_button_4("Checkbox Check Color", sCheckboxCheckColor);
+		            global.gmui.style.checkbox_check_color = gmui_color_rgba_to_color_rgb(sCheckboxCheckColor);
+            
+		            // Checkbox Sizes
+		            gmui_text("Checkbox Size");
+		            gmui_same_line();
+		            global.gmui.style.checkbox_size = gmui_input_int(global.gmui.style.checkbox_size, 1, 8, 32);
+            
+		            gmui_text("Checkbox Border Size");
+		            gmui_same_line();
+		            global.gmui.style.checkbox_border_size = gmui_input_int(global.gmui.style.checkbox_border_size, 1, 0, 10);
+            
+		            gmui_text("Checkbox Rounding");
+		            gmui_same_line();
+		            global.gmui.style.checkbox_rounding = gmui_input_int(global.gmui.style.checkbox_rounding, 1, 0, 16);
+            
+		            // Slider Colors
+		            static sSliderTrackBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.slider_track_bg_color);
+		            sSliderTrackBgColor = gmui_color_button_4("Slider Track BG", sSliderTrackBgColor);
+		            global.gmui.style.slider_track_bg_color = gmui_color_rgba_to_color_rgb(sSliderTrackBgColor);
+            
+		            static sSliderTrackFillColor = gmui_color_rgb_to_color_rgba(global.gmui.style.slider_track_fill_color);
+		            sSliderTrackFillColor = gmui_color_button_4("Slider Track Fill", sSliderTrackFillColor);
+		            global.gmui.style.slider_track_fill_color = gmui_color_rgba_to_color_rgb(sSliderTrackFillColor);
+            
+		            static sSliderHandleBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.slider_handle_bg_color);
+		            sSliderHandleBgColor = gmui_color_button_4("Slider Handle BG", sSliderHandleBgColor);
+		            global.gmui.style.slider_handle_bg_color = gmui_color_rgba_to_color_rgb(sSliderHandleBgColor);
+            
+		            // Slider Sizes
+		            gmui_text("Slider Track Height");
+		            gmui_same_line();
+		            global.gmui.style.slider_track_height = gmui_input_int(global.gmui.style.slider_track_height, 1, 2, 20);
+            
+		            gmui_text("Slider Handle Width");
+		            gmui_same_line();
+		            global.gmui.style.slider_handle_width = gmui_input_int(global.gmui.style.slider_handle_width, 1, 8, 30);
+            
+		            gmui_text("Slider Handle Height");
+		            gmui_same_line();
+		            global.gmui.style.slider_handle_height = gmui_input_int(global.gmui.style.slider_handle_height, 1, 10, 40);
+            
+		            // Textbox Colors
+		            static sTextboxBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.textbox_bg_color);
+		            sTextboxBgColor = gmui_color_button_4("Textbox BG Color", sTextboxBgColor);
+		            global.gmui.style.textbox_bg_color = gmui_color_rgba_to_color_rgb(sTextboxBgColor);
+            
+		            static sTextboxBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.textbox_border_color);
+		            sTextboxBorderColor = gmui_color_button_4("Textbox Border Color", sTextboxBorderColor);
+		            global.gmui.style.textbox_border_color = gmui_color_rgba_to_color_rgb(sTextboxBorderColor);
+            
+		            static sTextboxTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.textbox_text_color);
+		            sTextboxTextColor = gmui_color_button_4("Textbox Text Color", sTextboxTextColor);
+		            global.gmui.style.textbox_text_color = gmui_color_rgba_to_color_rgb(sTextboxTextColor);
+            
+		            // Textbox Sizes
+		            gmui_text("Textbox Padding");
+		            gmui_same_line();
+		            global.gmui.style.textbox_padding[0] = gmui_input_int(global.gmui.style.textbox_padding[0], 1, 0, 20);
+		            gmui_same_line();
+		            global.gmui.style.textbox_padding[1] = gmui_input_int(global.gmui.style.textbox_padding[1], 1, 0, 20);
+            
+		            gmui_text("Textbox Rounding");
+		            gmui_same_line();
+		            global.gmui.style.textbox_rounding = gmui_input_int(global.gmui.style.textbox_rounding, 1, 0, 10);
+            
+		            gmui_end();
+		        }
+		    }
+    
+		    gmui_collapsing_header_end();
+		}
 		
         // Demo window footer
         gmui_separator();
         gmui_text("GMUI Demo Window");
-        gmui_text_disabled("Right-click to close");
+        gmui_text_disabled("Right-click on title to close");
         
         // Close demo window on right-click
         if (gmui_is_mouse_over_window(global.gmui.current_window) && 
@@ -5849,6 +6143,13 @@ function gmui_color_rgba_to_color_rgb(rgba) {
 	var b = rgba & 255;
 	return make_color_rgb(r, g, b);
 };
+
+function gmui_color_rgb_to_color_rgba(rgb_color, alpha = 255) {
+    var r = (rgb_color >> 16) & 255;
+    var g = (rgb_color >> 8) & 255;
+    var b = rgb_color & 255;
+    return gmui_make_color_rgba(r, g, b, alpha);
+}
 
 /************************************
  * STYLES
