@@ -1,3 +1,8 @@
+/*Currently noticed problems
+* With the Update of GM-2024.14.1.210 surfaces seem to being destroyed in the first frame so gmui_surface and gmui_add_surface can not be used
+* gmui_demo is outdated and use of functions are not proper
+*/
+
 gmui_init();
 
 scroll_x = 0;

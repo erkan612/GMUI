@@ -5337,7 +5337,7 @@ function gmui_get_all_windows_sorted() {
     return result;
 }
 
-function gmui_demo() {
+function gmui_demo() { // TODO: finish this properly
     if (!global.gmui.initialized) return;
     
     static show_demo_window = true;
