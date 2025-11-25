@@ -6144,10 +6144,10 @@ function gmui_color_rgba_to_color_rgb(rgba) {
 	return make_color_rgb(r, g, b);
 };
 
-function gmui_color_rgb_to_color_rgba(rgb_color, alpha = 255) {
-    var r = (rgb_color >> 16) & 255;
-    var g = (rgb_color >> 8) & 255;
-    var b = rgb_color & 255;
+function gmui_color_rgb_to_color_rgba(rgb, alpha = 255) {
+    var r = color_get_red(rgb);
+    var g = color_get_green(rgb);
+    var b = color_get_blue(rgb);
     return gmui_make_color_rgba(r, g, b, alpha);
 }
 
