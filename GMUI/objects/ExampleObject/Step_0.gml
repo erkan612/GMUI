@@ -1,9 +1,9 @@
 gmui_update();
 
 gmui_demo();
+var demoWindow = gmui_get_window("GMUI Demo & Documentation");
 
 if (isFirstFrame) {
-	var demoWindow = gmui_get_window("GMUI Demo & Documentation");
 	demoWindow.open = !demoWindow.open;
 	
 	isFirstFrame = false;
@@ -35,7 +35,7 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 	switch (tabIdx) {
 	case 1: {
 		if (gmui_button("Click Me!")) { gmui_open_modal("Message"); };
-		if (gmui_button("Show Demo Window")) { gmui_get_window("GMUI Demo & Documentation").open = true; };
+		if (gmui_button("Show/Hide Demo Window")) { demoWindow.open = !demoWindow.open; };
 	} break;
 	
 	case 2: {
