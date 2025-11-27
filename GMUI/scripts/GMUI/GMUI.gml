@@ -64,6 +64,7 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			tab_width: 32,
 			to_delete_combo: false,
 			z_order_counter: 0,
             window_z_order: ds_priority_create(),
@@ -5008,6 +5009,14 @@ function gmui_set_cursor(x, y) {
 	global.gmui.current_window.dc.cursor_y = y;
 };
 
+function gmui_tab_width(width) {
+	global.gmui.tab_width = width;
+};
+
+function gmui_tab(idx) {
+	global.gmui.current_window.dc.cursor_x = global.gmui.style.window_padding[0] + global.gmui.tab_width * idx;
+};
+
 function gmui_calc_text_size(text) {
     return [string_width(text), string_height(text)];
 }
@@ -5607,9 +5616,6 @@ function gmui_get_all_windows_sorted() {
 function gmui_demo() { // TODO: finish this properly
     if (!global.gmui.initialized) return;
     
-    static show_demo_window = true;
-    if (!show_demo_window) return;
-	
 	static window_flags = gmui_window_flags.NO_RESIZE | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL;
 	
     if (gmui_begin("GMUI Demo & Documentation", 20, 20, 600, 600, window_flags)) {
@@ -5900,10 +5906,11 @@ function gmui_demo() { // TODO: finish this properly
 		cho8 = header[1] ? !cho8 : cho8;
         if (cho8) {
 			gmui_text("Window Flags Configuration");
-			gmui_text("Title Bar");		gmui_same_line(); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_TITLE_BAR;	};
-			gmui_text("Resize");		gmui_same_line(); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_RESIZE;		};
-			gmui_text("Background");	gmui_same_line(); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_BACKGROUND; };
-			gmui_text("Move");			gmui_same_line(); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_MOVE;		};
+			gmui_tab_width(16);
+			gmui_text("Title Bar");		gmui_same_line(); gmui_tab(7); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_TITLE_BAR;		};
+			gmui_text("Resize");		gmui_same_line(); gmui_tab(7); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_RESIZE;		};
+			gmui_text("Background");	gmui_same_line(); gmui_tab(7); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_BACKGROUND;	};
+			gmui_text("Move");			gmui_same_line(); gmui_tab(7); if (gmui_button("Toggle")) { window_flags ^= gmui_window_flags.NO_MOVE;			};
             
             gmui_collapsing_header_end();
         }
@@ -6113,15 +6120,11 @@ function gmui_demo() { // TODO: finish this properly
         // Demo window footer
         gmui_separator();
         gmui_text("GMUI Demo Window");
-        gmui_text_disabled("Right-click on title to close");
+        gmui_text_disabled("Right-click to close");
         
         // Close demo window on right-click
-        if (gmui_is_mouse_over_window(global.gmui.current_window) && 
-            gmui_is_point_in_rect(global.gmui.mouse_pos[0] - global.gmui.current_window.x, 
-                                 global.gmui.mouse_pos[1] - global.gmui.current_window.y, 
-                                 [0, 0, global.gmui.current_window.width, 30]) &&
-            global.gmui.mouse_released[1]) {
-            show_demo_window = false;
+        if (gmui_is_mouse_over_window(global.gmui.current_window) && global.gmui.mouse_released[1]) {
+            global.gmui.current_window.open = false;
         }
         
         gmui_end();
