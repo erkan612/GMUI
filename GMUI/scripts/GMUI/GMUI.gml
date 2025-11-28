@@ -64,6 +64,9 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			table_sort_column: -1,
+			table_sort_ascending: true,
+			tables: ds_map_create(),
 			tab_width: 32,
 			to_delete_combo: false,
 			z_order_counter: 0,
@@ -337,6 +340,55 @@ function gmui_init() {
 				combo_item_selected_bg_color: make_color_rgb(65, 105, 225),
 				combo_item_text_color: make_color_rgb(220, 220, 220),
 				combo_item_selected_text_color: make_color_rgb(255, 255, 255),
+				
+				// Table styles
+				table_bg_color: make_color_rgb(40, 40, 40),
+				table_border_color: make_color_rgb(80, 80, 80),
+				table_border_size: 1,
+
+				// Header styles
+				table_header_height: 28,
+				table_header_bg_color: make_color_rgb(60, 60, 60),
+				table_header_hover_bg_color: make_color_rgb(80, 80, 80),
+				table_header_border_color: make_color_rgb(100, 100, 100),
+				table_header_text_color: make_color_rgb(220, 220, 220),
+				table_header_text_align: "center", // "left", "center", "right"
+
+				// Row styles
+				table_row_height: 24,
+				table_row_bg_color: make_color_rgb(50, 50, 50),
+				table_row_hover_bg_color: make_color_rgb(70, 70, 70),
+				table_row_selected_bg_color: make_color_rgb(65, 105, 225),
+				table_row_border_color: make_color_rgb(80, 80, 80),
+				table_row_text_color: make_color_rgb(220, 220, 220),
+				table_row_selected_text_color: make_color_rgb(255, 255, 255),
+				table_row_text_padding: 8,
+
+				// Sort indicator styles
+				table_sort_arrow_color: make_color_rgb(200, 200, 200),
+				table_sort_arrow_size: 8,
+
+				// Alternating row colors
+				table_alternate_row_bg_color: make_color_rgb(45, 45, 45),
+				table_alternate_row_hover_bg_color: make_color_rgb(65, 65, 65),
+
+				// Scrollbar styles for tables
+				table_scrollbar_width: 12,
+				table_scrollbar_color: make_color_rgb(100, 100, 100),
+				table_scrollbar_hover_color: make_color_rgb(120, 120, 120),
+
+				// Cell styles
+				table_cell_padding: [4, 2],
+				table_cell_border_color: make_color_rgb(70, 70, 70),
+				
+				table_flags: {
+				    ALTERNATE_ROWS: 1 << 0,
+				    BORDERED_CELLS: 1 << 1,
+				    RESIZABLE_COLUMNS: 1 << 2,
+				    HOVERABLE_ROWS: 1 << 3,
+				    SORTABLE_HEADERS: 1 << 4,
+				    STRIPED: 1 << 5, // Same as ALTERNATE_ROWS but more descriptive
+				},
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -746,6 +798,11 @@ function gmui_cleanup() {
         if (ds_exists(global.gmui.window_z_order, ds_type_priority)) {
             ds_priority_destroy(global.gmui.window_z_order);
         }
+		
+		// Clean up table map
+		if (ds_exists(global.gmui.tables, ds_type_map)) {
+			ds_map_destroy(global.gmui.tables);
+		}
 		
         global.gmui = undefined;
     }
@@ -4933,6 +4990,347 @@ function gmui_combo_no_label(current_index, items, width = -1, placeholder = "")
 }
 
 /************************************
+ * DATA TABLES
+ ***********************************/
+
+function gmui_begin_table(name, columns, column_count, width = -1, height = -1, flags = 0) { // TODO: if not given, calculate the background height automaticly
+    if (!global.gmui.initialized || !global.gmui.current_window) return undefined;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Get or create table context
+    var table_id = window.name + "_" + name;
+    var table_context = undefined;
+    
+    if (ds_map_exists(global.gmui.tables, table_id)) {
+        table_context = global.gmui.tables[? table_id];
+        // Update position/size if needed
+        table_context.x = dc.cursor_x;
+        table_context.y = dc.cursor_y;
+        if (width > 0) table_context.width = width;
+        if (height > 0) table_context.height = height;
+        table_context.flags = flags; // Update flags if changed
+		
+		// update styles
+		table_context.row_height = style.table_row_height;
+		table_context.header_height = style.table_header_height;
+    } else {
+        // Calculate table size
+        var table_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+        var table_height = (height > 0) ? height : 200;
+        
+        table_context = {
+            id: table_id,
+            name: name,
+            x: dc.cursor_x,
+            y: dc.cursor_y,
+            width: table_width,
+            height: table_height,
+            columns: columns,
+            column_count: column_count,
+            row_height: style.table_row_height,
+            header_height: style.table_header_height,
+            scroll_y: 0,
+            visible_rows: 0,
+            selected_row: -1,
+            sort_column: -1,
+            sort_ascending: true,
+            flags: flags,
+            column_widths: undefined, // For future resizable columns
+            hovered_row: -1
+        };
+        
+        ds_map_add(global.gmui.tables, table_id, table_context);
+    }
+    
+    // Check if table fits on current line
+    if (dc.cursor_x + table_context.width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+        table_context.x = dc.cursor_x;
+        table_context.y = dc.cursor_y;
+    }
+    
+    // Draw table background
+    gmui_add_rect(table_context.x, table_context.y, table_context.width, table_context.height, style.table_bg_color);
+    
+    // Draw table border
+    if (style.table_border_size > 0) {
+        gmui_add_rect_outline(table_context.x, table_context.y, table_context.width, table_context.height, 
+                            style.table_border_color, style.table_border_size);
+    }
+    
+    // Draw header
+    gmui_draw_table_header(table_context);
+    
+    // Update cursor position for content area
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x = table_context.x;
+    dc.cursor_y = table_context.y + table_context.header_height;
+    dc.line_height = max(dc.line_height, table_context.height);
+    
+    // Store table context in window for use in gmui_table_row
+    window.current_table = table_context;
+    
+    // Setup scissor for table content
+    var content_height = table_context.height - table_context.header_height;
+    gmui_begin_scissor(table_context.x, table_context.y + table_context.header_height, table_context.width, content_height);
+    
+    return table_context;
+}
+
+function gmui_end_table() {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    
+    if (window.current_table == undefined) return;
+    
+    var table = window.current_table;
+    
+    // End scissor
+    gmui_end_scissor();
+    
+    // Update cursor position after table
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x = table.x;
+    dc.cursor_y = table.y + table.height + global.gmui.style.item_spacing[1];
+    dc.line_height = 0;
+    
+    // Clear current table (but keep the context in the global map)
+    window.current_table = undefined;
+    
+    gmui_new_line();
+}
+
+function gmui_draw_table_header(table) {
+    var style = global.gmui.style;
+    
+    // Draw header background
+    gmui_add_rect(table.x, table.y, table.width, table.header_height, style.table_header_bg_color);
+    
+    // Draw header border
+    if (style.table_border_size > 0) {
+        gmui_add_rect_outline(table.x, table.y, table.width, table.header_height, 
+                            style.table_header_border_color, style.table_border_size);
+    }
+    
+    // Calculate column widths
+    var column_width = table.width / table.column_count;
+    
+    // Draw column headers
+    for (var i = 0; i < table.column_count; i++) {
+        var col_x = table.x + i * column_width;
+        var col_bounds = [col_x, table.y, col_x + column_width, table.y + table.header_height];
+        
+        // Check for header click (sorting) - only if sortable flag is set
+        var mouse_over_header = gmui_is_mouse_over_window(global.gmui.current_window) && 
+                               gmui_is_point_in_rect(global.gmui.mouse_pos[0] - global.gmui.current_window.x, 
+                                                   global.gmui.mouse_pos[1] - global.gmui.current_window.y, 
+                                                   col_bounds);
+        
+        var header_bg_color = style.table_header_bg_color;
+        if (mouse_over_header && !global.gmui.is_hovering_element && (table.flags & style.table_flags.SORTABLE_HEADERS)) {
+            global.gmui.is_hovering_element = true;
+            header_bg_color = style.table_header_hover_bg_color;
+            
+            if (global.gmui.mouse_released[0]) {
+                // Toggle sort
+                if (table.sort_column == i) {
+                    table.sort_ascending = !table.sort_ascending;
+                } else {
+                    table.sort_column = i;
+                    table.sort_ascending = true;
+                }
+            }
+        }
+        
+        // Draw header cell background
+        gmui_add_rect(col_x, table.y, column_width, table.header_height, header_bg_color);
+        
+        // Draw column separator if bordered cells flag is set
+        if (i > 0 && (table.flags & style.table_flags.BORDERED_CELLS)) {
+            gmui_add_line(col_x, table.y, col_x, table.y + table.header_height, 
+                         style.table_cell_border_color, 1);
+        }
+        
+        // Draw column text
+        var text = table.columns[i];
+        var text_size = gmui_calc_text_size(text);
+        var text_x = col_x + style.table_cell_padding[0];
+        var text_y = table.y + (table.header_height - text_size[1]) / 2; // should also include style.table_cell_padding[0] in the future
+        
+        // Handle text alignment
+        if (style.table_header_text_align == "center") {
+            text_x = col_x + (column_width - text_size[0]) / 2;
+        } else if (style.table_header_text_align == "right") {
+            text_x = col_x + column_width - text_size[0] - style.table_cell_padding[0];
+        }
+        
+        // Draw sort indicator
+        if (table.sort_column == i && (table.flags & style.table_flags.SORTABLE_HEADERS)) {
+            var sort_indicator = table.sort_ascending ? " ▲" : " ▼";
+            text += sort_indicator;
+            text_size = gmui_calc_text_size(text);
+            
+            // Recalculate position with sort indicator
+            if (style.table_header_text_align == "center") {
+                text_x = col_x + (column_width - text_size[0]) / 2;
+            } else if (style.table_header_text_align == "right") {
+                text_x = col_x + column_width - text_size[0] - style.table_cell_padding[0];
+            }
+        }
+        
+        gmui_add_text(text_x, text_y, text, style.table_header_text_color);
+    }
+}
+
+function gmui_table_row(row_data, row_index) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return -1;
+    
+    var window = global.gmui.current_window;
+    if (window.current_table == undefined) return -1;
+    
+    var table = window.current_table;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate row position (accounting for scroll)
+    var row_y = dc.cursor_y + table.scroll_y;
+    var visible_start = table.y + table.header_height;
+    var visible_end = visible_start + (table.height - table.header_height);
+    
+    // Skip rendering if row is not visible
+    if (row_y + table.row_height < visible_start || row_y > visible_end) {
+        dc.cursor_previous_x = dc.cursor_x;
+        dc.cursor_y += table.row_height;
+        dc.line_height = max(dc.line_height, table.row_height);
+        return -1;
+    }
+    
+    var row_bounds = [table.x, row_y, table.x + table.width, row_y + table.row_height];
+    var column_width = table.width / table.column_count;
+    
+    // Determine row background color
+    var bg_color = style.table_row_bg_color;
+    
+    // Alternate row colors if flag is set
+    if ((table.flags & style.table_flags.ALTERNATE_ROWS) && (row_index % 2 == 1)) {
+        bg_color = style.table_alternate_row_bg_color;
+    }
+    
+    // Check for row interaction
+    var mouse_over_row = gmui_is_mouse_over_window(window) && 
+                        gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                            global.gmui.mouse_pos[1] - window.y, 
+                                            row_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    
+    if (mouse_over_row && window.active && (table.flags & style.table_flags.HOVERABLE_ROWS)) {
+        global.gmui.is_hovering_element = true;
+        table.hovered_row = row_index;
+        
+        // Use hover colors
+        if ((table.flags & style.table_flags.ALTERNATE_ROWS) && (row_index % 2 == 1)) {
+            bg_color = style.table_alternate_row_hover_bg_color;
+        } else {
+            bg_color = style.table_row_hover_bg_color;
+        }
+        
+        if (global.gmui.mouse_released[0]) {
+            clicked = true;
+            table.selected_row = row_index;
+        }
+    } else if (mouse_over_row && !(table.flags & style.table_flags.HOVERABLE_ROWS)) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_released[0]) {
+            clicked = true;
+            table.selected_row = row_index;
+        }
+    }
+    
+    // Selected row color
+    if (table.selected_row == row_index) {
+        bg_color = style.table_row_selected_bg_color;
+    }
+    
+    // Draw row background
+    gmui_add_rect(table.x, row_y, table.width, table.row_height, bg_color);
+    
+    // Draw row border
+    if (style.table_border_size > 0) {
+        gmui_add_rect_outline(table.x, row_y, table.width, table.row_height, 
+                            style.table_row_border_color, style.table_border_size);
+    }
+    
+    // Draw cell contents
+    for (var i = 0; i < table.column_count; i++) {
+        var cell_x = table.x + i * column_width;
+        
+        // Draw cell separator if bordered cells flag is set
+        if (i > 0 && (table.flags & style.table_flags.BORDERED_CELLS)) {
+            gmui_add_line(cell_x, row_y, cell_x, row_y + table.row_height, 
+                         style.table_cell_border_color, 1);
+        }
+        
+        // Draw cell text
+        var cell_text = string(row_data[i]);
+        var text_size = gmui_calc_text_size(cell_text);
+        var text_x = cell_x + style.table_cell_padding[0];
+        var text_y = row_y + (table.row_height - text_size[1]) / 2;
+        
+        // Clip text if too long
+        var available_width = column_width - style.table_cell_padding[0] * 2;
+        if (text_size[0] > available_width) {
+            for (var len = string_length(cell_text); len > 0; len--) {
+                var test_text = string_copy(cell_text, 1, len) + "...";
+                if (string_width(test_text) <= available_width) {
+                    cell_text = test_text;
+                    break;
+                }
+            }
+        }
+        
+        var text_color = (table.selected_row == row_index) ? 
+                        style.table_row_selected_text_color : 
+                        style.table_row_text_color;
+        gmui_add_text(text_x, text_y, cell_text, text_color);
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_y += table.row_height;
+    dc.line_height = max(dc.line_height, table.row_height);
+    table.visible_rows++;
+    
+    return clicked ? row_index : -1;
+}
+
+function gmui_table_set_scroll(table_context, scroll_y) {
+    if (table_context == undefined) return;
+    table_context.scroll_y = scroll_y;
+}
+
+function gmui_table_get_selected_row(table_context) {
+    if (table_context == undefined) return -1;
+    return table_context.selected_row;
+}
+
+function gmui_table_clear_selection(table_context) {
+    if (table_context == undefined) return;
+    table_context.selected_row = -1;
+}
+
+function gmui_table_cleanup() {
+    if (global.gmui.initialized && ds_exists(global.gmui.tables, ds_type_map)) {
+        ds_map_clear(global.gmui.tables);
+    }
+}
+
+/************************************
  * LAYOUT
  ***********************************/
 //////////////////////////////////////
@@ -5613,7 +6011,7 @@ function gmui_get_all_windows_sorted() {
     return result;
 }
 
-function gmui_demo() { // TODO: finish this properly
+function gmui_demo() {
     if (!global.gmui.initialized) return;
     
 	static window_flags = gmui_window_flags.NO_RESIZE | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL;
@@ -5914,7 +6312,85 @@ function gmui_demo() { // TODO: finish this properly
             
             gmui_collapsing_header_end();
         }
-        
+		
+		// Data Tables
+		static cho_table = true;
+		header = gmui_collapsing_header("Data Tables", cho_table);
+		cho_table = header[1] ? !cho_table : cho_table;
+		if (cho_table) {
+		    static table_data = [
+		        ["Apple", "Fruit", "1.20", "100"],
+		        ["Banana", "Fruit", "0.80", "150"],
+		        ["Carrot", "Vegetable", "1.50", "75"],
+		        ["Broccoli", "Vegetable", "2.00", "60"],
+		        ["Chicken", "Meat", "8.50", "30"],
+		        ["Beef", "Meat", "12.00", "25"],
+		        ["Milk", "Dairy", "3.50", "40"],
+		        ["Cheese", "Dairy", "5.00", "35"]
+		    ];
+    
+		    static columns = ["Name", "Category", "Price", "Stock"];
+		    static current_flags = global.gmui.style.table_flags.ALTERNATE_ROWS | global.gmui.style.table_flags.SORTABLE_HEADERS;
+    
+		    gmui_text("Styled Data Table Example");
+    
+		    // Table flags
+		    gmui_text("Table Options:");
+		    current_flags = gmui_checkbox_box((current_flags & global.gmui.style.table_flags.ALTERNATE_ROWS) != 0) ? 
+		        current_flags | global.gmui.style.table_flags.ALTERNATE_ROWS : 
+		        current_flags & ~global.gmui.style.table_flags.ALTERNATE_ROWS;
+		    gmui_same_line();
+		    gmui_text("Alternating Rows");
+    
+		    current_flags = gmui_checkbox_box((current_flags & global.gmui.style.table_flags.BORDERED_CELLS) != 0) ? 
+		        current_flags | global.gmui.style.table_flags.BORDERED_CELLS : 
+		        current_flags & ~global.gmui.style.table_flags.BORDERED_CELLS;
+		    gmui_same_line();
+		    gmui_text("Bordered Cells");
+    
+		    current_flags = gmui_checkbox_box((current_flags & global.gmui.style.table_flags.HOVERABLE_ROWS) != 0) ? 
+		        current_flags | global.gmui.style.table_flags.HOVERABLE_ROWS : 
+		        current_flags & ~global.gmui.style.table_flags.HOVERABLE_ROWS;
+		    gmui_same_line();
+		    gmui_text("Hoverable Rows");
+    
+		    current_flags = gmui_checkbox_box((current_flags & global.gmui.style.table_flags.SORTABLE_HEADERS) != 0) ? 
+		        current_flags | global.gmui.style.table_flags.SORTABLE_HEADERS : 
+		        current_flags & ~global.gmui.style.table_flags.SORTABLE_HEADERS;
+		    gmui_same_line();
+		    gmui_text("Sortable Headers");
+    
+		    gmui_separator();
+    
+		    // Create table with current flags
+		    var table = gmui_begin_table("demo_table", columns, 4, -1, 200, current_flags);
+    
+		    // Add rows
+		    for (var i = 0; i < array_length(table_data); i++) {
+		        var clicked = gmui_table_row(table_data[i], i);
+		        if (clicked != -1) {
+		            // Selection handled internally
+		        }
+		    }
+    
+		    gmui_end_table();
+    
+		    // Show selection info
+		    if (table.selected_row != -1) {
+		        gmui_label_text("Selected Row", string(table.selected_row));
+		        gmui_label_text("Selected Item", table_data[table.selected_row][0]);
+		    } else {
+		        gmui_text("Click on a row to select it");
+		    }
+    
+		    // Simple controls
+		    if (gmui_button("Clear Selection")) {
+		        gmui_table_clear_selection(table);
+		    }
+    
+		    gmui_collapsing_header_end();
+		}
+		
         // Style Editor
 		static cho9 = true;
 		header = gmui_collapsing_header("Style Editor", cho9);
@@ -6109,6 +6585,73 @@ function gmui_demo() { // TODO: finish this properly
 		            gmui_text("Textbox Rounding");
 		            gmui_same_line();
 		            global.gmui.style.textbox_rounding = gmui_input_int(global.gmui.style.textbox_rounding, 1, 0, 10);
+					
+					// Table background
+					static sTableBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_bg_color);
+					sTableBgColor = gmui_color_button_4("Table BG Color", sTableBgColor);
+					global.gmui.style.table_bg_color = gmui_color_rgba_to_color_rgb(sTableBgColor);
+
+					// Table Header styles
+					static sTableHeaderBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_header_bg_color);
+					sTableHeaderBgColor = gmui_color_button_4("Header BG Color", sTableHeaderBgColor);
+					global.gmui.style.table_header_bg_color = gmui_color_rgba_to_color_rgb(sTableHeaderBgColor);
+
+					static sTableHeaderTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_header_text_color);
+					sTableHeaderTextColor = gmui_color_button_4("Header Text Color", sTableHeaderTextColor);
+					global.gmui.style.table_header_text_color = gmui_color_rgba_to_color_rgb(sTableHeaderTextColor);
+
+					// Table Row styles
+					static sTableRowBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_row_bg_color);
+					sTableRowBgColor = gmui_color_button_4("Row BG Color", sTableRowBgColor);
+					global.gmui.style.table_row_bg_color = gmui_color_rgba_to_color_rgb(sTableRowBgColor);
+
+					static sTableRowHoverColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_row_hover_bg_color);
+					sTableRowHoverColor = gmui_color_button_4("Row Hover Color", sTableRowHoverColor);
+					global.gmui.style.table_row_hover_bg_color = gmui_color_rgba_to_color_rgb(sTableRowHoverColor);
+
+					static sTableRowSelectedColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_row_selected_bg_color);
+					sTableRowSelectedColor = gmui_color_button_4("Row Selected Color", sTableRowSelectedColor);
+					global.gmui.style.table_row_selected_bg_color = gmui_color_rgba_to_color_rgb(sTableRowSelectedColor);
+
+					// Table Alternate row colors
+					static sTableAltRowColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_alternate_row_bg_color);
+					sTableAltRowColor = gmui_color_button_4("Alt Row BG Color", sTableAltRowColor);
+					global.gmui.style.table_alternate_row_bg_color = gmui_color_rgba_to_color_rgb(sTableAltRowColor);
+
+					static sTableAltRowHoverColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_alternate_row_hover_bg_color);
+					sTableAltRowHoverColor = gmui_color_button_4("Alt Row Hover Color", sTableAltRowHoverColor);
+					global.gmui.style.table_alternate_row_hover_bg_color = gmui_color_rgba_to_color_rgb(sTableAltRowHoverColor);
+
+					// Table Text colors
+					static sTableRowTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_row_text_color);
+					sTableRowTextColor = gmui_color_button_4("Row Text Color", sTableRowTextColor);
+					global.gmui.style.table_row_text_color = gmui_color_rgba_to_color_rgb(sTableRowTextColor);
+
+					static sTableRowSelectedTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_row_selected_text_color);
+					sTableRowSelectedTextColor = gmui_color_button_4("Selected Text Color", sTableRowSelectedTextColor);
+					global.gmui.style.table_row_selected_text_color = gmui_color_rgba_to_color_rgb(sTableRowSelectedTextColor);
+
+					// Table Border colors
+					static sTableBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_border_color);
+					sTableBorderColor = gmui_color_button_4("Table Border Color", sTableBorderColor);
+					global.gmui.style.table_border_color = gmui_color_rgba_to_color_rgb(sTableBorderColor);
+
+					static sTableCellBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_cell_border_color);
+					sTableCellBorderColor = gmui_color_button_4("Cell Border Color", sTableCellBorderColor);
+					global.gmui.style.table_cell_border_color = gmui_color_rgba_to_color_rgb(sTableCellBorderColor);
+
+					// Table Sizes
+					gmui_text("Row Height"); gmui_same_line();
+					global.gmui.style.table_row_height = gmui_input_int(global.gmui.style.table_row_height, 1, 16, 48);
+
+					gmui_text("Header Height"); gmui_same_line();
+					global.gmui.style.table_header_height = gmui_input_int(global.gmui.style.table_header_height, 1, 20, 48);
+
+					gmui_text("Cell Padding X"); gmui_same_line();
+					global.gmui.style.table_cell_padding[0] = gmui_input_int(global.gmui.style.table_cell_padding[0], 1, 0, 20);
+
+					gmui_text("Cell Padding Y"); gmui_same_line();
+					global.gmui.style.table_cell_padding[1] = gmui_input_int(global.gmui.style.table_cell_padding[1], 1, 0, 20);
             
 		            gmui_end();
 		        }
@@ -6241,3 +6784,4 @@ function gmui_color_rgb_to_color_rgba(rgb, alpha = 255) {
 /************************************
  * STYLES
  ***********************************/
+
