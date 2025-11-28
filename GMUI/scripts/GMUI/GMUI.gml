@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.1.0
+           Version 1.2.0
            
            by erkan612
            
@@ -6019,7 +6019,7 @@ function gmui_demo() {
     if (gmui_begin("GMUI Demo & Documentation", 20, 20, 600, 600, window_flags)) {
         
         // Demo window controls
-        gmui_text("GMUI v1.0 - Immediate-mode UI Library for GameMaker");
+        gmui_text("GMUI - Immediate-mode UI Library for GameMaker");
         gmui_text_disabled("Interactive demo showing some of the features");
         gmui_separator();
         
