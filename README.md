@@ -5,7 +5,7 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 ![GMUI Demo](https://img.shields.io/badge/GameMaker-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-## 🚀 Features
+## Features
 
 - **Immediate Mode Architecture** - Simple, frame-based UI creation
 - **Comprehensive Component Set** - Buttons, inputs, sliders, color pickers, tree views, and more
@@ -16,7 +16,7 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 - **Shader Integration** - Hardware-accelerated color pickers
 - **Input Handling** - Full mouse and keyboard support
 
-## 📸 Screenshots
+## Screenshots
 <img width="1305" height="724" alt="gmui_demo" src="https://github.com/user-attachments/assets/3a83e442-f2e9-4c36-839f-d92476e8c15d" />
 <img width="2183" height="937" alt="simplistic_editor_tab_details" src="https://github.com/user-attachments/assets/2416ec1e-aa29-4944-b937-282e6977c79a" />
 <img width="2192" height="937" alt="simplistic_editor" src="https://github.com/user-attachments/assets/adf5c0d1-5e8a-4988-90f3-4e04d6e23224" />
@@ -26,7 +26,7 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 <img width="1299" height="721" alt="demo_tab_example2" src="https://github.com/user-attachments/assets/b5a47dce-34a9-41fb-8683-eb2df979b493" />
 <img width="1301" height="720" alt="demo_tab_example1" src="https://github.com/user-attachments/assets/9566c393-069c-464d-b801-c8fc8177c153" />
 
-## 📦 Installation
+## Installation
 
 1. Copy the GMUI script files into your GameMaker project
 2. Import the provided shaders for color picker functionality
@@ -37,7 +37,7 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 gmui_init();
 ```
 
-## 🎯 Quick Start
+## Quick Start
 
 ```gml
 // Step Event
@@ -60,7 +60,7 @@ if (gmui_begin("My Window", 100, 100, 400, 300)) {
 gmui_render();
 ```
 
-## 📚 Core Concepts
+## Core Concepts
 
 ### Immediate Mode
 GMUI uses immediate mode paradigm - you create UI elements every frame. This makes the API simple and predictable:
@@ -94,7 +94,7 @@ if (gmui_begin("Scrollable Window", 100, 100, 300, 200, flags)) {
 }
 ```
 
-## 🎨 UI Components
+## UI Components
 
 ### Basic Elements
 
@@ -196,7 +196,7 @@ gmui_text("Section 2");
 gmui_dummy(100, 20); // Add empty space
 ```
 
-## 🪟 Advanced Features
+## Advanced Features
 
 ### Modal Dialogs
 
@@ -257,7 +257,7 @@ if (gmui_begin("Custom Window", 100, 100, 300, 200, flags)) {
 }
 ```
 
-## 🔧 API Reference
+## API Reference
 
 ### Core Functions
 
@@ -298,7 +298,7 @@ if (gmui_begin("Custom Window", 100, 100, 300, 200, flags)) {
 | `gmui_get_focused_textbox_id()` | Get ID of focused textbox |
 | `gmui_clear_textbox_focus()` | Remove focus from textbox |
 
-## 🎨 Styling Reference
+## Styling Reference
 
 The style system is highly customizable through `global.gmui.style`:
 
@@ -324,7 +324,7 @@ style.window_border_size = 1;
 style.button_border_size = 1;
 ```
 
-## 🔄 Event Flow
+## Event Flow
 
 Proper GMUI usage follows this sequence:
 
@@ -350,7 +350,7 @@ if (gmui_begin("Main Window", 100, 100, 400, 300)) {
 gmui_render();
 ```
 
-## 🚀 Complete Example
+## Complete Example
 
 Here's a comprehensive example showing multiple features:
 
@@ -432,7 +432,7 @@ if (gmui_begin("Settings", 700, 50, 250, 200, gmui_window_flags.NO_RESIZE)) {
 gmui_render();
 ```
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -450,15 +450,15 @@ gmui_render();
 - Avoid creating excessive hidden UI elements
 - Use `gmui_window_flags.NO_BACKGROUND` for simple overlays
 
-## 📄 License
+## License
 
 MIT License - feel free to use in personal and commercial projects.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
 
-## 📞 Support
+## Support
 
 If you encounter any issues or have questions:
 1. Check this documentation
@@ -467,4 +467,4 @@ If you encounter any issues or have questions:
 
 ---
 
-**GMUI** - Powering beautiful interfaces in GameMaker projects everywhere! 🎮
+**GMUI** - Powering beautiful interfaces in GameMaker projects everywhere!
