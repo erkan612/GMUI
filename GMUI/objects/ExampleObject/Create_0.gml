@@ -4,6 +4,12 @@
 * some style variables are not being applied
 */
 
+/*TODO
+* optimize
+* add cache system to keep some data instead of recreating and recalculating every frame
+* add sleep mode for surfaces using cache system
+*/
+
 gmui_init();
 
 tabIdx = 1;

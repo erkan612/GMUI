@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.3.0
+           Version 1.3.1
            
            by erkan612
            
@@ -7707,7 +7707,7 @@ function gmui_wins_handle_splitter_drag(parent_node) { // this shouldnt have too
     if (splitter_bounds == undefined) return;
     
     // check if mouse is over splitter
-    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds);
+    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && global.gmui.hovering_window.name == "##splitters_window";
     
     if (mouse_over_splitter) {
         if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
@@ -7809,7 +7809,7 @@ function gmui_wins_draw_splitters_recursive(node) {
     if (splitter_bounds == undefined) return;
     
     // Check if mouse is over this splitter
-    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds);
+    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && global.gmui.hovering_window.name == "##splitters_window";
     var is_active = node.is_dragging;
     
     // Choose color based on state
