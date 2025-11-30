@@ -56,7 +56,14 @@ enum gmui_window_flags {
     POPUP = 1 << 27,
     AUTO_HSCROLL = 1 << 28,
     AUTO_VSCROLL = 1 << 29,
+	NO_MOVE_DEPTH = 1 << 30,
 }
+
+enum gmui_pre_window_flags {
+	WINS_WINDOW = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_MOVE_DEPTH, 
+	MODAL_DEFAULT = gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.POPUP, 
+	MODAL_SET = gmui_pre_window_flags.MODAL_DEFAULT | gmui_window_flags.ALWAYS_AUTO_RESIZE, 
+};
 
 function gmui_get() { return global.gmui; };
 
@@ -95,12 +102,10 @@ function gmui_init() {
             mouse_down: [false, false, false, false, false],
             mouse_clicked: [false, false, false, false, false],
             mouse_released: [false, false, false, false, false],
-			default_modal_flags: gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.POPUP,
             frame_count: 0,
             style: {
                 window_padding: [8, 8],
                 window_rounding: 8,
-                window_border_size: 1,
                 window_min_size: [32, 32],
                 background_color: make_color_rgb(30, 30, 30),
 				background_alpha: 255,
@@ -187,6 +192,11 @@ function gmui_init() {
 				slider_text_color: make_color_rgb(220, 220, 220),
 				slider_text_disabled_color: make_color_rgb(128, 128, 128),
 				slider_spacing: 4, // Space between slider and label (if any)
+				
+				// WINS
+				wins_splitter_color: make_color_rgb(60, 60, 60),
+				wins_splitter_hover_color: make_color_rgb(100, 100, 100),
+				wins_splitter_active_color: make_color_rgb(100, 100, 255),
 				
 				// Textbox styles
 				textbox_bg_color: make_color_rgb(40, 40, 40),
@@ -706,10 +716,6 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     // Draw background
     if ((flags & gmui_window_flags.NO_BACKGROUND) == 0) {
         gmui_add_rect_alpha(0, 0, window.width, window.height, global.gmui.style.background_color, global.gmui.style.background_alpha);
-		//gmui_add_shader_rect(0, 0, window.width, window.height, gmui_shader_roundrect, [ { type: "vec2", name: "u_size", value: [ window.width, window.height ] }, { type: "float", name: "u_radius", value: global.gmui.style.window_rounding }, { type: "float", name: "u_smooth", value: 2 }, { type: "vec4", name: "u_color", value: [ 0, 0, 0, 0 ] } ])
-        if (global.gmui.style.window_border_size > 0) {
-            gmui_add_rect_outline_alpha(0, 0, window.width, window.height, global.gmui.style.border_color, global.gmui.style.window_border_size, global.gmui.style.background_alpha);
-        }
     }
     
     // Draw title bar if enabled
@@ -756,7 +762,7 @@ function gmui_close_modal(name) {
 	gmui_get_windows()[| idx + 1].open = false;
 };
 
-function gmui_add_modal(name, call, x = -1, y = -1, w = 300, h = 100, flags = global.gmui.default_modal_flags, onBgClick = undefined) {
+function gmui_add_modal(name, call, x = -1, y = -1, w = 300, h = 100, flags = gmui_pre_window_flags.MODAL_DEFAULT, onBgClick = undefined) {
 	ds_list_add(global.gmui.modals, [ name, call, x, y, w, h, flags, onBgClick ]);
 };
 
@@ -774,8 +780,10 @@ function gmui_end(_no_repeat = false) {
 	// Auto Resize
 	var always_auto_resize = (flags & gmui_window_flags.ALWAYS_AUTO_RESIZE) != 0;
 	if (always_auto_resize) {
+		var resize_surface = window.width != window.max_cursor_x || window.height != window.max_cursor_y;
 		window.width = window.max_cursor_x;
 		window.height = window.max_cursor_y;
+		if (resize_surface) { gmui_create_surface(window); };
 	};
     
     // Calculate content dimensions
@@ -3960,9 +3968,9 @@ function gmui_textbox(text, placeholder = "", width = -1) {
     var textbox_width = (width > 0) ? width : 200; // Default width
     
     // Check if textbox fits on current line
-    if (dc.cursor_x + textbox_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
-        gmui_new_line();
-    }
+    //if (dc.cursor_x + textbox_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //    gmui_new_line();
+    //}
     
     // Calculate textbox bounds
     var textbox_x = dc.cursor_x;
@@ -4816,9 +4824,9 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
     var total_width = label_size[0] + combo_width + style.item_spacing[0];
     
     // Check if combo fits on current line
-    if (dc.cursor_x + total_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
-        gmui_new_line();
-    }
+    //if (dc.cursor_x + total_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //    gmui_new_line();
+    //}
     
     // Draw label if provided
     var combo_x = dc.cursor_x;
@@ -5131,7 +5139,7 @@ function gmui_begin_table(name, columns, column_count, width = -1, height = -1, 
     } else {
         // Calculate table size
         var table_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
-        var table_height = (height > 0) ? height : 200;
+        var table_height = (height > 0) ? height : 10; // 200
         
         table_context = {
             id: table_id,
@@ -5151,7 +5159,8 @@ function gmui_begin_table(name, columns, column_count, width = -1, height = -1, 
             sort_ascending: true,
             flags: flags,
             column_widths: undefined, // For future resizable columns
-            hovered_row: -1
+            hovered_row: -1,
+			row_count: 0,
         };
         
         ds_map_add(global.gmui.tables, table_id, table_context);
@@ -5186,8 +5195,8 @@ function gmui_begin_table(name, columns, column_count, width = -1, height = -1, 
     window.current_table = table_context;
     
     // Setup scissor for table content
-    var content_height = table_context.height - table_context.header_height;
-    gmui_begin_scissor(table_context.x, table_context.y + table_context.header_height, table_context.width, content_height); // calculate if it's top goes above title bar's bottom, clip the scissor area
+    //var content_height = table_context.height - table_context.header_height;
+    //gmui_begin_scissor(table_context.x, table_context.y + table_context.header_height, table_context.width, content_height); // calculate if it's top goes above title bar's bottom, clip the scissor area
     
     return table_context;
 }
@@ -5203,13 +5212,15 @@ function gmui_end_table() {
     var table = window.current_table;
     
     // End scissor
-    gmui_end_scissor();
+    //gmui_end_scissor();
     
     // Update cursor position after table
     dc.cursor_previous_x = dc.cursor_x;
     dc.cursor_x = table.x;
-    dc.cursor_y = table.y + table.height + global.gmui.style.item_spacing[1];
+    dc.cursor_y = table.y + table.row_height + table.row_height * (table.row_count) + global.gmui.style.item_spacing[1];
     dc.line_height = 0;
+	
+	table.row_count = 0;
     
     // Clear current table (but keep the context in the global map)
     window.current_table = undefined;
@@ -5283,7 +5294,7 @@ function gmui_draw_table_header(table) {
         
         // Draw sort indicator
         if (table.sort_column == i && (table.flags & style.table_flags.SORTABLE_HEADERS)) {
-            var sort_indicator = table.sort_ascending ? " ▲" : " ▼";
+            var sort_indicator = table.sort_ascending ? "" : ""; // TODO
             text += sort_indicator;
             text_size = gmui_calc_text_size(text);
             
@@ -5411,6 +5422,8 @@ function gmui_table_row(row_data, row_index) {
                         style.table_row_text_color;
         gmui_add_text(text_x, text_y, cell_text, text_color);
     }
+	
+	table.row_count++;
     
     // Update cursor position
     dc.cursor_previous_x = dc.cursor_x;
@@ -6309,6 +6322,7 @@ function gmui_handle_window_interaction(window) {
     var flags = window.flags;
     var has_title_bar = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
     var can_move = (flags & gmui_window_flags.NO_MOVE) == 0;
+	var can_move_depth = (flags & gmui_window_flags.NO_MOVE_DEPTH) == 0;
     var can_resize = (flags & gmui_window_flags.NO_RESIZE) == 0;
     
     var mouse_x_in_window = global.gmui.mouse_pos[0] - window.x;
@@ -6325,7 +6339,7 @@ function gmui_handle_window_interaction(window) {
     }
     
     // BRING WINDOW TO FRONT ON CLICK
-    if (mouse_over_window && global.gmui.mouse_clicked[0] && !global.gmui.is_hovering_element && can_move) {
+    if (mouse_over_window && global.gmui.mouse_clicked[0] && !global.gmui.is_hovering_element && can_move && can_move_depth) {
         gmui_bring_window_to_front(window);
     }
     
@@ -6992,10 +7006,6 @@ function gmui_demo() {
 		            gmui_same_line();
 		            global.gmui.style.window_rounding = gmui_input_int(global.gmui.style.window_rounding, 1, 0, 50);
             
-		            gmui_text("Window Border Size");
-		            gmui_same_line();
-		            global.gmui.style.window_border_size = gmui_input_int(global.gmui.style.window_border_size, 1, 0, 10);
-            
 		            gmui_text("Window Min Size");
 		            gmui_same_line();
 		            global.gmui.style.window_min_size[0] = gmui_input_int(global.gmui.style.window_min_size[0], 1, 10, 500);
@@ -7323,16 +7333,6 @@ function gmui_demo() {
 					gmui_text("Scatter Size"); gmui_same_line();
 					global.gmui.style.plot_scatter_size = gmui_input_int(global.gmui.style.plot_scatter_size, 1, 2, 10);
 
-					// Color palette preview
-					gmui_text("Color Palette");
-					for (var i = 0; i < min(8, array_length(global.gmui.style.plot_color_palette)); i++) {
-					    gmui_same_line();
-					    var new_color = gmui_color_button(global.gmui.style.plot_color_palette[i], 20);
-					    if (new_color != global.gmui.style.plot_color_palette[i]) {
-					        global.gmui.style.plot_color_palette[i] = new_color;
-					    }
-					}
-            
 		            gmui_end();
 		        }
 		    }
@@ -7615,6 +7615,17 @@ function gmui_wins_node_update(node) {
     };
 }
 
+function gmui_wins_resize_parent_node(parent_node, x, y, width, height) {
+	parent_node.x = x;
+	parent_node.y = y;
+	parent_node.width = width;
+	parent_node.height = height;
+	parent_node.visual_x = x + global.gmui.wins_gap / 2;
+	parent_node.visual_y = y + global.gmui.wins_gap / 2;
+	parent_node.visual_width = parent_node.width + global.gmui.wins_gap / 2;
+	parent_node.visual_height = parent_node.height + global.gmui.wins_gap / 2;
+};
+
 function gmui_wins_recalculate_children(parent_node) {
     if (parent_node.children == undefined || array_length(parent_node.children) != 2) return;
     
@@ -7707,7 +7718,7 @@ function gmui_wins_handle_splitter_drag(parent_node) { // this shouldnt have too
     if (splitter_bounds == undefined) return;
     
     // check if mouse is over splitter
-    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && global.gmui.hovering_window.name == "##splitters_window";
+    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
     
     if (mouse_over_splitter) {
         if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
@@ -7758,7 +7769,7 @@ function gmui_wins_handle_splitter_drag(parent_node) { // this shouldnt have too
 
 function gmui_wins_draw_splitters(node) {
     if (gmui_begin("##splitters_window", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), 
-                   gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_MOVE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_SCROLLBAR)) {
+                   gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_MOVE | gmui_window_flags.NO_MOVE_DEPTH | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_SCROLLBAR)) {
         
 		global.gmui.current_window.x = 0;
 		global.gmui.current_window.y = 0;
@@ -7767,6 +7778,10 @@ function gmui_wins_draw_splitters(node) {
 		// might need to recreate surface in case of application window resize
 		
         gmui_wins_draw_splitters_recursive(node);
+		
+		if (global.gmui.current_window.z_index != 0) {
+			gmui_send_window_to_back(global.gmui.current_window);
+		};
         
         gmui_end();
     }
@@ -7782,9 +7797,9 @@ function gmui_wins_draw_splitters_recursive(node) {
     var splitter_bounds = undefined;
     var splitter_size = 8;
     
-    var splitter_color = style.border_color;
-    var splitter_hover_color = style.button_hover_border_color;
-    var splitter_active_color = style.button_active_border_color;
+    var splitter_color = style.wins_splitter_color;
+    var splitter_hover_color = style.wins_splitter_hover_color;
+    var splitter_active_color = style.wins_splitter_active_color;
     
     if (node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
         // Vertical splitter
@@ -7809,7 +7824,7 @@ function gmui_wins_draw_splitters_recursive(node) {
     if (splitter_bounds == undefined) return;
     
     // Check if mouse is over this splitter
-    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && global.gmui.hovering_window.name == "##splitters_window";
+    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
     var is_active = node.is_dragging;
     
     // Choose color based on state
@@ -7820,7 +7835,7 @@ function gmui_wins_draw_splitters_recursive(node) {
         draw_color = splitter_hover_color;
     }
     
-    // Draw splitter background (invisible hit area) - we don't draw this, just for hit detection
+    // TODO: draw background
     
     // Draw visible splitter line using GMUI functions
     if (node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
@@ -7831,14 +7846,14 @@ function gmui_wins_draw_splitters_recursive(node) {
         gmui_add_line(line_x, splitter_bounds[1], line_x, splitter_bounds[3], draw_color, 2);
         
         // Handle dots
-        var dot_spacing = 4;
+        var dot_spacing = 6;
         var dot_count = 3;
         var total_dot_height = (dot_count - 1) * dot_spacing;
         var start_y = splitter_bounds[1] + (splitter_bounds[3] - splitter_bounds[1] - total_dot_height) / 2;
         
         for (var i = 0; i < dot_count; i++) {
             var dot_y = start_y + i * dot_spacing;
-            gmui_add_rect(line_x - 1, dot_y, 2, 2, draw_color);
+            gmui_add_rect(line_x, dot_y, 4, 4, draw_color);
         }
         
     } else if (node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
@@ -7849,14 +7864,14 @@ function gmui_wins_draw_splitters_recursive(node) {
         gmui_add_line(splitter_bounds[0], line_y, splitter_bounds[2], line_y, draw_color, 2);
         
         // Handle dots
-        var dot_spacing = 4;
+        var dot_spacing = 6;
         var dot_count = 3;
         var total_dot_width = (dot_count - 1) * dot_spacing;
         var start_x = splitter_bounds[0] + (splitter_bounds[2] - splitter_bounds[0] - total_dot_width) / 2;
         
         for (var i = 0; i < dot_count; i++) {
             var dot_x = start_x + i * dot_spacing;
-            gmui_add_rect(dot_x, line_y - 1, 2, 2, draw_color);
+            gmui_add_rect(dot_x, line_y, 4, 4, draw_color);
         }
     }
     

@@ -32,22 +32,22 @@ gmui_wins_node_update(winsFrame);
 
 gmui_wins_draw_splitters(winsFrame);
 
-if (gmui_begin("Window A", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+if (gmui_begin("Window A", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_MOVE_DEPTH)) {
 	gmui_text_bullet("Demonstrating new WINS feature!")
 	gmui_end();
 };
 
-if (gmui_begin("Window B", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+if (gmui_begin("Window B", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_MOVE_DEPTH)) {
 	gmui_text_bullet("Demonstrating new WINS feature!")
 	gmui_end();
 };
 
-if (gmui_begin("Window C", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+if (gmui_begin("Window C", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_MOVE_DEPTH)) {
 	gmui_text_bullet("Demonstrating new WINS feature!")
 	gmui_end();
 };
 
-if (gmui_begin("Window D", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+if (gmui_begin("Window D", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_MOVE_DEPTH)) {
 	gmui_text_bullet("Demonstrating new WINS feature!")
 	gmui_end();
 };

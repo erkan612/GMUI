@@ -39,7 +39,9 @@
   "resources":[
     {"id":{"name":"fnCascadiaCode","path":"fonts/fnCascadiaCode/fnCascadiaCode.yy",},},
     {"id":{"name":"ExampleObject","path":"objects/ExampleObject/ExampleObject.yy",},},
+    {"id":{"name":"oSimplisticEditor","path":"objects/oSimplisticEditor/oSimplisticEditor.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
+    {"id":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
     {"id":{"name":"cUtils","path":"scripts/cUtils/cUtils.yy",},},
     {"id":{"name":"GMUI","path":"scripts/GMUI/GMUI.yy",},},
     {"id":{"name":"gmui_shader_alpha_gradient","path":"shaders/gmui_shader_alpha_gradient/gmui_shader_alpha_gradient.yy",},},
@@ -52,6 +54,7 @@
   "resourceType":"GMProject",
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
+    {"roomId":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
     {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
   ],
   "templateType":"game",
