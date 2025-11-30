@@ -30,6 +30,8 @@ nameData = "";
 
 isFirstFrame = true;
 
+winsFrame = undefined;
+
 
 
 

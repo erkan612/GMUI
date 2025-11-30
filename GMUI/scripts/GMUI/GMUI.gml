@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.2.0
+           Version 1.3.0
            
            by erkan612
            
@@ -64,6 +64,7 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			wins_gap: 4,
 			table_sort_column: -1,
 			table_sort_ascending: true,
 			tables: ds_map_create(),
@@ -389,6 +390,97 @@ function gmui_init() {
 				    SORTABLE_HEADERS: 1 << 4,
 				    STRIPED: 1 << 5, // Same as ALTERNATE_ROWS but more descriptive
 				},
+				
+				// Plotting & Chart styles
+				plot_bg_color: make_color_rgb(25, 25, 25),
+				plot_border_color: make_color_rgb(80, 80, 80),
+				plot_border_size: 1,
+				plot_padding: [4, 4],
+
+				// Grid styles
+				plot_grid_color: make_color_rgb(50, 50, 50),
+				plot_grid_thickness: 1,
+				plot_grid_steps: 5, // Number of grid lines
+
+				// Text styles
+				plot_text_color: make_color_rgb(150, 150, 150),
+				plot_text_size: -1, // Use default font size if -1
+				plot_axis_label_color: make_color_rgb(180, 180, 180),
+
+				// Line plot styles
+				plot_line_color: make_color_rgb(100, 200, 255),
+				plot_line_thickness: 2,
+				plot_line_smooth: true,
+				plot_point_color: make_color_rgb(100, 200, 255),
+				plot_point_size: 4,
+				plot_fill_color: gmui_make_color_rgba(100, 200, 255, 30),
+				plot_fill_enabled: true,
+
+				// Bar chart styles
+				plot_bar_color: make_color_rgb(100, 150, 255),
+				plot_bar_border_color: make_color_rgb(80, 80, 80),
+				plot_bar_border_size: 1,
+				plot_bar_rounding: 2,
+				plot_bar_spacing_ratio: 0.1, // 10% spacing between bars
+				plot_bar_gradient: true, // Color gradient based on value
+				plot_bar_min_color: make_color_rgb(100, 100, 255), // For gradient
+				plot_bar_max_color: make_color_rgb(255, 100, 100), // For gradient
+
+				// Histogram styles
+				plot_histogram_color: make_color_rgb(100, 200, 100),
+				plot_histogram_border_color: make_color_rgb(80, 80, 80),
+				plot_histogram_border_size: 1,
+				plot_histogram_default_bins: 10,
+				plot_histogram_spacing_ratio: 0.1,
+
+				// Scatter plot styles
+				plot_scatter_color: make_color_rgb(255, 100, 100),
+				plot_scatter_size: 4,
+				plot_scatter_rounding: 2,
+				plot_scatter_border_color: make_color_rgb(200, 200, 200),
+				plot_scatter_border_size: 1,
+
+				// Trend line styles (for scatter plots)
+				plot_trendline_color: make_color_rgb(255, 200, 50),
+				plot_trendline_thickness: 1,
+				plot_trendline_enabled: true,
+
+				// Annotation styles
+				plot_annotation_bg_color: gmui_make_color_rgba(0, 0, 0, 180),
+				plot_annotation_text_color: make_color_rgb(255, 255, 255),
+				plot_annotation_padding: [4, 2],
+				plot_annotation_rounding: 2,
+
+				// Legend styles
+				plot_legend_bg_color: gmui_make_color_rgba(0, 0, 0, 180),
+				plot_legend_text_color: make_color_rgb(255, 255, 255),
+				plot_legend_padding: [8, 4],
+				plot_legend_rounding: 4,
+				plot_legend_position: "top-right", // "top-left", "top-right", "bottom-left", "bottom-right"
+
+				// Tooltip styles (for interactive plots)
+				plot_tooltip_bg_color: gmui_make_color_rgba(0, 0, 0, 220),
+				plot_tooltip_text_color: make_color_rgb(255, 255, 255),
+				plot_tooltip_border_color: make_color_rgb(100, 100, 100),
+				plot_tooltip_border_size: 1,
+				plot_tooltip_padding: [6, 3],
+				plot_tooltip_rounding: 3,
+
+				// Color palettes for multiple series
+				plot_color_palette: [
+				    make_color_rgb(100, 200, 255),  // Blue
+				    make_color_rgb(255, 100, 100),  // Red
+				    make_color_rgb(100, 255, 100),  // Green
+				    make_color_rgb(255, 200, 50),   // Yellow
+				    make_color_rgb(200, 100, 255),  // Purple
+				    make_color_rgb(50, 255, 255),   // Cyan
+				    make_color_rgb(255, 150, 50),   // Orange
+				    make_color_rgb(150, 150, 255)   // Light Blue
+				],
+
+				// Animation styles
+				plot_animation_duration: 0.5, // seconds
+				plot_animation_easing: "easeOut", // "linear", "easeIn", "easeOut", "easeInOut"
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -1516,6 +1608,26 @@ function gmui_text(text) {
     var size = gmui_calc_text_size(text);
     
     gmui_add_text(dc.cursor_x, dc.cursor_y, text, global.gmui.style.text_color);
+    
+	dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += size[0] + global.gmui.style.item_spacing[0];
+    dc.line_height = max(dc.line_height, size[1]);
+	
+	gmui_new_line();
+	
+    return false;
+}
+
+function gmui_text_bullet(text) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var size = gmui_calc_text_size(text);
+    
+	gmui_add_rect_round(dc.cursor_x - 4, dc.cursor_y + size[1] / 4, 8, 8, c_white, 8);
+	
+    gmui_add_text(dc.cursor_x + 12, dc.cursor_y, text, global.gmui.style.text_color);
     
 	dc.cursor_previous_x = dc.cursor_x;
     dc.cursor_x += size[0] + global.gmui.style.item_spacing[0];
@@ -5075,7 +5187,7 @@ function gmui_begin_table(name, columns, column_count, width = -1, height = -1, 
     
     // Setup scissor for table content
     var content_height = table_context.height - table_context.header_height;
-    gmui_begin_scissor(table_context.x, table_context.y + table_context.header_height, table_context.width, content_height);
+    gmui_begin_scissor(table_context.x, table_context.y + table_context.header_height, table_context.width, content_height); // calculate if it's top goes above title bar's bottom, clip the scissor area
     
     return table_context;
 }
@@ -5328,6 +5440,436 @@ function gmui_table_cleanup() {
     if (global.gmui.initialized && ds_exists(global.gmui.tables, ds_type_map)) {
         ds_map_clear(global.gmui.tables);
     }
+}
+
+//////////////////////////////////////
+// PLOTTING & CHARTS
+//////////////////////////////////////
+
+function gmui_plot_lines(label, values, count, width = -1, height = 120, show_points = true) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate plot size
+    var plot_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+    var plot_height = height;
+    
+    // Check if plot fits on current line
+    //if (dc.cursor_x + plot_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //    gmui_new_line();
+    //}
+    
+    var plot_x = dc.cursor_x;
+    var plot_y = dc.cursor_y;
+    
+    // Draw label if provided
+    if (label != "") {
+        gmui_text(label);
+    }
+    
+    // Calculate data bounds
+    var min_val = 0;
+    var max_val = 0;
+    if (count > 0) {
+        min_val = values[0];
+        max_val = values[0];
+        for (var i = 1; i < count; i++) {
+            min_val = min(min_val, values[i]);
+            max_val = max(max_val, values[i]);
+        }
+    }
+    
+    // Add some padding to data range
+    var range = max_val - min_val;
+    if (range == 0) range = 1;
+    min_val -= range * 0.1;
+    max_val += range * 0.1;
+    
+    // Draw plot background and border
+    gmui_add_rect(plot_x, plot_y, plot_width, plot_height, style.plot_bg_color);
+    if (style.plot_border_size > 0) {
+        gmui_add_rect_outline(plot_x, plot_y, plot_width, plot_height, 
+                            style.plot_border_color, style.plot_border_size);
+    }
+    
+    // Draw grid lines
+    var grid_steps = style.plot_grid_steps;
+    for (var i = 0; i <= grid_steps; i++) {
+        var _y = plot_y + plot_height - (i * plot_height / grid_steps);
+        var value = min_val + (i * (max_val - min_val) / grid_steps);
+        
+        // Grid line
+        gmui_add_line(plot_x, _y, plot_x + plot_width, _y, 
+                     style.plot_grid_color, style.plot_grid_thickness);
+        
+        // Value label
+        var value_text = string_format(value, 1, 2);
+        var text_size = gmui_calc_text_size(value_text);
+        gmui_add_text(plot_x - text_size[0] - 4, _y - text_size[1] / 2, 
+                     value_text, style.plot_text_color);
+    }
+    
+    // Draw zero line if applicable
+    if (min_val <= 0 && max_val >= 0) {
+        var zero_y = plot_y + plot_height * (1 - (-min_val) / (max_val - min_val));
+        gmui_add_line(plot_x, zero_y, plot_x + plot_width, zero_y, 
+                     style.plot_grid_color, style.plot_grid_thickness);
+    }
+    
+    // Draw data lines
+    if (count > 1) {
+        // Create line path
+        var prev_x = 0;
+        var prev_y = 0;
+        
+        for (var i = 0; i < count; i++) {
+            var _x = plot_x + (i * plot_width / (count - 1));
+            var _y = plot_y + plot_height * (1 - (values[i] - min_val) / (max_val - min_val));
+            
+            if (i > 0) {
+                // Draw line between points
+                gmui_add_line(prev_x, prev_y, _x, _y, 
+                             style.plot_line_color, style.plot_line_thickness);
+            }
+            
+            // Draw data points if enabled
+            if (show_points) {
+                gmui_add_rect_round(_x - style.plot_point_size/2, _y - style.plot_point_size/2, 
+                                  style.plot_point_size, style.plot_point_size, 
+                                  style.plot_point_color, style.plot_point_size/2);
+            }
+            
+            prev_x = _x;
+            prev_y = _y;
+        }
+        
+        // Fill area under line if enabled
+        if (style.plot_fill_enabled && count >= 2) {
+            // Simple fill implementation
+            var fill_points = [];
+            // Start from bottom left
+            array_push(fill_points, [plot_x, plot_y + plot_height]);
+            // Add all data points
+            for (var i = 0; i < count; i++) {
+                var _x = plot_x + (i * plot_width / (count - 1));
+                var _y = plot_y + plot_height * (1 - (values[i] - min_val) / (max_val - min_val));
+                array_push(fill_points, [_x, _y]);
+            }
+            // End at bottom right
+            array_push(fill_points, [plot_x + plot_width, plot_y + plot_height]);
+            
+            // Draw filled polygon (simplified as multiple triangles)
+            for (var i = 1; i < array_length(fill_points) - 1; i++) {
+                gmui_add_triangle(
+                    fill_points[0][0], fill_points[0][1],
+                    fill_points[i][0], fill_points[i][1],
+                    fill_points[i + 1][0], fill_points[i + 1][1],
+                    style.plot_fill_color
+                );
+            }
+        }
+    } else if (count == 1) {
+        // Single point
+        var _x = plot_x + plot_width / 2;
+        var _y = plot_y + plot_height * (1 - (values[0] - min_val) / (max_val - min_val));
+        gmui_add_rect_round(_x - style.plot_point_size/2, _y - style.plot_point_size/2, 
+                          style.plot_point_size, style.plot_point_size, 
+                          style.plot_point_color, style.plot_point_size/2);
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += plot_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, plot_height + (label != "" ? string_height(label) : 0));
+    
+    gmui_new_line();
+    
+    return true;
+}
+
+function gmui_plot_bars(label, values, count, width = -1, height = 120) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate plot size
+    var plot_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+    var plot_height = height;
+    
+    if (dc.cursor_x + plot_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+    }
+    
+    var plot_x = dc.cursor_x;
+    var plot_y = dc.cursor_y;
+    
+    // Draw label if provided
+    if (label != "") {
+        gmui_text(label);
+    }
+    
+    // Calculate data bounds
+    var min_val = 0;
+    var max_val = 0;
+    if (count > 0) {
+        min_val = values[0];
+        max_val = values[0];
+        for (var i = 1; i < count; i++) {
+            min_val = min(min_val, values[i]);
+            max_val = max(max_val, values[i]);
+        }
+    }
+    
+    // Ensure we have some range for display
+    var range = max_val - min_val;
+    if (range == 0) {
+        range = 1;
+        max_val = min_val + 1;
+    }
+    
+    // Draw plot background and border
+    gmui_add_rect(plot_x, plot_y, plot_width, plot_height, style.plot_bg_color);
+    if (style.plot_border_size > 0) {
+        gmui_add_rect_outline(plot_x, plot_y, plot_width, plot_height, 
+                            style.plot_border_color, style.plot_border_size);
+    }
+    
+    // Draw bars
+    if (count > 0) {
+        var bar_width = plot_width / count;
+        var bar_spacing = max(1, bar_width * style.plot_bar_spacing_ratio);
+        var actual_bar_width = bar_width - bar_spacing;
+        
+        for (var i = 0; i < count; i++) {
+            var bar_x = plot_x + i * bar_width + bar_spacing / 2;
+            var bar_height = plot_height * ((values[i] - min_val) / range);
+            var bar_y = plot_y + plot_height - bar_height;
+            
+            // Choose color
+            var bar_color = style.plot_bar_color;
+            if (style.plot_bar_gradient) {
+                var normalized_value = (values[i] - min_val) / range;
+                bar_color = gmui_lerp_color(style.plot_bar_min_color, style.plot_bar_max_color, normalized_value);
+            }
+            
+            // Draw bar
+            gmui_add_rect_round(bar_x, bar_y, actual_bar_width, bar_height, 
+                              bar_color, style.plot_bar_rounding);
+            
+            // Draw bar outline
+            if (style.plot_bar_border_size > 0) {
+                gmui_add_rect_round_outline(bar_x, bar_y, actual_bar_width, bar_height, 
+                                          style.plot_bar_border_color, 
+                                          style.plot_bar_rounding, 
+                                          style.plot_bar_border_size);
+            }
+            
+            // Draw value label on top of bar if there's space
+            if (bar_height > 20) {
+                var value_text = string_format(values[i], 1, 2);
+                var text_size = gmui_calc_text_size(value_text);
+                var text_x = bar_x + (actual_bar_width - text_size[0]) / 2;
+                var text_y = bar_y + (bar_height - text_size[1]) / 2;
+                gmui_add_text(text_x, text_y, value_text, make_color_rgb(255, 255, 255));
+            }
+        }
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += plot_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, plot_height + (label != "" ? string_height(label) : 0));
+    
+    gmui_new_line();
+    
+    return true;
+}
+
+function gmui_plot_histogram(label, values, count, width = -1, height = 120, bins = 10) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate plot size
+    var plot_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+    var plot_height = height;
+    
+    if (dc.cursor_x + plot_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+    }
+    
+    var plot_x = dc.cursor_x;
+    var plot_y = dc.cursor_y;
+    
+    // Draw label if provided
+    if (label != "") {
+        gmui_text(label);
+    }
+    
+    // Calculate histogram bins
+    var min_val = 0;
+    var max_val = 0;
+    if (count > 0) {
+        min_val = values[0];
+        max_val = values[0];
+        for (var i = 1; i < count; i++) {
+            min_val = min(min_val, values[i]);
+            max_val = max(max_val, values[i]);
+        }
+    }
+    
+    // Create bins
+    var bin_counts = array_create(bins, 0);
+    var bin_range = max_val - min_val;
+    if (bin_range == 0) bin_range = 1;
+    
+    for (var i = 0; i < count; i++) {
+        var bin_index = clamp(floor((values[i] - min_val) / bin_range * bins), 0, bins - 1);
+        bin_counts[bin_index]++;
+    }
+    
+    // Find max bin count for scaling
+    var max_bin_count = 0;
+    for (var i = 0; i < bins; i++) {
+        max_bin_count = max(max_bin_count, bin_counts[i]);
+    }
+    if (max_bin_count == 0) max_bin_count = 1;
+    
+    // Draw plot background and border
+    gmui_add_rect(plot_x, plot_y, plot_width, plot_height, style.plot_bg_color);
+    gmui_add_rect_outline(plot_x, plot_y, plot_width, plot_height, style.border_color, 1);
+    
+    // Draw histogram bars
+    var bar_width = plot_width / bins;
+    var bar_spacing = max(1, bar_width * 0.1);
+    var actual_bar_width = bar_width - bar_spacing;
+    
+    for (var i = 0; i < bins; i++) {
+        var bar_x = plot_x + i * bar_width + bar_spacing / 2;
+        var bar_height = plot_height * (bin_counts[i] / max_bin_count);
+        var bar_y = plot_y + plot_height - bar_height;
+        
+        // Color based on frequency
+        var normalized_freq = bin_counts[i] / max_bin_count;
+        var bar_color = gmui_make_color_rgba(
+            100 + normalized_freq * 155,
+            200,
+            100,
+            255
+        );
+        
+        // Draw bar
+        gmui_add_rect(bar_x, bar_y, actual_bar_width, bar_height, bar_color);
+        
+        // Draw bar outline
+        gmui_add_rect_outline(bar_x, bar_y, actual_bar_width, bar_height, 
+                            style.plot_histogram_border_color, 1);
+        
+        // Draw bin range label if there's space
+        if (bar_height > 25 && i % max(1, floor(bins / 5)) == 0) {
+            var bin_start = min_val + (i * bin_range / bins);
+            var bin_end = min_val + ((i + 1) * bin_range / bins);
+            var range_text = string_format(bin_start, 1, 1);
+            var text_size = gmui_calc_text_size(range_text);
+            var text_x = bar_x + (actual_bar_width - text_size[0]) / 2;
+            var text_y = plot_y + plot_height + 2;
+            gmui_add_text(text_x, text_y, range_text, style.plot_text_color);
+        }
+    }
+    
+    // Draw frequency axis labels
+    for (var i = 0; i <= 5; i++) {
+        var freq = (i * max_bin_count / 5);
+        var _y = plot_y + plot_height - (i * plot_height / 5);
+        var freq_text = string(floor(freq));
+        var text_size = gmui_calc_text_size(freq_text);
+        gmui_add_text(plot_x - text_size[0] - 4, _y - text_size[1] / 2, freq_text, style.plot_text_color);
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += plot_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, plot_height + (label != "" ? string_height(label) : 0) + 15);
+    
+    gmui_new_line();
+    
+    return true;
+}
+
+function gmui_plot_scatter(label, x_values, y_values, count, width = -1, height = 120) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate plot size
+    var plot_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+    var plot_height = height;
+    
+    if (dc.cursor_x + plot_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+    }
+    
+    var plot_x = dc.cursor_x;
+    var plot_y = dc.cursor_y;
+    
+    // Draw label if provided
+    if (label != "") {
+        gmui_text(label);
+    }
+    
+    // Calculate data bounds
+    var min_x = 0, max_x = 0, min_y = 0, max_y = 0;
+    if (count > 0) {
+        min_x = x_values[0]; max_x = x_values[0];
+        min_y = y_values[0]; max_y = y_values[0];
+        for (var i = 1; i < count; i++) {
+            min_x = min(min_x, x_values[i]); max_x = max(max_x, x_values[i]);
+            min_y = min(min_y, y_values[i]); max_y = max(max_y, y_values[i]);
+        }
+    }
+    
+    // Add padding to ranges
+    var x_range = max_x - min_x; if (x_range == 0) x_range = 1;
+    var y_range = max_y - min_y; if (y_range == 0) y_range = 1;
+    min_x -= x_range * 0.05; max_x += x_range * 0.05;
+    min_y -= y_range * 0.05; max_y += y_range * 0.05;
+    
+    // Draw plot background and border
+    gmui_add_rect(plot_x, plot_y, plot_width, plot_height, style.plot_bg_color);
+    gmui_add_rect_outline(plot_x, plot_y, plot_width, plot_height, style.border_color, 1);
+    
+    // Draw scatter points
+    if (count > 0) {
+        var point_color = style.plot_scatter_color;
+        var point_size = style.plot_scatter_size;
+        
+        for (var i = 0; i < count; i++) {
+            var _x = plot_x + ((x_values[i] - min_x) / (max_x - min_x)) * plot_width;
+            var _y = plot_y + plot_height - ((y_values[i] - min_y) / (max_y - min_y)) * plot_height;
+            
+            // Draw point
+            gmui_add_rect_round(_x - point_size/2, _y - point_size/2, point_size, point_size, 
+                              point_color, point_size/2);
+        }
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += plot_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, plot_height + (label != "" ? string_height(label) : 0));
+    
+    gmui_new_line();
+    
+    return true;
 }
 
 /************************************
@@ -6391,6 +6933,39 @@ function gmui_demo() {
 		    gmui_collapsing_header_end();
 		}
 		
+		// Plotting & Charts Demo
+		static cho_plots = true;
+		header = gmui_collapsing_header("Plotting & Charts", cho_plots);
+		cho_plots = header[1] ? !cho_plots : cho_plots;
+		if (cho_plots) {
+		    static plot_data = [25, 45, 30, 60, 40, 80, 55, 35, 70, 50];
+		    static frame_times = [16.7, 15.2, 18.3, 14.8, 22.1, 16.9, 15.7, 17.2, 19.5, 16.1];
+		    static scatter_x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+		    static scatter_y = [2, 4, 5, 4, 5, 7, 8, 7, 9, 8];
+    
+		    gmui_text("Data Visualization Examples");
+		    gmui_text_disabled("Various chart types with customizable styling");
+		    gmui_separator();
+    
+		    // Line plot example
+		    gmui_text("Line Plot - Time Series Data");
+		    gmui_plot_lines("Frame Times (ms)", frame_times, array_length(frame_times), -1, 150);
+    
+		    // Bar chart example
+		    gmui_text("Bar Chart - Performance Metrics");
+		    gmui_plot_bars("Sensor Readings", plot_data, array_length(plot_data), -1, 150);
+    
+		    // Histogram example
+		    gmui_text("Histogram - Value Distribution");
+		    gmui_plot_histogram("Data Distribution", plot_data, array_length(plot_data), -1, 150, 6);
+    
+		    // Scatter plot example
+		    gmui_text("Scatter Plot - Correlation");
+		    gmui_plot_scatter("X vs Y Correlation", scatter_x, scatter_y, array_length(scatter_x), -1, 150);
+    
+		    gmui_collapsing_header_end();
+		}
+		
         // Style Editor
 		static cho9 = true;
 		header = gmui_collapsing_header("Style Editor", cho9);
@@ -6652,6 +7227,111 @@ function gmui_demo() {
 
 					gmui_text("Cell Padding Y"); gmui_same_line();
 					global.gmui.style.table_cell_padding[1] = gmui_input_int(global.gmui.style.table_cell_padding[1], 1, 0, 20);
+					
+					// Plot background and border
+					static sPlotBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_bg_color);
+					sPlotBgColor = gmui_color_button_4("Plot BG Color", sPlotBgColor);
+					global.gmui.style.plot_bg_color = gmui_color_rgba_to_color_rgb(sPlotBgColor);
+
+					static sPlotBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_border_color);
+					sPlotBorderColor = gmui_color_button_4("Plot Border Color", sPlotBorderColor);
+					global.gmui.style.plot_border_color = gmui_color_rgba_to_color_rgb(sPlotBorderColor);
+
+					gmui_text("Plot Border Size"); gmui_same_line();
+					global.gmui.style.plot_border_size = gmui_input_int(global.gmui.style.plot_border_size, 1, 0, 5);
+
+					// Grid styles
+					static sPlotGridColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_grid_color);
+					sPlotGridColor = gmui_color_button_4("Grid Color", sPlotGridColor);
+					global.gmui.style.plot_grid_color = gmui_color_rgba_to_color_rgb(sPlotGridColor);
+
+					gmui_text("Grid Thickness"); gmui_same_line();
+					global.gmui.style.plot_grid_thickness = gmui_input_int(global.gmui.style.plot_grid_thickness, 1, 1, 5);
+
+					gmui_text("Grid Steps"); gmui_same_line();
+					global.gmui.style.plot_grid_steps = gmui_input_int(global.gmui.style.plot_grid_steps, 1, 2, 20);
+
+					// Text styles
+					static sPlotTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_text_color);
+					sPlotTextColor = gmui_color_button_4("Text Color", sPlotTextColor);
+					global.gmui.style.plot_text_color = gmui_color_rgba_to_color_rgb(sPlotTextColor);
+
+					// Line plot styles
+					static sPlotLineColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_line_color);
+					sPlotLineColor = gmui_color_button_4("Line Color", sPlotLineColor);
+					global.gmui.style.plot_line_color = gmui_color_rgba_to_color_rgb(sPlotLineColor);
+
+					gmui_text("Line Thickness"); gmui_same_line();
+					global.gmui.style.plot_line_thickness = gmui_input_int(global.gmui.style.plot_line_thickness, 1, 1, 10);
+
+					static sPlotPointColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_point_color);
+					sPlotPointColor = gmui_color_button_4("Point Color", sPlotPointColor);
+					global.gmui.style.plot_point_color = gmui_color_rgba_to_color_rgb(sPlotPointColor);
+
+					gmui_text("Point Size"); gmui_same_line();
+					global.gmui.style.plot_point_size = gmui_input_int(global.gmui.style.plot_point_size, 1, 2, 10);
+
+					static sPlotFillColor = global.gmui.style.plot_fill_color;
+					sPlotFillColor = gmui_color_button_4("Fill Color", sPlotFillColor);
+					global.gmui.style.plot_fill_color = sPlotFillColor;
+
+					gmui_text("Fill Enabled"); gmui_same_line();
+					global.gmui.style.plot_fill_enabled = gmui_checkbox_box(global.gmui.style.plot_fill_enabled);
+
+					// Bar chart styles
+					static sPlotBarColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_bar_color);
+					sPlotBarColor = gmui_color_button_4("Bar Color", sPlotBarColor);
+					global.gmui.style.plot_bar_color = gmui_color_rgba_to_color_rgb(sPlotBarColor);
+
+					static sPlotBarBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_bar_border_color);
+					sPlotBarBorderColor = gmui_color_button_4("Bar Border Color", sPlotBarBorderColor);
+					global.gmui.style.plot_bar_border_color = gmui_color_rgba_to_color_rgb(sPlotBarBorderColor);
+
+					gmui_text("Bar Border Size"); gmui_same_line();
+					global.gmui.style.plot_bar_border_size = gmui_input_int(global.gmui.style.plot_bar_border_size, 1, 0, 5);
+
+					gmui_text("Bar Rounding"); gmui_same_line();
+					global.gmui.style.plot_bar_rounding = gmui_input_int(global.gmui.style.plot_bar_rounding, 1, 0, 10);
+
+					gmui_text("Bar Spacing %"); gmui_same_line();
+					global.gmui.style.plot_bar_spacing_ratio = gmui_input_float(global.gmui.style.plot_bar_spacing_ratio, 0.01, 0, 0.5, 80);
+
+					gmui_text("Bar Gradient"); gmui_same_line();
+					global.gmui.style.plot_bar_gradient = gmui_checkbox_box(global.gmui.style.plot_bar_gradient);
+
+					static sPlotBarMinColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_bar_min_color);
+					sPlotBarMinColor = gmui_color_button_4("Bar Min Color", sPlotBarMinColor);
+					global.gmui.style.plot_bar_min_color = gmui_color_rgba_to_color_rgb(sPlotBarMinColor);
+
+					static sPlotBarMaxColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_bar_max_color);
+					sPlotBarMaxColor = gmui_color_button_4("Bar Max Color", sPlotBarMaxColor);
+					global.gmui.style.plot_bar_max_color = gmui_color_rgba_to_color_rgb(sPlotBarMaxColor);
+
+					// Histogram styles
+					static sPlotHistogramColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_histogram_color);
+					sPlotHistogramColor = gmui_color_button_4("Histogram Color", sPlotHistogramColor);
+					global.gmui.style.plot_histogram_color = gmui_color_rgba_to_color_rgb(sPlotHistogramColor);
+
+					gmui_text("Default Bins"); gmui_same_line();
+					global.gmui.style.plot_histogram_default_bins = gmui_input_int(global.gmui.style.plot_histogram_default_bins, 1, 3, 20);
+
+					// Scatter plot styles
+					static sPlotScatterColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_scatter_color);
+					sPlotScatterColor = gmui_color_button_4("Scatter Color", sPlotScatterColor);
+					global.gmui.style.plot_scatter_color = gmui_color_rgba_to_color_rgb(sPlotScatterColor);
+
+					gmui_text("Scatter Size"); gmui_same_line();
+					global.gmui.style.plot_scatter_size = gmui_input_int(global.gmui.style.plot_scatter_size, 1, 2, 10);
+
+					// Color palette preview
+					gmui_text("Color Palette");
+					for (var i = 0; i < min(8, array_length(global.gmui.style.plot_color_palette)); i++) {
+					    gmui_same_line();
+					    var new_color = gmui_color_button(global.gmui.style.plot_color_palette[i], 20);
+					    if (new_color != global.gmui.style.plot_color_palette[i]) {
+					        global.gmui.style.plot_color_palette[i] = new_color;
+					    }
+					}
             
 		            gmui_end();
 		        }
@@ -6677,6 +7357,22 @@ function gmui_demo() {
 //////////////////////////////////////
 // MATH (Color conversions, math helpers)
 //////////////////////////////////////
+function gmui_lerp_color(color1, color2, t) {
+    var r1 = color_get_red(color1);
+    var g1 = color_get_green(color1);
+    var b1 = color_get_blue(color1);
+    
+    var r2 = color_get_red(color2);
+    var g2 = color_get_green(color2);
+    var b2 = color_get_blue(color2);
+    
+    var r = lerp(r1, r2, t);
+    var g = lerp(g1, g2, t);
+    var b = lerp(b1, b2, t);
+    
+    return make_color_rgb(r, g, b);
+}
+
 function gmui_make_color_rgba(r, g, b, a) {
     r = clamp(r, 0, 255);
     g = clamp(g, 0, 255);
@@ -6784,4 +7480,388 @@ function gmui_color_rgb_to_color_rgba(rgb, alpha = 255) {
 /************************************
  * STYLES
  ***********************************/
+// TODO: DO THIS
+
+/************************************
+ * WINS
+ ***********************************/
+
+enum gmui_wins_split_dir {
+	LEFT,
+	RIGHT,
+	UP,
+	DOWN,
+};
+
+enum gmui_wins_cut_axis {
+	HORIZONTAL,
+	VERTICAL,
+};
+
+function gmui_wins_node_create(x, y, width, height, parent = undefined) {
+	var node = {
+		x: x, 
+		y: y, 
+		width: width, 
+		height: height, 
+		children: undefined, 
+		ratio: 0.5, 
+		cut_axis: undefined, 
+		target_window: undefined, 
+		parent: parent, 
+		is_dragging: false, 
+		drag_start_mouse_x: 0, 
+		drag_start_mouse_y: 0, 
+		drag_start_ratio: 0.5, 
+        visual_x: x, 
+        visual_y: y, 
+        visual_width: width, 
+        visual_height: height ,
+	};
+	
+	return node;
+};
+
+function gmui_wins_node_split(node, dir, ratio = 0.5) {
+    var split_axis = (dir == gmui_wins_split_dir.LEFT || dir == gmui_wins_split_dir.RIGHT) ? 0 : 1;
+    var gap = global.gmui.wins_gap;
+    
+    var primary_node = undefined;
+    var secondary_node = undefined;
+    
+    switch (split_axis) {
+    case 0: {
+        var usable_width = node.visual_width;
+        var primary_width = usable_width * ratio;
+        var secondary_width = usable_width * (1.0 - ratio);
+        
+        var primary_container = undefined;
+        var secondary_container = undefined;
+        
+        if (dir == gmui_wins_split_dir.LEFT) {
+            primary_container = [ node.visual_x, node.visual_y, primary_width - gap/2, node.visual_height ];
+            secondary_container = [ node.visual_x + primary_width + gap/2, node.visual_y, secondary_width - gap/2, node.visual_height ];
+        }
+        else if (dir == gmui_wins_split_dir.RIGHT) {
+            primary_container = [ node.visual_x + secondary_width + gap/2, node.visual_y, primary_width - gap/2, node.visual_height ];
+            secondary_container = [ node.visual_x, node.visual_y, secondary_width - gap/2, node.visual_height ];
+        };
+        
+        primary_node = gmui_wins_node_create(primary_container[0], primary_container[1], primary_container[2], primary_container[3], node);
+        secondary_node = gmui_wins_node_create(secondary_container[0], secondary_container[1], secondary_container[2], secondary_container[3], node);
+        
+        node.cut_axis = gmui_wins_cut_axis.VERTICAL;
+        node.ratio = ratio;
+        
+        node.children = [ primary_node, secondary_node ];
+    } break;
+    case 1: {
+        var usable_height = node.visual_height;
+        var primary_height = usable_height * ratio;
+        var secondary_height = usable_height * (1.0 - ratio);
+        
+        var primary_container = undefined;
+        var secondary_container = undefined;
+        
+        if (dir == gmui_wins_split_dir.UP) {
+            primary_container = [ node.visual_x, node.visual_y, node.visual_width, primary_height - gap/2 ];
+            secondary_container = [ node.visual_x, node.visual_y + primary_height + gap/2, node.visual_width, secondary_height - gap/2 ];
+        }
+        else if (dir == gmui_wins_split_dir.DOWN) {
+            primary_container = [ node.visual_x, node.visual_y + secondary_height + gap/2, node.visual_width, primary_height - gap/2 ];
+            secondary_container = [ node.visual_x, node.visual_y, node.visual_width, secondary_height - gap/2 ];
+        };
+        
+        primary_node = gmui_wins_node_create(primary_container[0], primary_container[1], primary_container[2], primary_container[3], node);
+        secondary_node = gmui_wins_node_create(secondary_container[0], secondary_container[1], secondary_container[2], secondary_container[3], node);
+        
+        node.cut_axis = gmui_wins_cut_axis.HORIZONTAL;
+        node.ratio = ratio;
+        
+        node.children = [ primary_node, secondary_node ];
+    } break;
+    };
+    
+    return [ primary_node, secondary_node ];
+}
+
+function gmui_wins_node_set(node, window_name) {
+	var window = gmui_get_window(window_name);
+	node.target_window = window;
+}
+
+function gmui_wins_node_update(node) {
+    // update its children
+    if (node.children != undefined) {
+        gmui_wins_handle_splitter_drag(node); // update ratio
+        
+        // recalculate child dimensions based on current parent dimensions and ratio
+        gmui_wins_recalculate_children(node);
+        
+        gmui_wins_node_update(node.children[0]);
+        gmui_wins_node_update(node.children[1]);
+    };
+    
+    // update its target window (setting it directly might cause bugs)
+    var window = node.target_window;
+    if (window != undefined) {
+        var resize_surface = window.width != node.visual_width || window.height != node.visual_height;
+    
+        window.x = node.visual_x;
+        window.y = node.visual_y;
+        window.width = node.visual_width;
+        window.height = node.visual_height;
+        if (resize_surface) { gmui_create_surface(window); };
+    };
+}
+
+function gmui_wins_recalculate_children(parent_node) {
+    if (parent_node.children == undefined || array_length(parent_node.children) != 2) return;
+    
+    var child_a = parent_node.children[0];
+    var child_b = parent_node.children[1];
+    var gap = global.gmui.wins_gap;
+    
+    if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
+        // Vertical split - left/right
+        var primary_width = parent_node.visual_width * parent_node.ratio;
+        var secondary_width = parent_node.visual_width * (1.0 - parent_node.ratio);
+        
+        child_a.visual_x = parent_node.visual_x;
+        child_a.visual_y = parent_node.visual_y;
+        child_a.visual_width = primary_width - gap/2;
+        child_a.visual_height = parent_node.visual_height;
+        
+        child_b.visual_x = parent_node.visual_x + primary_width + gap/2;
+        child_b.visual_y = parent_node.visual_y;
+        child_b.visual_width = secondary_width - gap/2;
+        child_b.visual_height = parent_node.visual_height;
+        
+        // Update actual node dimensions (for splitter calculations)
+        child_a.x = child_a.visual_x;
+        child_a.y = child_a.visual_y;
+        child_a.width = child_a.visual_width;
+        child_a.height = child_a.visual_height;
+        
+        child_b.x = child_b.visual_x;
+        child_b.y = child_b.visual_y;
+        child_b.width = child_b.visual_width;
+        child_b.height = child_b.visual_height;
+        
+    } else if (parent_node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
+        // Horizontal split - up/down
+        var primary_height = parent_node.visual_height * parent_node.ratio;
+        var secondary_height = parent_node.visual_height * (1.0 - parent_node.ratio);
+        
+        child_a.visual_x = parent_node.visual_x;
+        child_a.visual_y = parent_node.visual_y;
+        child_a.visual_width = parent_node.visual_width;
+        child_a.visual_height = primary_height - gap/2;
+        
+        child_b.visual_x = parent_node.visual_x;
+        child_b.visual_y = parent_node.visual_y + primary_height + gap/2;
+        child_b.visual_width = parent_node.visual_width;
+        child_b.visual_height = secondary_height - gap/2;
+        
+        // Update actual node dimensions (for splitter calculations)
+        child_a.x = child_a.visual_x;
+        child_a.y = child_a.visual_y;
+        child_a.width = child_a.visual_width;
+        child_a.height = child_a.visual_height;
+        
+        child_b.x = child_b.visual_x;
+        child_b.y = child_b.visual_y;
+        child_b.width = child_b.visual_width;
+        child_b.height = child_b.visual_height;
+    }
+}
+
+function gmui_wins_handle_splitter_drag(parent_node) { // this shouldnt have took so long wtf
+    if (parent_node.children == undefined || array_length(parent_node.children) != 2) return;
+    
+    var child_a = parent_node.children[0];
+    var child_b = parent_node.children[1];
+    
+    // calculate splitter bounds based on cut axis
+    var splitter_bounds = undefined;
+    var splitter_size = 8;
+    
+    if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
+        var splitter_x = child_a.x + child_a.width;
+        splitter_bounds = [
+            splitter_x - splitter_size / 2, 
+            parent_node.y, 
+            splitter_x + splitter_size / 2, 
+            parent_node.y + parent_node.height
+        ];
+    } else if (parent_node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
+        var splitter_y = child_a.y + child_a.height;
+        splitter_bounds = [
+            parent_node.x, 
+            splitter_y - splitter_size / 2, 
+            parent_node.x + parent_node.width, 
+            splitter_y + splitter_size / 2
+        ];
+    }
+    
+    if (splitter_bounds == undefined) return;
+    
+    // check if mouse is over splitter
+    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds);
+    
+    if (mouse_over_splitter) {
+        if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
+            window_set_cursor(cr_size_we);
+        } else {
+            window_set_cursor(cr_size_ns);
+        }
+    }
+    
+    // handle dragging
+    if (mouse_over_splitter && global.gmui.mouse_clicked[0]) {
+        parent_node.is_dragging = true;
+        parent_node.drag_start_mouse_x = global.gmui.mouse_pos[0];
+        parent_node.drag_start_mouse_y = global.gmui.mouse_pos[1];
+        parent_node.drag_start_ratio = parent_node.ratio;
+    }
+    
+    if (parent_node.is_dragging && global.gmui.mouse_down[0]) {
+		// calculate new ratio
+        if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
+            var mouse_delta_x = global.gmui.mouse_pos[0] - parent_node.drag_start_mouse_x;
+            var total_width = parent_node.width;
+            var ratio_delta = mouse_delta_x / total_width;
+            
+            parent_node.ratio = clamp(parent_node.drag_start_ratio + ratio_delta, 0.1, 0.9);
+            
+        } else if (parent_node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
+            var mouse_delta_y = global.gmui.mouse_pos[1] - parent_node.drag_start_mouse_y;
+            var total_height = parent_node.height;
+            var ratio_delta = mouse_delta_y / total_height;
+            
+            parent_node.ratio = clamp(parent_node.drag_start_ratio + ratio_delta, 0.1, 0.9);
+        }
+        
+        // recalculate children dimensions immediatly during drag
+        gmui_wins_recalculate_children(parent_node);
+        
+        // change cursor
+        if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
+            window_set_cursor(cr_size_we);
+        } else {
+            window_set_cursor(cr_size_ns);
+        }
+    } else {
+        parent_node.is_dragging = false;
+    }
+}
+
+function gmui_wins_draw_splitters(node) {
+    if (gmui_begin("##splitters_window", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), 
+                   gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_MOVE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_SCROLLBAR)) {
+        
+		global.gmui.current_window.x = 0;
+		global.gmui.current_window.y = 0;
+		global.gmui.current_window.width = surface_get_width(application_surface);
+		global.gmui.current_window.height = surface_get_height(application_surface);
+		// might need to recreate surface in case of application window resize
+		
+        gmui_wins_draw_splitters_recursive(node);
+        
+        gmui_end();
+    }
+}
+
+function gmui_wins_draw_splitters_recursive(node) {
+    if (node.children == undefined || array_length(node.children) != 2) return;
+    
+    var child_a = node.children[0];
+    var child_b = node.children[1];
+    var style = global.gmui.style;
+    
+    var splitter_bounds = undefined;
+    var splitter_size = 8;
+    
+    var splitter_color = style.border_color;
+    var splitter_hover_color = style.button_hover_border_color;
+    var splitter_active_color = style.button_active_border_color;
+    
+    if (node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
+        // Vertical splitter
+        var splitter_x = child_a.x + child_a.width;
+        splitter_bounds = [
+            splitter_x - splitter_size / 2, 
+            node.y, 
+            splitter_x + splitter_size / 2, 
+            node.y + node.height
+        ];
+    } else if (node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
+        // Horizontal splitter
+        var splitter_y = child_a.y + child_a.height;
+        splitter_bounds = [
+            node.x, 
+            splitter_y - splitter_size / 2, 
+            node.x + node.width, 
+            splitter_y + splitter_size / 2
+        ];
+    }
+    
+    if (splitter_bounds == undefined) return;
+    
+    // Check if mouse is over this splitter
+    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds);
+    var is_active = node.is_dragging;
+    
+    // Choose color based on state
+    var draw_color = splitter_color;
+    if (is_active) {
+        draw_color = splitter_active_color;
+    } else if (mouse_over_splitter) {
+        draw_color = splitter_hover_color;
+    }
+    
+    // Draw splitter background (invisible hit area) - we don't draw this, just for hit detection
+    
+    // Draw visible splitter line using GMUI functions
+    if (node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
+        // Draw vertical line with handle dots
+        var line_x = splitter_bounds[0] + (splitter_bounds[2] - splitter_bounds[0]) / 2;
+        
+        // Main line
+        gmui_add_line(line_x, splitter_bounds[1], line_x, splitter_bounds[3], draw_color, 2);
+        
+        // Handle dots
+        var dot_spacing = 4;
+        var dot_count = 3;
+        var total_dot_height = (dot_count - 1) * dot_spacing;
+        var start_y = splitter_bounds[1] + (splitter_bounds[3] - splitter_bounds[1] - total_dot_height) / 2;
+        
+        for (var i = 0; i < dot_count; i++) {
+            var dot_y = start_y + i * dot_spacing;
+            gmui_add_rect(line_x - 1, dot_y, 2, 2, draw_color);
+        }
+        
+    } else if (node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
+        // Draw horizontal line with handle dots
+        var line_y = splitter_bounds[1] + (splitter_bounds[3] - splitter_bounds[1]) / 2;
+        
+        // Main line
+        gmui_add_line(splitter_bounds[0], line_y, splitter_bounds[2], line_y, draw_color, 2);
+        
+        // Handle dots
+        var dot_spacing = 4;
+        var dot_count = 3;
+        var total_dot_width = (dot_count - 1) * dot_spacing;
+        var start_x = splitter_bounds[0] + (splitter_bounds[2] - splitter_bounds[0] - total_dot_width) / 2;
+        
+        for (var i = 0; i < dot_count; i++) {
+            var dot_x = start_x + i * dot_spacing;
+            gmui_add_rect(dot_x, line_y - 1, 2, 2, draw_color);
+        }
+    }
+    
+    // Recursively draw splitters for children
+    gmui_wins_draw_splitters_recursive(node.children[0]);
+    gmui_wins_draw_splitters_recursive(node.children[1]);
+}
 

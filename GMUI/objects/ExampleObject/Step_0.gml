@@ -6,7 +6,50 @@ var demoWindow = gmui_get_window("GMUI Demo & Documentation");
 if (isFirstFrame) {
 	demoWindow.open = !demoWindow.open;
 	
+	winsFrame = gmui_wins_node_create(0, 0, 1310, 700);
+	
+	var nodeChildren = gmui_wins_node_split(winsFrame, gmui_wins_split_dir.UP, 0.3);
+	var nodeA = nodeChildren[0];
+	var nodeB = nodeChildren[1];
+	
+	nodeChildren = gmui_wins_node_split(nodeB, gmui_wins_split_dir.LEFT, 0.7);
+	nodeB = nodeChildren[0];
+	var nodeC = nodeChildren[1];
+	
+	nodeChildren = gmui_wins_node_split(nodeB, gmui_wins_split_dir.UP, 0.4);
+	nodeB = nodeChildren[0];
+	var nodeD = nodeChildren[1];
+	
+	gmui_wins_node_set(nodeA, "Window A");
+	gmui_wins_node_set(nodeB, "Window B");
+	gmui_wins_node_set(nodeC, "Window C");
+	gmui_wins_node_set(nodeD, "Window D");
+	
 	isFirstFrame = false;
+};
+
+gmui_wins_node_update(winsFrame);
+
+gmui_wins_draw_splitters(winsFrame);
+
+if (gmui_begin("Window A", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+	gmui_text_bullet("Demonstrating new WINS feature!")
+	gmui_end();
+};
+
+if (gmui_begin("Window B", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+	gmui_text_bullet("Demonstrating new WINS feature!")
+	gmui_end();
+};
+
+if (gmui_begin("Window C", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+	gmui_text_bullet("Demonstrating new WINS feature!")
+	gmui_end();
+};
+
+if (gmui_begin("Window D", undefined, undefined, undefined, undefined, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+	gmui_text_bullet("Demonstrating new WINS feature!")
+	gmui_end();
 };
 
 gmui_add_modal("Message", function(window) {
@@ -35,7 +78,7 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 	switch (tabIdx) {
 	case 1: {
 		if (gmui_button("Click Me!")) { gmui_open_modal("Message"); };
-		if (gmui_button("Show/Hide Demo Window")) { demoWindow.open = !demoWindow.open; };
+		if (gmui_button("Show/Hide Demo Window")) { demoWindow.open = !demoWindow.open; gmui_bring_window_to_front(demoWindow); };
 	} break;
 	
 	case 2: {
