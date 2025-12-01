@@ -81,7 +81,7 @@ gmui_add_modal("Create Object", function(window) {
 	if (gmui_button_width_fill("Cancel")) { gmui_close_modal("Create Object"); };
 }, undefined, undefined, undefined, undefined, gmui_pre_window_flags.MODAL_SET);
 
-if (gmui_begin("Details", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS_WINDOW)) {
+if (gmui_begin("Details", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS)) {
 	gmui_text(gmui_get().current_window.name); 
 	gmui_same_line(); 
 	if (gmui_button("+", 16, 16)) {
@@ -108,7 +108,7 @@ if (gmui_begin("Details", undefined, undefined, undefined, undefined, gmui_pre_w
 	gmui_end();
 };
 
-if (gmui_begin("View", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS_WINDOW)) {
+if (gmui_begin("View", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS)) {
 	gmui_text(gmui_get().current_window.name);
 	gmui_separator();
 	
@@ -126,7 +126,7 @@ if (gmui_begin("View", undefined, undefined, undefined, undefined, gmui_pre_wind
 	gmui_end();
 };
 
-if (gmui_begin("Info", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS_WINDOW)) {
+if (gmui_begin("Info", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS)) {
 	gmui_text(gmui_get().current_window.name);
 	gmui_separator();
 	

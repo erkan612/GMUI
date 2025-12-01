@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.3.1
+           Version 1.4.3
            
            by erkan612
            
@@ -60,7 +60,10 @@ enum gmui_window_flags {
 }
 
 enum gmui_pre_window_flags {
-	WINS_WINDOW = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_MOVE_DEPTH, 
+	WINS = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_MOVE_DEPTH, 
+	WINS_SET = gmui_pre_window_flags.WINS | gmui_window_flags.AUTO_SCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
+	WINS_SET_VERTICAL = gmui_pre_window_flags.WINS | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
+	WINS_SET_HORIZONTAL = gmui_pre_window_flags.WINS | gmui_window_flags.AUTO_HSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
 	MODAL_DEFAULT = gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.POPUP, 
 	MODAL_SET = gmui_pre_window_flags.MODAL_DEFAULT | gmui_window_flags.ALWAYS_AUTO_RESIZE, 
 };
@@ -71,6 +74,8 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			cache_surfaces: ds_map_create(),
+			cache: ds_map_create(),
 			wins_gap: 4,
 			table_sort_column: -1,
 			table_sort_ascending: true,
@@ -904,6 +909,10 @@ function gmui_cleanup() {
 			ds_map_destroy(global.gmui.tables);
 		}
 		
+		// Clean up cache
+		ds_map_destroy(global.gmui.cache);
+		ds_map_destroy(global.gmui.cache_surfaces);
+		
         global.gmui = undefined;
     }
 }
@@ -1187,6 +1196,15 @@ function gmui_update() {
 	global.gmui.is_hovering_element = false;
 	gmui_update_input();
 	ds_list_clear(global.gmui.modals);
+	array_foreach(ds_map_values_to_array(global.gmui.cache_surfaces), function(e, i) {
+	    var surface = e;
+		var c_time = current_time;
+		var difference = c_time - surface.time_start;
+		if (difference >= surface.sleep_timer * 1000) {
+			gmui_cache_delete(surface.id);
+			ds_map_delete(global.gmui.cache_surfaces, surface.id);
+		};
+	});
 };
 
 function gmui_handle_modals() {
@@ -4061,11 +4079,13 @@ function gmui_textbox(text, placeholder = "", width = -1) {
     // Create a surface for text clipping
     var text_surface = -1;
     var text_area_width = textbox_width - style.textbox_padding[0] * 2;
+	var surface = undefined;
     
     if (surface_exists(window.surface)) {
-        text_surface = surface_create(text_area_width, text_size[1]);
-        if (surface_exists(text_surface)) {
-            surface_set_target(text_surface);
+		surface = gmui_cache_surface_get(textbox_id, text_area_width, text_size[1]);
+        //text_surface = surface_create(text_area_width, text_size[1]);
+        if (surface_exists(surface.surface)) {
+            surface_set_target(surface.surface);
             draw_clear_alpha(c_black, 0);
 			var oldBlendMode = gpu_get_blendmode();
 			gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
@@ -4124,11 +4144,11 @@ function gmui_textbox(text, placeholder = "", width = -1) {
     }
     
     // Draw the text surface
-    if (surface_exists(text_surface)) {
+    if (surface_exists(surface.surface)) {
         // Add surface to draw list
         array_push(window.draw_list, {
-            type: "surface",
-            surface: text_surface,
+            type: "surface_o",
+            surface: surface.surface,
             x: textbox_x + style.textbox_padding[0],
             y: textbox_y + style.textbox_padding[1]
         });
@@ -4468,11 +4488,13 @@ function gmui_input_float(value, step = 1, min_value = -1000000, max_value = 100
     // Create a surface for text clipping
     var text_surface = -1;
     var text_area_width = textbox_width - style.drag_textbox_padding[0] * 2 - style.drag_textbox_drag_hotzone_width;
+	var surface = undefined;
     
     if (surface_exists(window.surface)) {
-        text_surface = surface_create(text_area_width, text_size[1]);
-        if (surface_exists(text_surface)) {
-            surface_set_target(text_surface);
+		surface = gmui_cache_surface_get(drag_textbox_id, text_area_width, text_size[1]);
+        //text_surface = surface_create(text_area_width, text_size[1]);
+        if (surface_exists(surface.surface)) {
+            surface_set_target(surface.surface);
             draw_clear_alpha(c_black, 0);
             var oldBlendMode = gpu_get_blendmode();
             gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
@@ -4530,10 +4552,10 @@ function gmui_input_float(value, step = 1, min_value = -1000000, max_value = 100
     }
     
     // Draw the text surface
-    if (surface_exists(text_surface)) {
+    if (surface_exists(surface.surface)) {
         array_push(window.draw_list, {
-            type: "surface",
-            surface: text_surface,
+            type: "surface_o",
+            surface: surface.surface,
             x: textbox_x + style.drag_textbox_padding[0],
             y: textbox_y + style.drag_textbox_padding[1]
         });
@@ -4728,11 +4750,13 @@ function gmui_input_int(value, step = 1, min_value = -1000000, max_value = 10000
     
     var text_surface = -1;
     var text_area_width = textbox_width - style.drag_textbox_padding[0] * 2 - style.drag_textbox_drag_hotzone_width;
+	var surface = undefined;
     
     if (surface_exists(window.surface)) {
-        text_surface = surface_create(text_area_width, text_size[1]);
-        if (surface_exists(text_surface)) {
-            surface_set_target(text_surface);
+		surface = gmui_cache_surface_get(drag_textbox_id, text_area_width, text_size[1]);
+        //text_surface = surface_create(text_area_width, text_size[1]);
+        if (surface_exists(surface.surface)) {
+            surface_set_target(surface.surface);
             draw_clear_alpha(c_black, 0);
             var oldBlendMode = gpu_get_blendmode();
             gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
@@ -4784,10 +4808,10 @@ function gmui_input_int(value, step = 1, min_value = -1000000, max_value = 10000
         }
     }
     
-    if (surface_exists(text_surface)) {
+    if (surface_exists(surface.surface)) {
         array_push(window.draw_list, {
-            type: "surface",
-            surface: text_surface,
+            type: "surface_o",
+            surface: surface.surface,
             x: textbox_x + style.drag_textbox_padding[0],
             y: textbox_y + style.drag_textbox_padding[1]
         });
@@ -4830,8 +4854,8 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
     
     // Draw label if provided
     var combo_x = dc.cursor_x;
-    if (label != "") {
-        gmui_add_text(combo_x, dc.cursor_y + (combo_height - label_size[1]) / 2, label + ": ", style.text_color);
+    if (label != "" && string_copy(label, 1, 2) != "##") {
+        gmui_add_text(combo_x, dc.cursor_y + (combo_height - label_size[1]) / 2, label, style.text_color);
         combo_x += label_size[0];
     }
     
@@ -6567,6 +6591,35 @@ function gmui_get_all_windows_sorted() {
     return result;
 }
 
+function gmui_cache_get(id) {
+	return global.gmui.cache[? id];
+}
+
+function gmui_cache_set(id, data) {
+	global.gmui.cache[? id] = data;
+}
+
+function gmui_cache_delete(id) {
+	ds_map_delete(global.gmui.cache, id);
+};
+
+function gmui_cache_surface_get(id, width, height) {
+	var surface = gmui_cache_get(id);
+	
+	if (surface == undefined) {
+		surface = {
+			id: id,
+			surface: surface_create(width, height), 
+			sleep_timer: 30,
+			time_start: current_time
+		};
+		global.gmui.cache_surfaces[? id] = surface;
+		gmui_cache_set(id, surface);
+	};
+	
+	return surface;
+}
+
 function gmui_demo() {
     if (!global.gmui.initialized) return;
     
@@ -7743,7 +7796,7 @@ function gmui_wins_handle_splitter_drag(parent_node) { // this shouldnt have too
             var total_width = parent_node.width;
             var ratio_delta = mouse_delta_x / total_width;
             
-            parent_node.ratio = clamp(parent_node.drag_start_ratio + ratio_delta, 0.1, 0.9);
+            parent_node.ratio = clamp(parent_node.drag_start_ratio + ratio_delta, 0.01, 0.99);
             
         } else if (parent_node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
             var mouse_delta_y = global.gmui.mouse_pos[1] - parent_node.drag_start_mouse_y;
@@ -7776,6 +7829,7 @@ function gmui_wins_draw_splitters(node) {
 		global.gmui.current_window.width = surface_get_width(application_surface);
 		global.gmui.current_window.height = surface_get_height(application_surface);
 		// might need to recreate surface in case of application window resize
+		// but its just a placeholder, shouldnt be a need for it?
 		
         gmui_wins_draw_splitters_recursive(node);
 		
