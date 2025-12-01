@@ -54,8 +54,8 @@
   "resourceType":"GMProject",
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
-    {"roomId":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
     {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
+    {"roomId":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
   ],
   "templateType":"game",
   "TextureGroups":[

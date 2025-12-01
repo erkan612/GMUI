@@ -5,6 +5,10 @@
 * GC cant catch up and builds up tiny bit of extra memory usage
 */
 
+/*TODO
+* textbox sleep timer isnt well structured, timer needs to be reset every time surface being used
+*/
+
 gmui_init();
 
 tabIdx = 1;
