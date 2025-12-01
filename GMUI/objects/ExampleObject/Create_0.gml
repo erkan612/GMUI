@@ -2,11 +2,7 @@
 * With the Update of GM-2024.14.1.210 surfaces seem to being destroyed in the first frame so gmui_surface and gmui_add_surface can be a bit struggle
 * horizontal scrolling is problematic with filling elements(collapsing headers, tree nodes, button width fills etc)
 * some style variables are not in use
-* GC cant catch up and builds up tiny bit of extra memory usage
-*/
-
-/*TODO
-* textbox sleep timer isnt well structured, timer needs to be reset every time surface being used
+* GC cant catch up and builds up tiny bit of extra memory usage in time
 */
 
 gmui_init();
@@ -33,8 +29,7 @@ combo_index = 0;
 
 nameData = "";
 
-
-
+winsFrame = undefined;
 
 
 

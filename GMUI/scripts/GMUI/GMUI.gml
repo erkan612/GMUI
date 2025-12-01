@@ -66,6 +66,7 @@ enum gmui_pre_window_flags {
 	WINS_SET_HORIZONTAL = gmui_pre_window_flags.WINS | gmui_window_flags.AUTO_HSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
 	MODAL_DEFAULT = gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.POPUP, 
 	MODAL_SET = gmui_pre_window_flags.MODAL_DEFAULT | gmui_window_flags.ALWAYS_AUTO_RESIZE, 
+	CANVAS = gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
 };
 
 function gmui_get() { return global.gmui; };
@@ -6603,19 +6604,24 @@ function gmui_cache_delete(id) {
 	ds_map_delete(global.gmui.cache, id);
 };
 
-function gmui_cache_surface_get(id, width, height) {
+function gmui_cache_surface_get(id, width, height, sleep_timer_seconds = 30) {
 	var surface = gmui_cache_get(id);
 	
 	if (surface == undefined) {
 		surface = {
 			id: id,
 			surface: surface_create(width, height), 
-			sleep_timer: 30,
+			sleep_timer: sleep_timer_seconds,
 			time_start: current_time
 		};
 		global.gmui.cache_surfaces[? id] = surface;
 		gmui_cache_set(id, surface);
 	};
+	
+	if (!surface_exists(surface.surface)) {
+		surface.surface = surface_create(width, height);
+	};
+	surface.time_start = current_time;
 	
 	return surface;
 }
