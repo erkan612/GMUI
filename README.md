@@ -26,27 +26,19 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 <img width="1299" height="721" alt="demo_tab_example2" src="https://github.com/user-attachments/assets/b5a47dce-34a9-41fb-8683-eb2df979b493" />
 <img width="1301" height="720" alt="demo_tab_example1" src="https://github.com/user-attachments/assets/9566c393-069c-464d-b801-c8fc8177c153" />
 
-## Installation
-
-1. Copy the GMUI script files into your GameMaker project
-2. Import the provided shaders for color picker functionality
-3. Call `gmui_init()` in your initialization code
+## Quick Start
 
 ```gml
 // Create Event
 gmui_init();
-```
+my_value = 50;
 
-## Quick Start
-
-```gml
 // Step Event
 gmui_update();
 
 if (gmui_begin("My Window", 100, 100, 400, 300)) {
     gmui_text("Hello GMUI!");
     
-    static my_value = 50;
     my_value = gmui_slider("Value", my_value, 0, 100);
     
     if (gmui_button("Click Me")) {
@@ -94,168 +86,147 @@ if (gmui_begin("Scrollable Window", 100, 100, 300, 200, flags)) {
 }
 ```
 
-## UI Components
+## UI Components/Elements and Features
 
-### Basic Elements
+## Windows & Layout
+- Window
+- Modal Window
+- Popup Window
+- Same Line
+- New Line
+- Separator
+- Dummy Space
+- Cursor Positioning
+- Tab Width & Positioning
+- Scrolling Container
+- Scrollbar
 
-```gml
-// Text
-gmui_text("Hello World!");
-gmui_text_disabled("Disabled text");
-gmui_label_text("FPS", string(room_speed));
+## Text Elements
+- Text
+- Disabled Text
+- Bulleted Text
+- Wrapped Text
+- Label with Value
 
-// Buttons
-if (gmui_button("Standard Button")) { }
-if (gmui_button_small("Small")) { }
-if (gmui_button_large("Large")) { }
-gmui_button_disabled("Disabled");
+## Buttons
+- Button
+- Invisible Button
+- Full Width Button
+- Small Button
+- Large Button
+- Fixed Width Button
+- Disabled Button
 
-// Checkboxes
-static checked = false;
-checked = gmui_checkbox("Enable feature", checked);
-checked = gmui_checkbox_box(checked); // Checkbox without label
+## Checkboxes
+- Checkbox with Label
+- Disabled Checkbox
+- Standalone Checkbox
 
-// Selectables
-static selected_index = 0;
-for (var i = 0; i < 3; i++) {
-    if (gmui_selectable("Option " + string(i), selected_index == i)) {
-        selected_index = i;
-    }
-}
-```
+## Sliders
+- Slider
+- Disabled Slider
 
-### Input Controls
+## Text Input
+- Textbox
+- Float Input
+- Integer Input
 
-```gml
-// Text input
-static text_value = "";
-text_value = gmui_textbox(text_value, "Enter text...");
+## Dropdowns
+- Combobox
+- Simple Combobox
+- Label-less Combobox
+- Combobox Dropdown
 
-// Numeric input
-static int_value = 42;
-static float_value = 3.14;
-int_value = gmui_input_int(int_value, 1, 0, 100); // value, step, min, max
-float_value = gmui_input_float(float_value, 0.1, 0.0, 10.0);
+## Color Pickers
+- Color Button
+- Color Editor (4 channels)
+- Color Button (4 channels)
+- Color Picker Popup
+- Color Picker Trigger
 
-// Sliders
-static slider_value = 50;
-slider_value = gmui_slider("Intensity", slider_value, 0, 100, 200); // label, value, min, max, width
+## Selectable Items
+- Selectable
+- Disabled Selectable
+- Small Selectable
+- Large Selectable
+- Fixed Width Selectable
 
-// Combo boxes
-static combo_index = 0;
-var items = ["Option 1", "Option 2", "Option 3"];
-combo_index = gmui_combo("Choose option", combo_index, items);
-```
+## Tree Views
+- Tree Node (Begin)
+- Tree Node (End)
+- Tree Node (Extended)
+- Tree Node (Single)
+- Tree Leaf
+- Tree Node Reset
 
-### Color Tools
+## Collapsible Sections
+- Collapsing Header
+- Collapsing Header End
 
-```gml
-// Color buttons and pickers
-static color_value = gmui_make_color_rgba(255, 128, 64, 255);
-color_value = gmui_color_button_4("My Color", color_value);
-color_value = gmui_color_edit_4("Edit Color", color_value);
+## Data Tables
+- Table (Begin)
+- Table Row
+- Table (End)
+- Table Controls
 
-// Simple color button
-if (gmui_color_button(c_red, 20)) {
-    // Red color button clicked
-}
-```
+## Plotting & Charts
+- Line Plot
+- Bar Chart
+- Histogram
+- Scatter Plot
 
-### Layout & Organization
+## Window Splitting System - WINS
+- Window Split Node
+- Window Split Management
+- Splitter Dragging & Resizing
+- Splitter Visuals
 
-```gml
-// Collapsible headers
-static header_open = true;
-var header_state = gmui_collapsing_header("Settings", header_open);
-header_open = header_state[0];
-if (header_open) {
-    // Settings content
-    gmui_text("Various settings here...");
-    gmui_collapsing_header_end();
-}
+## Modal System
+- Modal Management
+- Modal Open
+- Modal Close
 
-// Tree views
-gmui_tree_node_reset();
-var node_state = gmui_tree_node_begin("Parent Node", false);
-if (node_state[0]) {
-    if (gmui_tree_leaf("Child Item", false)) {
-        // Child clicked
-    }
-    gmui_tree_node_end();
-}
+## Image Display
+- Sprite Display
+- Surface Display
 
-// Same line layout
-gmui_button("Button A"); gmui_same_line();
-gmui_button("Button B"); gmui_same_line();
-gmui_button("Button C");
+## Custom Drawing Primitives
+- Rectangle
+- Rectangle with Alpha
+- Rectangle Outline
+- Rounded Rectangle
+- Rounded Rectangle Outline
+- Line
+- Triangle
+- Text Drawing
 
-// Separators and spacing
-gmui_text("Section 1");
-gmui_separator();
-gmui_text("Section 2");
-gmui_dummy(100, 20); // Add empty space
-```
+## Shaders & Effects
+- Shader Rectangle
+- Color Picker Shaders
 
-## Advanced Features
+## Scissor Clipping
+- Scissor Region
 
-### Modal Dialogs
+## Focus Management
+- Textbox Focus Check
+- Focused Textbox ID
+- Textbox Focus Status
+- Focused Textbox Text
+- Clear Textbox Focus
 
-```gml
-// Create modal (typically in step event)
-gmui_add_modal("confirm_dialog", function(window) {
-    gmui_text("Are you sure you want to delete?");
-    if (gmui_button_width_fill("Yes")) {
-        // Perform action
-        gmui_close_modal("confirm_dialog");
-    }
-    gmui_same_line();
-    if (gmui_button_width_fill("No")) {
-        gmui_close_modal("confirm_dialog");
-    }
-}, 200, 200, 300, 120, gmui_window_flags.NO_RESIZE);
+## Window Management
+- Bring Window to Front
+- Send Window to Back
+- Top Window
+- Window Z-Order
+- Set Window Z-Order
+- All Windows Sorted
 
-// Open modal when needed
-if (gmui_button("Delete Item")) {
-    gmui_open_modal("confirm_dialog");
-}
-```
+## Cache System
+- Surface Cache
 
-### Custom Styling
-
-```gml
-// Modify global styles
-var style = global.gmui.style;
-style.window_padding = [12, 12];
-style.button_rounding = 8;
-style.button_bg_color = make_color_rgb(65, 105, 225);
-style.text_color = make_color_rgb(240, 240, 240);
-
-// Temporary style changes
-var old_spacing = style.item_spacing[0];
-style.item_spacing[0] = 0;
-// Create tightly packed elements
-style.item_spacing[0] = old_spacing; // Restore
-```
-
-### Window Flags
-
-```gml
-// Common flag combinations
-var flags = gmui_window_flags.NONE; // Default behavior
-
-// No title bar or resize
-flags = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE;
-
-// Scrollable window
-flags = gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL;
-
-// Popup window
-flags = gmui_window_flags.POPUP | gmui_window_flags.NO_RESIZE;
-
-if (gmui_begin("Custom Window", 100, 100, 300, 200, flags)) {
-    gmui_end();
-}
-```
+## Demo & Debug
+- Demo Window
 
 ## API Reference
 
@@ -350,7 +321,7 @@ if (gmui_begin("Main Window", 100, 100, 400, 300)) {
 gmui_render();
 ```
 
-## Complete Example
+## Complete Example (Simplistic Editor)
 
 Here's a comprehensive example showing multiple features:
 
@@ -358,78 +329,237 @@ Here's a comprehensive example showing multiple features:
 // CREATE EVENT
 gmui_init();
 
-// State variables
-static tab_index = 0;
-static player_name = "";
-static player_level = 1;
-static player_color = gmui_make_color_rgba(255, 100, 100, 255);
-static settings_open = true;
+winsFrame = undefined;
+
+objectCreateTextInput = "";
+objectCreateComboIndex = 0;
+
+objects = array_create(0);
+selectedObject = undefined;
+
+collapsingHeaderOpenTransform = true;
+
+surfaceView = undefined;
+
+GetObject = function(name) {
+	for (var i = 0; i < array_length(objects); i++) {
+	    if (objects[i].name == name) { return objects[i]; };
+	}
+	return undefined;
+};
+
+GetObjectIndex = function(name) {
+	for (var i = 0; i < array_length(objects); i++) {
+	    if (objects[i].name == name) { return i; };
+	}
+	return undefined;
+};
 
 // STEP EVENT
 gmui_update();
 
-// Main application window
-if (gmui_begin("Character Editor", 50, 50, 600, 400, 
-    gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
-    
-    // Tab bar
-    var tabs = ["Basic", "Appearance", "Skills", "Inventory"];
-    for (var i = 0; i < array_length(tabs); i++) {
-        if (gmui_selectable(tabs[i], tab_index == i)) {
-            tab_index = i;
-        }
-        if (i < array_length(tabs) - 1) gmui_same_line();
-    }
-    gmui_separator();
-    
-    // Tab content
-    switch (tab_index) {
-        case 0: // Basic
-            player_name = gmui_textbox(player_name, "Enter character name");
-            player_level = gmui_input_int(player_level, 1, 1, 100);
-            gmui_label_text("Experience", "0 / 1000");
-            break;
-            
-        case 1: // Appearance
-            player_color = gmui_color_edit_4("Hair Color", player_color);
-            gmui_slider("Height", 1.75, 1.0, 2.5);
-            gmui_slider("Weight", 70, 40, 150);
-            break;
-            
-        case 2: // Skills
-            var skills = ["Strength", "Dexterity", "Intelligence", "Wisdom"];
-            for (var i = 0; i < array_length(skills); i++) {
-                gmui_label_text(skills[i], "10");
-                gmui_same_line();
-                if (gmui_button("+##" + string(i))) {
-                    // Increase skill
-                }
-                gmui_same_line();
-                if (gmui_button("-##" + string(i))) {
-                    // Decrease skill
-                }
-            }
-            break;
-    }
-    
-    gmui_end();
+if (global.gmui.frame_count == 1) {
+	winsFrame = gmui_wins_node_create(0, 0, 1310, 700);
+	
+	var split = gmui_wins_node_split(winsFrame, gmui_wins_split_dir.LEFT, 0.2);
+	var nodeDetails = split[0];
+	var node = split[1];
+	
+	split = gmui_wins_node_split(node, gmui_wins_split_dir.LEFT, 0.7);
+	var nodeView = split[0];
+	var nodeInfo = split[1];
+	
+	gmui_wins_node_set(nodeDetails, "Details");
+	gmui_wins_node_set(nodeView, "View");
+	gmui_wins_node_set(nodeInfo, "Info");
 }
 
-// Settings window (always visible)
-if (gmui_begin("Settings", 700, 50, 250, 200, gmui_window_flags.NO_RESIZE)) {
-    var settings = gmui_collapsing_header("Graphics", settings_open);
-    settings_open = settings[0];
-    if (settings_open) {
-        gmui_checkbox("VSync", true);
-        gmui_checkbox("Fullscreen", false);
-        gmui_slider("Brightness", 0.8, 0.0, 1.0);
-        gmui_collapsing_header_end();
-    }
-    gmui_end();
-}
+var temp = gmui_get_window("View");
+var viewCurrentSize = [ temp.width, temp.height ];
+gmui_wins_node_update(winsFrame);
+gmui_wins_draw_splitters(winsFrame);
+
+gmui_add_modal("Change Object Name", function(window) {
+	gmui_tab_width(8);
+	
+	gmui_text("Object Name");
+	gmui_same_line();
+	gmui_tab(13);
+	objectCreateTextInput = gmui_textbox(objectCreateTextInput, "Enter a name..");
+	if ((gmui_button_width_fill("OK") || (keyboard_check_pressed(vk_enter) && gmui_textbox_id() == gmui_get_focused_textbox_id()) || keyboard_check_pressed(vk_enter)) && objectCreateTextInput != "") {
+		var index = GetObjectIndex(selectedObject);
+		objects[index].name = objectCreateTextInput;
+		selectedObject = objectCreateTextInput;
+		
+		gmui_close_modal("Change Object Name");
+	};
+}, undefined, undefined, undefined, undefined, gmui_pre_window_flags.MODAL_SET);
+
+gmui_add_modal("Select an Object", function(window) {
+	gmui_text_wrapped("Please select an object to delete");
+	if (gmui_button_width_fill("OK")) { gmui_close_modal("Select an Object"); };
+}, undefined, undefined, undefined, undefined, gmui_pre_window_flags.MODAL_SET);
+
+gmui_add_modal("Delete Object", function(window) {
+	gmui_text_wrapped("Are you sure you want to delete this object?");
+	if (gmui_button_width_fill("Delete")) { array_delete(objects, GetObjectIndex(selectedObject), 1); selectedObject = undefined; gmui_close_modal("Delete Object"); };
+	if (gmui_button_width_fill("Cancel")) { gmui_close_modal("Delete Object"); };
+}, undefined, undefined, undefined, undefined, gmui_pre_window_flags.MODAL_SET);
+
+gmui_add_modal("Create Object", function(window) {
+	gmui_tab_width(8);
+	
+	gmui_text("Object Name");
+	gmui_same_line();
+	gmui_tab(13);
+	objectCreateTextInput = gmui_textbox(objectCreateTextInput, "Enter a name..");
+	
+	var types = [ "Box", "Circle" ];
+	gmui_text("Type");
+	gmui_same_line();
+	gmui_tab(13);
+	objectCreateComboIndex = gmui_combo("", objectCreateComboIndex, types);
+	
+	if ((gmui_button_width_fill("OK") || (keyboard_check_pressed(vk_enter) && gmui_textbox_id() == gmui_get_focused_textbox_id()) || keyboard_check_pressed(vk_enter)) && objectCreateTextInput != "") {
+		var selectedType = types[objectCreateComboIndex];
+		
+		var object = {
+			name: objectCreateTextInput,
+			type: selectedType,
+			x: 100,
+			y: 100,
+			width: 100,
+			height: 100,
+		};
+		
+		array_push(objects, object);
+		
+		gmui_close_modal("Create Object");
+	};
+	if (gmui_button_width_fill("Cancel")) { gmui_close_modal("Create Object"); };
+}, undefined, undefined, undefined, undefined, gmui_pre_window_flags.MODAL_SET);
+
+if (gmui_begin("Details", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS)) {
+	gmui_text(gmui_get().current_window.name); 
+	gmui_same_line(); 
+	if (gmui_button("+", 16, 16)) {
+		gmui_open_modal("Create Object");
+	}
+	gmui_same_line(); 
+	if (gmui_button("-", 16, 16)) {
+		if (selectedObject != undefined && selectedObject != "Root") { gmui_open_modal("Delete Object"); }else { gmui_open_modal("Select an Object"); };
+	}
+	gmui_separator();
+	
+	var treeNode = gmui_tree_node_begin("Root", selectedObject == "Root");
+	selectedObject = treeNode[1] ? "Root" : selectedObject;
+	
+	if (treeNode[0]) {
+		for (var i = 0; i < array_length(objects); i++) {
+			var object = objects[i];
+			if (gmui_tree_leaf(object.name, selectedObject == object.name)) { selectedObject = object.name; };
+		};
+	};
+	
+	gmui_tree_node_end();
+	
+	gmui_end();
+};
+
+if (gmui_begin("View", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS)) {
+	gmui_text(gmui_get().current_window.name);
+	gmui_separator();
+	
+	var availableWidth = gmui_get().current_window.width - gmui_get().current_window.dc.cursor_x - gmui_get().style.window_padding[0];
+	var availableHeight = gmui_get().current_window.height - gmui_get().current_window.dc.cursor_y - gmui_get().style.window_padding[1];
+	if (!surface_exists(surfaceView)) {
+		surfaceView = surface_create(availableWidth, availableHeight);
+	}
+	else if (gmui_get().current_window.width != viewCurrentSize[0] || gmui_get().current_window.height != viewCurrentSize[1]) {
+		surface_free(surfaceView);
+		surfaceView = surface_create(availableWidth, availableHeight);
+	};
+	gmui_surface(surfaceView);
+	
+	gmui_end();
+};
+
+if (gmui_begin("Info", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS)) {
+	gmui_text(gmui_get().current_window.name);
+	gmui_separator();
+	
+	var object = GetObject(selectedObject);
+	
+	if (selectedObject != undefined && selectedObject != "Root" && object != undefined) {
+		gmui_text(selectedObject);
+		gmui_same_line();
+		if (gmui_button("Change")) { gmui_open_modal("Change Object Name"); };
+		
+		var header = gmui_collapsing_header("Transform", collapsingHeaderOpenTransform);
+		collapsingHeaderOpenTransform = header[1] ? !collapsingHeaderOpenTransform : collapsingHeaderOpenTransform;
+		if (header[0]) {
+			gmui_text("Position");
+			gmui_text("X");
+			gmui_same_line();
+			object.x = gmui_input_int(object.x, undefined, -1000, 1000);
+			gmui_same_line();
+			gmui_text("Y");
+			gmui_same_line();
+			object.y = gmui_input_int(object.y, undefined, -1000, 1000);
+			
+			gmui_text("Size");
+			gmui_text("W");
+			gmui_same_line();
+			object.width = gmui_input_int(object.width, undefined, -1000, 1000);
+			gmui_same_line();
+			gmui_text("H");
+			gmui_same_line();
+			object.height = gmui_input_int(object.height, undefined, -1000, 1000);
+			
+			gmui_collapsing_header_end();
+		};
+	}
+	else {
+		gmui_text_disabled("Select an object");
+	};
+	
+	gmui_end();
+};
 
 // DRAW GUI EVENT
 gmui_render();
+
+surface_set_target(surfaceView);
+draw_clear_alpha(c_white, 0);
+
+draw_set_colour(c_dkgray);
+var gridSize = 32;
+for (var i = 0; i <= surface_get_width(surfaceView); i += gridSize) {
+	draw_line(i, 0, i, surface_get_height(surfaceView));
+};
+for (var i = 0; i <= surface_get_height(surfaceView); i += gridSize) {
+	draw_line(0, i, surface_get_width(surfaceView), i);
+};
+draw_set_colour(c_white);
+
+for (var i = 0; i < array_length(objects); i++) {
+    var object = objects[i];
+	
+	switch (object.type) {
+	case "Box": {
+		draw_rectangle(object.x, object.y, object.x + object.width, object.y + object.height, false);
+	} break;
+	case "Circle": {
+		draw_ellipse(object.x, object.y, object.x + object.width, object.y + object.height, false);
+	} break;
+	};
+}
+
+surface_reset_target();
+
+// Clean-Up Event
+gmui_cleanup();
+surface_free(surfaceView);
 ```
 
 ## Troubleshooting
@@ -443,7 +573,7 @@ gmui_render();
 
 **Input not working?**
 - Verify `gmui_update()` is called before any UI creation
-- Check that windows are active and not behind other windows
+- Check that windows are active and not behind a visible dimming window
 
 **Performance issues?**
 - Use scrolling only when necessary
@@ -454,17 +584,15 @@ gmui_render();
 
 MIT License - feel free to use in personal and commercial projects.
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
-
 ## Support
 
 If you encounter any issues or have questions:
-1. Check this documentation
-2. Look at the example code provided
+1. Check the documentation
+2. Look at the example codes provided
 3. Open an issue on GitHub
+4. Reach me on discord (erkan612)
 
 ---
 
-**GMUI** - Powering beautiful interfaces in GameMaker projects everywhere!
+**GMUI**
+
