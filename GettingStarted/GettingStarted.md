@@ -42,13 +42,21 @@ gmui_cleanup();
 If we are to run this code it should execute without any issues but we wont see any results because there are no UI elements, yet!
 
 First lets understand how GMUI works...
+
 We can not create UI elements on their own, they need a canvas to work with, in this case we have windows
+
 They are not particularly called windows but because their behaviour is quite flexible by default they act like window, they are actually a canvas
+
 To create a window we use ``gmui_begin()`` and ``gmui_end()`` then we proceed to create our UI in between those two function.
+
 The declaration of ``gmui_begin()`` as follows
+
 ``function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) -> boolean;``
+
 If there are no problems, it should return true. To make sure there are no erros we will use it inside an ``if`` statement and put ``gmui_end()`` in the end.
+
 Note that we must create our UI after the all of ``gmui_update()``, here is the complete step event code
+
 ```gml
 gmui_update();
 
@@ -78,6 +86,7 @@ Others
 ``gmui_button_disabled(text, [width], [height]) -> boolean``
 
 Now lets put this into an example
+
 The code below has a basic window, and a button. When being clicked, sends a debug message saying "Hello World!"
 ```gml
 if (gmui_begin("Test Window")) {
@@ -177,7 +186,9 @@ We dont have many options for layout management but we do have enough to build o
 ## Course 6 - Colors and Color Picker
 
 GMUI uses custom color formatting
+
 we have various functions to conver GameMaker RGB to GMUI RGBA and back to GameMaker RGB plus to convert them into an array.
+
 GMUI also has a built in color picker.
 
 Color Helpers
@@ -197,6 +208,7 @@ Color Buttons
 ## Course 7 - Containers
 
 In GMUI we can use Tree View and Collapsing Headers as containers.
+
 All though there is no point using Tree View as a container for buttons or other elements except Tree Nodes since we have Collapsing Headers(but we still can if we want to).
 
 Now lets take a look at usage example of Tree View
@@ -277,7 +289,7 @@ if (gmui_begin("Inventory", 20, 20, 400, 400)) {
 
 ## Course 9 - Plotting & Charts
 
-Plots are similar to Data Table
+Plots are similar to Data Tables
 
 These are all the Plot functions we have in GMUI
 + ``gmui_plot_lines()``
@@ -304,6 +316,7 @@ if (gmui_begin("Test Window", 20, 20, 400, 400)) {
 ```
 
 Example of bar chart
+
 Create Event:
 ```gml
 monthly_sales = [120, 85, 140, 95, 180, 130];
@@ -319,6 +332,7 @@ if (gmui_begin("Test Window", 20, 20, 400, 400)) {
 ```
 
 Scatter Plot
+
 Create Event:
 ```gml
 x_vals = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -334,6 +348,7 @@ if (gmui_begin("Test Window", 20, 20, 400, 400)) {
 ```
 
 Histogram
+
 Create Event:
 ```gml
 scores = [65, 72, 78, 82, 85, 88, 90, 92, 95, 98, 62, 75];
@@ -437,11 +452,13 @@ Here's a Simple Checklist for Styling
 ## Course 11 - Advanced Topics (Modals, WINS, Caching)
 
 Here we are almost ready to be able to use GMUI fluently!
+
 Now lets learn about Modals, WINS and Caching!
 
 ---
 
 Modal are popups with background dimming.
+
 In step event, after calling the ``gmui_update()`` we can use ``gmui_add_modal(name, function(window) {UI body}, [x], [y], [w], [h], [flags], [onBgClick])`` to add a modal and use ``gmui_open_modal(name)``/``gmui_close_modal(name)`` to open/close a modal.
 
 Here's an example
@@ -498,12 +515,17 @@ if (gmui_begin("Window C", undefined, undefined, undefined, undefined, gmui_pre_
 ```
 
 Now lets understand what is going on here.
+
 First we need to create a main node to begin splitting into peaces and later we will bind them into windows.
+
 To create a node we use ``gmui_wins_node_create(x, y, width, height)``
+
 To split it we use ``gmui_wins_node_split(node, dir, [ratio])`` which will give us an array of two, first being the node that is splitted in the given direction and the seond being splitted in the opposite of given direction.
+
 We proceed to apply this one more time to get all the nodes we need and then we use ``gmui_wins_node_set(node, name)`` to bind them with a window.
 
 Once we are done creating our node interace, we need to continuously update the parent node using ``gmui_wins_node_update(parent_node)`` which will calculate its and its childrens positions and sizes to update their binded windows.
+
 After that we can have our splitted windows but we need to draw and drag/resize our nodes so we call ``gmui_wins_draw_splitters(parent_node)`` after calling ``gmui_wins_node_update(parent_node)``.
 
 ---
