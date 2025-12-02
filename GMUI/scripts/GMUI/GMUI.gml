@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.5.14
+           Version 1.6.0
            
            by erkan612
 =======================================
@@ -24,51 +24,52 @@ A feature rich Immediate-Mode UI system
 global.gmui = undefined;
 
 enum gmui_window_flags {
-    NONE = 0,
-    NO_TITLE_BAR = 1 << 0,
-    NO_RESIZE = 1 << 1,
-    NO_MOVE = 1 << 2,
-    NO_SCROLLBAR = 1 << 3,
-    NO_COLLAPSE = 1 << 4,
-    ALWAYS_AUTO_RESIZE = 1 << 5,
-    NO_BACKGROUND = 1 << 6,
-    NO_SAVED_SETTINGS = 1 << 7,
-    NO_MOUSE_INPUTS = 1 << 8,
-    MENU_BAR = 1 << 9,
-    HORIZONTAL_SCROLLBAR = 1 << 10,
-    NO_FOCUS_ON_APPEARING = 1 << 11,
-    NO_BRING_TO_FRONT_ON_FOCUS = 1 << 12,
-    ALWAYS_VERTICAL_SCROLLBAR = 1 << 13,
-    ALWAYS_HORIZONTAL_SCROLLBAR = 1 << 14,
-    ALWAYS_USE_WINDOW_PADDING = 1 << 15,
-    NO_NAV_INPUTS = 1 << 16,
-    NO_NAV_FOCUS = 1 << 17,
-    UNSAVED_DOCUMENT = 1 << 18,
-    NO_CLOSE = 1 << 19,
-    VERTICAL_SCROLL = 1 << 20,
-    HORIZONTAL_SCROLL = 1 << 21,
-    AUTO_SCROLL = 1 << 22,           
-    ALWAYS_SCROLLBARS = 1 << 23,     
-    SCROLL_WITH_MOUSE_WHEEL = 1 << 24, 
-    SCROLLBAR_LEFT = 1 << 25,        
-    SCROLLBAR_TOP = 1 << 26,         
-    POPUP = 1 << 27,
-    AUTO_HSCROLL = 1 << 28,
-    AUTO_VSCROLL = 1 << 29,
-	NO_MOVE_DEPTH = 1 << 30,
+    NONE							= 0,
+    NO_TITLE_BAR					= 1 << 0,
+    NO_RESIZE						= 1 << 1,
+    NO_MOVE							= 1 << 2,
+    NO_SCROLLBAR					= 1 << 3,
+    NO_COLLAPSE						= 1 << 4,
+    ALWAYS_AUTO_RESIZE				= 1 << 5,
+    NO_BACKGROUND					= 1 << 6,
+    NO_SAVED_SETTINGS				= 1 << 7,
+    NO_MOUSE_INPUTS					= 1 << 8,
+    MENU_BAR						= 1 << 9,
+    HORIZONTAL_SCROLLBAR			= 1 << 10,
+    NO_FOCUS_ON_APPEARING			= 1 << 11,
+    NO_BRING_TO_FRONT_ON_FOCUS		= 1 << 12,
+    ALWAYS_VERTICAL_SCROLLBAR		= 1 << 13,
+    ALWAYS_HORIZONTAL_SCROLLBAR		= 1 << 14,
+    ALWAYS_USE_WINDOW_PADDING		= 1 << 15,
+    NO_NAV_INPUTS					= 1 << 16,
+    NO_NAV_FOCUS					= 1 << 17,
+    UNSAVED_DOCUMENT				= 1 << 18,
+    NO_CLOSE						= 1 << 19,
+    VERTICAL_SCROLL					= 1 << 20,
+    HORIZONTAL_SCROLL				= 1 << 21,
+    AUTO_SCROLL						= 1 << 22,           
+    ALWAYS_SCROLLBARS				= 1 << 23,     
+    SCROLL_WITH_MOUSE_WHEEL			= 1 << 24, 
+    SCROLLBAR_LEFT					= 1 << 25,        
+    SCROLLBAR_TOP					= 1 << 26,         
+    POPUP							= 1 << 27,
+    AUTO_HSCROLL					= 1 << 28,
+    AUTO_VSCROLL					= 1 << 29,
+	NO_MOVE_DEPTH					= 1 << 30,
 }
 
 enum gmui_pre_window_flags {
-	WINS = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_MOVE_DEPTH, 
-	WINS_SET = gmui_pre_window_flags.WINS | gmui_window_flags.AUTO_SCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
-	WINS_SET_VERTICAL = gmui_pre_window_flags.WINS | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
-	WINS_SET_HORIZONTAL = gmui_pre_window_flags.WINS | gmui_window_flags.AUTO_HSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
-	MODAL_DEFAULT = gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.POPUP, 
-	MODAL_SET = gmui_pre_window_flags.MODAL_DEFAULT | gmui_window_flags.ALWAYS_AUTO_RESIZE, 
-	CANVAS = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
-	CANVAS_CLEAN = gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
-	CONTEXT_MENU = gmui_pre_window_flags.CANVAS | gmui_window_flags.POPUP | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
-	SUB_CONTEXT_MENU = gmui_pre_window_flags.CANVAS | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
+	MODAL_DEFAULT					= gmui_window_flags.NO_CLOSE			| gmui_window_flags.NO_RESIZE			| gmui_window_flags.NO_COLLAPSE					| gmui_window_flags.POPUP, 
+	MODAL_SET						= gmui_pre_window_flags.MODAL_DEFAULT	| gmui_window_flags.ALWAYS_AUTO_RESIZE, 
+	CANVAS							= gmui_window_flags.NO_TITLE_BAR		| gmui_window_flags.NO_RESIZE, 
+	CANVAS_CLEAN					= gmui_window_flags.NO_BACKGROUND		| gmui_window_flags.NO_TITLE_BAR		| gmui_window_flags.NO_RESIZE, 
+	CONTEXT_MENU					= gmui_pre_window_flags.CANVAS			| gmui_window_flags.POPUP				| gmui_window_flags.AUTO_VSCROLL				| gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
+	SUB_CONTEXT_MENU				= gmui_pre_window_flags.CANVAS			| gmui_window_flags.AUTO_VSCROLL		| gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
+	MENU							= gmui_pre_window_flags.CANVAS			| gmui_window_flags.NO_MOVE_DEPTH, 
+	WINS							= gmui_pre_window_flags.CANVAS			| gmui_window_flags.NO_MOVE_DEPTH, 
+	WINS_SET						= gmui_pre_window_flags.WINS			| gmui_window_flags.AUTO_SCROLL			| gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
+	WINS_SET_VERTICAL				= gmui_pre_window_flags.WINS			| gmui_window_flags.AUTO_VSCROLL		| gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
+	WINS_SET_HORIZONTAL				= gmui_pre_window_flags.WINS			| gmui_window_flags.AUTO_HSCROLL		| gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
 };
 
 function gmui_get() { return global.gmui; };
@@ -503,11 +504,20 @@ function gmui_init() {
 				plot_animation_duration: 0.5, // seconds
 				plot_animation_easing: "easeOut", // "linear", "easeIn", "easeOut", "easeInOut"
 				
+				// Context Menu
 				context_menu_item_hover_bg_color: make_color_rgb(60, 60, 60),
 				context_menu_item_text_color: make_color_rgb(220, 220, 220),
 				context_menu_item_short_cut_text_color: make_color_rgb(150, 150, 150),
 				context_menu_item_height: 20,
 				context_menu_sub_arrow_thickness: 3,
+				
+				// Window Menu
+				menu_height: 20,
+				menu_button_active_bg_color: make_colour_rgb(90, 90, 90),
+				menu_button_hover_bg_color: make_colour_rgb(60, 60, 60),
+				menu_text_color: make_colour_rgb(220, 220, 220),
+				menu_button_padding: 4,
+				menu_button_rounding: -1,
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -525,6 +535,7 @@ function gmui_window_state() {
         flags: 0, open: true, active: false,
         surface: -1, surface_dirty: true,
         draw_list: [],
+		rounding: true,
         
         // Title bar state
         title_bar_hovered: false,
@@ -753,6 +764,29 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     
     return window.open;
 }
+
+function gmui_begin_menu(name, x = -1, y = -1, w = -1, h = -1, flags = gmui_pre_window_flags.MENU) {
+	var style = global.gmui.style;
+	
+	if (x == -1) { x = 0; };
+	if (y == -1) { y = 0; };
+	if (w == -1) { w = surface_get_width(application_surface); };
+	if (h == -1) { h = style.menu_height; };
+	
+	var begin_result = gmui_begin(name, x, y, w, h, flags);
+	global.gmui.current_window.rounding = false;
+	
+	return begin_result;
+};
+
+function gmui_end_menu() {
+	var window = global.gmui.current_window;
+	var style = global.gmui.style;
+	
+	gmui_add_line(0, window.height - 1, window.width, window.height - 1, style.border_color, 1);
+	
+	gmui_end();
+};
 
 function gmui_begin_modal(name, x, y, w, h, flags, onBgClick = undefined) {
 	if (gmui_begin(name + "_modal_background", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_MOVE | gmui_window_flags.POPUP)) {
@@ -1499,13 +1533,18 @@ function gmui_render() {
         gmui_render_surface(window);
 		
 		// //gmui_add_shader_rect(0, 0, window.width, window.height, gmui_shader_roundrect, [ { type: "vec2", name: "u_size", value: [ window.width, window.height ] }, { type: "float", name: "u_radius", value: global.gmui.style.window_rounding }, { type: "float", name: "u_smooth", value: 2 }, { type: "vec4", name: "u_color", value: [ 0, 0, 0, 0 ] } ])
-		shader_set(gmui_shader_roundrect);
-		shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_size"), window.width, window.height);
-		shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_radius"), global.gmui.style.window_rounding);
-		shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_smooth"), 2);
-		shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_color"), 1, 1, 1, 1);
-        draw_surface(window.surface, window.x, window.y);
-		shader_reset();
+		if (window.rounding) {
+			shader_set(gmui_shader_roundrect);
+			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_size"), window.width, window.height);
+			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_radius"), global.gmui.style.window_rounding);
+			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_smooth"), 2);
+			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_color"), 1, 1, 1, 1);
+	        draw_surface(window.surface, window.x, window.y);
+			shader_reset();
+		}
+		else {
+	        draw_surface(window.surface, window.x, window.y);
+		}
 		
         window.active = false;
     }
@@ -2035,6 +2074,89 @@ function gmui_context_menu_item_sub(label) {
 	global.gmui.context_menu_cache[? item_id] = check;
 	
     return result && check && window.active;
+}
+
+function gmui_menu_item(label, context_menu_name = undefined) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+	var item_id = "menu_item_" + window.name + "_element_id_" + string(dc.cursor_x) + "+" + string(dc.cursor_y) + "_";
+	
+	var check = gmui_cache_get(item_id);
+	if (check == undefined) {
+		check = false;
+		gmui_cache_set(item_id, check);
+	};
+    
+    // Calculate button size
+    var text_size = gmui_calc_text_size(label);
+    var button_width = text_size[0] + style.menu_button_padding * 2;
+    var button_height = style.menu_height;
+    
+    // Calculate button bounds
+    var button_x = dc.cursor_x;
+    var button_y = 0;
+    var button_bounds = [button_x, button_y, button_x + button_width, button_y + button_height];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    
+    if (mouse_over) {
+		global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            clicked = true;
+			check = !check;
+			
+			if (check) {
+				gmui_open_context_menu(context_menu_name, window.x + button_x, window.y + button_y + button_height);
+			}
+        }
+    }
+    
+    // Draw button based on state
+    var bg_color = style.menu_button_hover_bg_color, text_color = style.menu_text_color;
+    
+    if (mouse_over && !check) {
+        // Mouse hovering
+        bg_color = style.menu_button_hover_bg_color;
+        text_color = style.button_text_color;
+    }
+	else if (check) {
+		// Active menu is open
+        bg_color = style.menu_button_active_bg_color;
+        text_color = style.button_text_color;
+	}
+    
+    // Draw button background
+	if (mouse_over || check) {
+		gmui_add_rect_round(button_x, button_y, button_width, button_height, bg_color, style.menu_button_rounding);
+	}
+	
+	// Close check if clicked outside
+	if (global.gmui.mouse_clicked[0] && !mouse_over) {
+		check = false;
+	}
+    
+    // Draw text centered
+    var text_x = button_x + (button_width - text_size[0]) / 2;
+    var text_y = button_y + (button_height - text_size[1]) / 2;
+    gmui_add_text(text_x, text_y, label, text_color);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_width;
+    dc.line_height = max(dc.line_height, button_height);
+	
+	//gmui_new_line();
+	
+	gmui_cache_set(item_id, check);
+    
+    return clicked && window.active;
 }
 
 function gmui_button(label, width = -1, height = -1) {

@@ -23,6 +23,7 @@ gmui_add_context_menu("Context Menu", function(window) {
 		gmui_context_menu_item("Item 1");
 		gmui_end();
 	}
+	gmui_separator();
 	gmui_context_menu_item("Item B");
 	if (gmui_context_menu_item_sub("Sub 2")) {
 		gmui_context_menu_item("Item 2");
@@ -33,6 +34,24 @@ gmui_add_context_menu("Context Menu", function(window) {
 
 if (mouse_check_button_pressed(mb_right)) {
 	gmui_open_context_menu("Context Menu");
+};
+
+gmui_add_context_menu("Menu Context", function(window) {
+	gmui_context_menu_item("New", "Ctrl+N");
+	gmui_context_menu_item("Open", "Ctrl+O");
+	gmui_context_menu_item("Save", "Ctrl+S");
+	gmui_context_menu_item("Save As", "Ctrl+Shift+S");
+	if (gmui_context_menu_item_sub("Recent Projects...")) {
+		gmui_context_menu_item("C:\\user\\me\\editor");
+		gmui_context_menu_item("C:\\user\\me\\loader");
+		gmui_context_menu_item("C:\\user\\me\\test");
+		gmui_end();
+	}
+});
+
+if (gmui_begin_menu("test menu")) {
+	gmui_menu_item("File", "Menu Context");
+	gmui_end_menu();
 };
 
 if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.AUTO_HSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
