@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.5.2
+           Version 1.5.14
            
            by erkan612
 =======================================
@@ -68,6 +68,7 @@ enum gmui_pre_window_flags {
 	CANVAS = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
 	CANVAS_CLEAN = gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
 	CONTEXT_MENU = gmui_pre_window_flags.CANVAS | gmui_window_flags.POPUP, 
+	SUB_CONTEXT_MENU = gmui_pre_window_flags.CANVAS, 
 };
 
 function gmui_get() { return global.gmui; };
@@ -76,6 +77,9 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			context_menu_cache: ds_map_create(),
+			current_context_menu_last_available_sub_pos: [ 0, 0 ],
+			current_context_menu: undefined,
 			cache_surfaces: ds_map_create(),
 			cache: ds_map_create(),
 			wins_gap: 4,
@@ -503,6 +507,7 @@ function gmui_init() {
 				context_menu_item_text_color: make_color_rgb(220, 220, 220),
 				context_menu_item_short_cut_text_color: make_color_rgb(150, 150, 150),
 				context_menu_item_height: 20,
+				context_menu_sub_arrow_thickness: 3,
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -760,6 +765,15 @@ function gmui_begin_modal(name, x, y, w, h, flags, onBgClick = undefined) {
 	return result;
 };
 
+function gmui_begin_sub_context_menu(name, x, y, w = 200, h = 200, flags = gmui_pre_window_flags.SUB_CONTEXT_MENU) {
+	var parent = global.gmui.current_window;
+	var result = gmui_begin(name, x, y, w, h, flags);
+	global.gmui.current_window.z_index = parent.z_index;
+	global.gmui.current_window.x = x;
+	global.gmui.current_window.y = y;
+	return result;
+};
+
 function gmui_open_modal(name) {
 	var idx = gmui_get_window_idx(name + "_modal_background");
 	gmui_get_windows()[| idx    ].open = true;
@@ -789,11 +803,15 @@ function gmui_add_context_menu(name, call, x = -1, y = -1, w = 200, h = 200, fla
 
 function gmui_open_context_menu(name, x = -1, y = -1) {
 	// use mouse coordinates if not given
-	if (x == -1) { x = device_mouse_x_to_gui(0); };
-	if (y == -1) { y = device_mouse_y_to_gui(0); };
+	if (x == -1) { x = global.gmui.mouse_pos[0]; };
+	if (y == -1) { y = global.gmui.mouse_pos[1]; };
 	
 	gmui_open_modal(name);
 	gmui_set_window_position(name, x, y);
+	
+	array_foreach(ds_map_keys_to_array(global.gmui.context_menu_cache), function(e, i) {
+		global.gmui.context_menu_cache[? e] = false;
+	});
 };
 
 function gmui_close_context_menu(name) {
@@ -941,6 +959,7 @@ function gmui_cleanup() {
 		// Clean up cache
 		ds_map_destroy(global.gmui.cache);
 		ds_map_destroy(global.gmui.cache_surfaces);
+		ds_map_destroy(global.gmui.context_menu_cache);
 		
         global.gmui = undefined;
     }
@@ -1253,8 +1272,15 @@ function gmui_handle_modals() {
 		wy = wy == -1 ? surface_get_height(application_surface) / 2 - wh / 2 : wy;
 		
 		if (gmui_begin_modal(name, wx, wy, ww, wh, flags, onBgClick)) {
+			var is_context_menu = (flags & gmui_pre_window_flags.CONTEXT_MENU) != 0; // this is a temporary solution, if user decides to use custom flags, this method will fail
+			if (is_context_menu) {
+				global.gmui.current_context_menu = global.gmui.current_window;
+			}
 			call(gmui_get_window(name));
 			gmui_end();
+			if (is_context_menu) {
+				global.gmui.current_context_menu = undefined;
+			}
 		};
 	};
 };
@@ -1605,14 +1631,6 @@ function gmui_add_text(x, y, text, col) {
 function gmui_add_line(x1, y1, x2, y2, col, thickness) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
     
-    // Simple line implementation using rectangles
-    var angle = point_direction(x1, y1, x2, y2);
-    var length = point_distance(x1, y1, x2, y2);
-    
-    // Draw a rotated rectangle for the line
-    var center_x = (x1 + x2) / 2;
-    var center_y = (y1 + y2) / 2;
-    
     array_push(global.gmui.current_window.draw_list, {
         type: "line", 
         x1: x1, y1: y1, x2: x2, y2: y2, 
@@ -1909,7 +1927,7 @@ function gmui_context_menu_item(label, short_cut = "") {
 	// Draw short cut text right aligned
 	if (short_cut != "") {
 		var sc_size = gmui_calc_text_size(short_cut);
-		var sc_x = button_width - text_size[0] - style.window_padding[0];
+		var sc_x = button_width - sc_size[0] - style.window_padding[0];
 		var sc_y = text_y;
 		gmui_add_text(sc_x, sc_y, short_cut, style.context_menu_item_short_cut_text_color);
 	}
@@ -1922,10 +1940,102 @@ function gmui_context_menu_item(label, short_cut = "") {
 	gmui_new_line();
 	
 	if (clicked && window.active) {
-		window.open = false;
+		global.gmui.current_context_menu.open = false;
+		show_debug_message(global.gmui.current_context_menu.name);
 	}
     
     return clicked && window.active;
+}
+
+function gmui_context_menu_item_sub(label) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+	var item_id = "context_menu_item_sub_" + window.name + "_element_id_" + string(dc.cursor_x) + "+" + string(dc.cursor_y) + "_";
+	
+	var result = false;
+	var check = global.gmui.context_menu_cache[? item_id];
+	if (check == undefined) {
+		check = false;
+		global.gmui.context_menu_cache[? item_id] = check;
+	};
+    
+    // Calculate item size
+    var text_size = gmui_calc_text_size(label);
+    var button_width = window.width;
+    var button_height = style.context_menu_item_height;
+    
+    // Calculate item bounds
+    var button_x = 0;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + button_width, button_y + button_height];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    
+    if (mouse_over) {
+		global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            clicked = true;
+        }
+    }
+    
+    // Draw item based on state
+    var bg_color = style.context_menu_item_hover_bg_color, text_color;
+    
+    if (mouse_over) {
+        // Mouse hovering
+        bg_color = style.context_menu_item_hover_bg_color;
+        text_color = style.context_menu_item_text_color;
+    } else {
+        // Normal state
+        text_color = style.context_menu_item_text_color;
+    }
+    
+    // Draw item background
+	if (mouse_over || check) {
+		gmui_add_rect(button_x, button_y, button_width, button_height, bg_color);
+	}
+    
+    // Draw text
+    var text_x = button_x + style.window_padding[0];
+    var text_y = button_y + (button_height - text_size[1]) / 2;
+    gmui_add_text(text_x, text_y, label, text_color);
+	
+	// Draw the arrow line as indication
+	var arrow_x = button_width - style.window_padding[0];
+	var arrow_y = button_y + button_height - text_size[1] / 2;
+	gmui_add_line(arrow_x, arrow_y, arrow_x - text_size[1] / 4, arrow_y - text_size[1] / 4, style.text_color, style.context_menu_sub_arrow_thickness);
+	gmui_add_line(arrow_x, arrow_y, arrow_x - text_size[1] / 4, arrow_y + text_size[1] / 4, style.text_color, style.context_menu_sub_arrow_thickness);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, button_height);
+	
+	gmui_new_line();
+	
+	if (clicked && window.active) {
+		check = !check;
+		global.gmui.current_context_menu_last_available_sub_pos = [ window.x + window.width, window.y + button_y ];
+	}
+	
+	if (check && window.active) {
+		result = gmui_begin_sub_context_menu("Sub Context Menu", global.gmui.current_context_menu_last_available_sub_pos[0], global.gmui.current_context_menu_last_available_sub_pos[1]);
+	}
+	
+	if (global.gmui.mouse_clicked[0] && !mouse_over && !gmui_is_mouse_over_window(global.gmui.current_window)) {
+		check = false;
+	}
+	
+	global.gmui.context_menu_cache[? item_id] = check;
+	
+    return result && check && window.active;
 }
 
 function gmui_button(label, width = -1, height = -1) {
@@ -7508,6 +7618,9 @@ function gmui_demo() {
 					static sContextMenuItemScTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.context_menu_item_short_cut_text_color);
 					sContextMenuItemScTextColor = gmui_color_button_4("Context Item Sc Text Color", sContextMenuItemScTextColor);
 					global.gmui.style.context_menu_item_short_cut_text_color = gmui_color_rgba_to_color_rgb(sContextMenuItemScTextColor);
+					
+					gmui_text("Context Menu Item Sub Arrow Thickness");
+					global.gmui.style.context_menu_sub_arrow_thickness = gmui_input_int(global.gmui.style.context_menu_sub_arrow_thickness, 1, 1, 8);
 
 		            gmui_end();
 		        }

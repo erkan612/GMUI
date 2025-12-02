@@ -17,6 +17,19 @@ gmui_add_modal("Hey!", function(window) {
 	if (gmui_button_width_fill("OK")) { gmui_close_modal("Hey!"); };
 });
 
+gmui_add_context_menu("Context Menu", function(window) {
+	gmui_context_menu_item("Item");
+	
+	if (gmui_context_menu_item_sub("Sub Menu")) {
+		gmui_context_menu_item("Item");
+		gmui_end();
+	};
+});
+
+if (mouse_check_button_pressed(mb_right)) {
+	gmui_open_context_menu("Context Menu");
+};
+
 if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.AUTO_HSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
 	var oldRounding = global.gmui.style.selectable_rounding;
