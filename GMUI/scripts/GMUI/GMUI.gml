@@ -6,13 +6,12 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.4.6
+           Version 1.5.2
            
            by erkan612
-           
 =======================================
- A feature-rich ImGui-style UI system
-          for GameMaker
+A feature rich Immediate-Mode UI system
+             for GameMaker
 =======================================
 **************************************/
 
@@ -1681,7 +1680,7 @@ function gmui_text_bullet(text) {
     var dc = window.dc;
     var size = gmui_calc_text_size(text);
     
-	gmui_add_rect_round(dc.cursor_x - 4, dc.cursor_y + size[1] / 4, 8, 8, c_white, 8);
+	gmui_add_rect_round(dc.cursor_x - 4, dc.cursor_y + size[1] / 4, 8, 8, global.gmui.style.text_color, 8);
 	
     gmui_add_text(dc.cursor_x + 12, dc.cursor_y, text, global.gmui.style.text_color);
     
@@ -6748,12 +6747,12 @@ function gmui_demo() {
         if (cho0) {
             gmui_text("GMUI provides an immediate-mode UI system for GameMaker.");
             gmui_text("Features:");
-            gmui_text("- Windows with dragging and resizing");
-            gmui_text("- Comprehensive input handling");
-            gmui_text("- Extensive styling options");
-            gmui_text("- Multiple UI components");
-            gmui_text("- Scrollable content areas");
-            gmui_text("- Color picker with HSV/RGB support");
+            gmui_text_bullet("Windows with dragging and resizing");
+            gmui_text_bullet("Comprehensive input handling");
+            gmui_text_bullet("Extensive styling options");
+            gmui_text_bullet("Multiple UI components");
+            gmui_text_bullet("Scrollable content areas");
+            gmui_text_bullet("Color picker with HSV/RGB support");
             gmui_text("HOW TO USE:");
             gmui_text("1. Call gmui_init() in Create Event");
             gmui_text("2. Call gmui_update() in Step Event");

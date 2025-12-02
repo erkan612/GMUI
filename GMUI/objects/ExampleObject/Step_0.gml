@@ -1,15 +1,5 @@
 gmui_update();
 
-gmui_add_context_menu("Context Menu", function(window) {
-	gmui_context_menu_item("Menu Item", "Ctrl+A");
-	gmui_separator();
-	gmui_context_menu_item("Menu Item");
-});
-
-if (mouse_check_button_pressed(mb_right)) {
-	gmui_open_context_menu("Context Menu");
-};
-
 gmui_demo();
 var demoWindow = gmui_get_window("GMUI Demo & Documentation");
 
