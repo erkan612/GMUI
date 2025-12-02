@@ -503,7 +503,7 @@ function gmui_init() {
 				context_menu_item_hover_bg_color: make_color_rgb(60, 60, 60),
 				context_menu_item_text_color: make_color_rgb(220, 220, 220),
 				context_menu_item_short_cut_text_color: make_color_rgb(150, 150, 150),
-				context_menu_item_height: 24,
+				context_menu_item_height: 20,
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -7494,6 +7494,21 @@ function gmui_demo() {
 
 					gmui_text("Scatter Size"); gmui_same_line();
 					global.gmui.style.plot_scatter_size = gmui_input_int(global.gmui.style.plot_scatter_size, 1, 2, 10);
+					
+					gmui_text("Context Menu Item Height");
+					global.gmui.style.context_menu_item_height = gmui_input_int(global.gmui.style.context_menu_item_height, 1, 16, 44);
+					
+					static sContextMenuItemHoverBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.context_menu_item_hover_bg_color);
+					sContextMenuItemHoverBgColor = gmui_color_button_4("Context Item Hover Bg Color", sContextMenuItemHoverBgColor);
+					global.gmui.style.context_menu_item_hover_bg_color = gmui_color_rgba_to_color_rgb(sContextMenuItemHoverBgColor);
+					
+					static sContextMenuItemTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.context_menu_item_text_color);
+					sContextMenuItemTextColor = gmui_color_button_4("Context Item Text Color", sContextMenuItemTextColor);
+					global.gmui.style.context_menu_item_text_color = gmui_color_rgba_to_color_rgb(sContextMenuItemTextColor);
+					
+					static sContextMenuItemScTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.context_menu_item_short_cut_text_color);
+					sContextMenuItemScTextColor = gmui_color_button_4("Context Item Sc Text Color", sContextMenuItemScTextColor);
+					global.gmui.style.context_menu_item_short_cut_text_color = gmui_color_rgba_to_color_rgb(sContextMenuItemScTextColor);
 
 		            gmui_end();
 		        }
