@@ -1941,7 +1941,6 @@ function gmui_context_menu_item(label, short_cut = "") {
 	
 	if (clicked && window.active) {
 		global.gmui.current_context_menu.open = false;
-		show_debug_message(global.gmui.current_context_menu.name);
 	}
     
     return clicked && window.active;
@@ -2026,7 +2025,7 @@ function gmui_context_menu_item_sub(label) {
 	}
 	
 	if (check && window.active) {
-		result = gmui_begin_sub_context_menu("Sub Context Menu", global.gmui.current_context_menu_last_available_sub_pos[0], global.gmui.current_context_menu_last_available_sub_pos[1]);
+		result = gmui_begin_sub_context_menu("Sub Context Menu" + string(global.gmui.current_context_menu_last_available_sub_pos[0]) + string(global.gmui.current_context_menu_last_available_sub_pos[1]), global.gmui.current_context_menu_last_available_sub_pos[0], global.gmui.current_context_menu_last_available_sub_pos[1]);
 	}
 	
 	if (global.gmui.mouse_clicked[0] && !mouse_over && !gmui_is_mouse_over_window(global.gmui.current_window)) {
