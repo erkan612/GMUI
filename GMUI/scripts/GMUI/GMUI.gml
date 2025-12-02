@@ -66,7 +66,9 @@ enum gmui_pre_window_flags {
 	WINS_SET_HORIZONTAL = gmui_pre_window_flags.WINS | gmui_window_flags.AUTO_HSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
 	MODAL_DEFAULT = gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.POPUP, 
 	MODAL_SET = gmui_pre_window_flags.MODAL_DEFAULT | gmui_window_flags.ALWAYS_AUTO_RESIZE, 
-	CANVAS = gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
+	CANVAS = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
+	CANVAS_CLEAN = gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
+	CONTEXT_MENU = gmui_pre_window_flags.CANVAS | gmui_window_flags.POPUP, 
 };
 
 function gmui_get() { return global.gmui; };
@@ -497,6 +499,11 @@ function gmui_init() {
 				// Animation styles
 				plot_animation_duration: 0.5, // seconds
 				plot_animation_easing: "easeOut", // "linear", "easeIn", "easeOut", "easeInOut"
+				
+				context_menu_item_hover_bg_color: make_color_rgb(60, 60, 60),
+				context_menu_item_text_color: make_color_rgb(220, 220, 220),
+				context_menu_item_short_cut_text_color: make_color_rgb(150, 150, 150),
+				context_menu_item_height: 24,
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -745,7 +752,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
 
 function gmui_begin_modal(name, x, y, w, h, flags, onBgClick = undefined) {
 	if (gmui_begin(name + "_modal_background", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_MOVE | gmui_window_flags.POPUP)) {
-		if (onBgClick != undefined) { onBgClick(); };
+		if (gmui_is_mouse_over_window(global.gmui.current_window) && global.gmui.mouse_clicked[0] && onBgClick != undefined) { onBgClick(global.gmui.current_window); };
 		gmui_end();
 	};
 	//gmui_bring_window_to_front(gmui_get_window(name + "_modal_background"));
@@ -770,6 +777,28 @@ function gmui_close_modal(name) {
 
 function gmui_add_modal(name, call, x = -1, y = -1, w = 300, h = 100, flags = gmui_pre_window_flags.MODAL_DEFAULT, onBgClick = undefined) {
 	ds_list_add(global.gmui.modals, [ name, call, x, y, w, h, flags, onBgClick ]);
+};
+
+function gmui_add_context_menu(name, call, x = -1, y = -1, w = 200, h = 200, flags = gmui_pre_window_flags.CONTEXT_MENU) {
+	var onBgClick = function(window) {
+		var _name = string_delete(window.name, string_length(window.name) - string_length("_modal_background") + 1, string_length("_modal_background"));
+		gmui_close_context_menu(_name);
+	};
+	
+	gmui_add_modal(name, call, x, y, w, h, flags, onBgClick);
+};
+
+function gmui_open_context_menu(name, x = -1, y = -1) {
+	// use mouse coordinates if not given
+	if (x == -1) { x = device_mouse_x_to_gui(0); };
+	if (y == -1) { y = device_mouse_y_to_gui(0); };
+	
+	gmui_open_modal(name);
+	gmui_set_window_position(name, x, y);
+};
+
+function gmui_close_context_menu(name) {
+	gmui_close_modal(name);
 };
 
 function gmui_end(_no_repeat = false) {
@@ -1824,6 +1853,80 @@ function gmui_label_text(label, text) {
 	gmui_new_line();
 	
     return false;
+}
+
+function gmui_context_menu_item(label, short_cut = "") {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate item size
+    var text_size = gmui_calc_text_size(label);
+    var button_width = window.width;
+    var button_height = style.context_menu_item_height;
+    
+    // Calculate item bounds
+    var button_x = 0;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + button_width, button_y + button_height];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, global.gmui.mouse_pos[1] - window.y, button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    
+    if (mouse_over) {
+		global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_down[0]) {
+            clicked = true;
+        }
+    }
+    
+    // Draw item based on state
+    var bg_color, text_color;
+    
+    if (mouse_over) {
+        // Mouse hovering
+        bg_color = style.context_menu_item_hover_bg_color;
+        text_color = style.context_menu_item_text_color;
+    } else {
+        // Normal state
+        text_color = style.context_menu_item_text_color;
+    }
+    
+    // Draw item background
+	if (mouse_over) {
+		gmui_add_rect(button_x, button_y, button_width, button_height, bg_color);
+	}
+    
+    // Draw text
+    var text_x = button_x + style.window_padding[0];
+    var text_y = button_y + (button_height - text_size[1]) / 2;
+    gmui_add_text(text_x, text_y, label, text_color);
+	
+	// Draw short cut text right aligned
+	if (short_cut != "") {
+		var sc_size = gmui_calc_text_size(short_cut);
+		var sc_x = button_width - text_size[0] - style.window_padding[0];
+		var sc_y = text_y;
+		gmui_add_text(sc_x, sc_y, short_cut, style.context_menu_item_short_cut_text_color);
+	}
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, button_height);
+	
+	gmui_new_line();
+	
+	if (clicked && window.active) {
+		window.open = false;
+	}
+    
+    return clicked && window.active;
 }
 
 function gmui_button(label, width = -1, height = -1) {
