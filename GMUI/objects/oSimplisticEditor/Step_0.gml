@@ -19,7 +19,7 @@ if (global.gmui.frame_count == 1) {
 var temp = gmui_get_window("View");
 var viewCurrentSize = [ temp.width, temp.height ];
 gmui_wins_node_update(winsFrame);
-gmui_wins_draw_splitters(winsFrame);
+gmui_wins_handle_splitters(winsFrame);
 
 gmui_add_modal("Change Object Name", function(window) {
 	gmui_tab_width(8);

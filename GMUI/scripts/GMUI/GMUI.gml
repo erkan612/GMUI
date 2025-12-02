@@ -8056,7 +8056,7 @@ function gmui_wins_handle_splitter_drag(parent_node) { // this shouldnt have too
     }
 }
 
-function gmui_wins_draw_splitters(node) {
+function gmui_wins_handle_splitters(node) {
     if (gmui_begin("##splitters_window", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), 
                    gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_MOVE | gmui_window_flags.NO_MOVE_DEPTH | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_SCROLLBAR)) {
         
@@ -8067,7 +8067,7 @@ function gmui_wins_draw_splitters(node) {
 		// might need to recreate surface in case of application window resize
 		// but its just a placeholder, shouldnt be a need for it?
 		
-        gmui_wins_draw_splitters_recursive(node);
+        gmui_wins_handle_splitters_recursive(node);
 		
 		if (global.gmui.current_window.z_index != 0) {
 			gmui_send_window_to_back(global.gmui.current_window);
@@ -8077,7 +8077,7 @@ function gmui_wins_draw_splitters(node) {
     }
 }
 
-function gmui_wins_draw_splitters_recursive(node) {
+function gmui_wins_handle_splitters_recursive(node) {
     if (node.children == undefined || array_length(node.children) != 2) return;
     
     var child_a = node.children[0];
@@ -8166,7 +8166,7 @@ function gmui_wins_draw_splitters_recursive(node) {
     }
     
     // Recursively draw splitters for children
-    gmui_wins_draw_splitters_recursive(node.children[0]);
-    gmui_wins_draw_splitters_recursive(node.children[1]);
+    gmui_wins_handle_splitters_recursive(node.children[0]);
+    gmui_wins_handle_splitters_recursive(node.children[1]);
 }
 
