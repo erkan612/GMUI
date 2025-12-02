@@ -5,16 +5,20 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 ![GMUI Demo](https://img.shields.io/badge/GameMaker-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-## Features
+## Main Features
 
-- **Immediate Mode Architecture** - Simple, frame-based UI creation
-- **Comprehensive Component Set** - Buttons, inputs, sliders, color pickers, tree views, and more
-- **Window Management** - Draggable, resizable windows with z-ordering
-- **Modal System** - Popup dialogs with background dimming
-- **Advanced Layout** - Flexible positioning, scrolling, and grouping
-- **Customizable Styling** - Extensive theming options
-- **Shader Integration** - Hardware-accelerated color pickers
-- **Input Handling** - Full mouse and keyboard support
+- **Immediate-mode API** - UI elements return interaction results immediately, simplifying state management
+- **Full Window Management** - Title bars, resizing, dragging, close buttons, and z-ordering
+- **Comprehensive Widget Set** - Buttons, sliders, checkboxes, textboxes, color pickers, comboboxes, and more
+- **Advanced Layout System** - Cursor-based positioning with `same_line()`, `new_line()`, and separators
+- **Smart Scrolling** - Both manual and auto-scrolling with fully customizable scrollbars
+- **Extensive Styling System** - Complete theme customization with hundreds of style options
+- **Modal Windows & Dialogs** - Popups, modal dialogs, and context-sensitive overlays
+- **Tree Views** - Collapsible hierarchical structures with selection support
+- **Data Tables** - Sortable, selectable tables with alternating rows and hover effects
+- **Plotting & Charts** - Line plots, bar charts, histograms, and scatter plots for data visualization
+- **Split Pane System** - Advanced window splitting ("WINS") with draggable dividers
+- **Context Menus** - Right-click menus with sub-menus and keyboard shortcuts
 
 ## Screenshots
 <img width="1305" height="724" alt="gmui_demo" src="https://github.com/user-attachments/assets/3a83e442-f2e9-4c36-839f-d92476e8c15d" />

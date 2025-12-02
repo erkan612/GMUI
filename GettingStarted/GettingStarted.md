@@ -496,7 +496,7 @@ if (global.gmui.frame_count == 1) {
 };
 
 gmui_wins_node_update(winsFrame);
-gmui_wins_draw_splitters(winsFrame);
+gmui_wins_handle_splitters(winsFrame);
 
 if (gmui_begin("Window A", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS_SET)) {
 	gmui_text_bullet("Demonstrating WINS feature!");
@@ -526,7 +526,7 @@ We proceed to apply this one more time to get all the nodes we need and then we 
 
 Once we are done creating our node interace, we need to continuously update the parent node using ``gmui_wins_node_update(parent_node)`` which will calculate its and its childrens positions and sizes to update their binded windows.
 
-After that we can have our splitted windows but we need to draw and drag/resize our nodes so we call ``gmui_wins_draw_splitters(parent_node)`` after calling ``gmui_wins_node_update(parent_node)``.
+After that we can have our splitted windows but we need to draw and drag/resize our nodes so we call ``gmui_wins_handle_splitters(parent_node)`` after calling ``gmui_wins_node_update(parent_node)``.
 
 ---
 
@@ -537,3 +537,4 @@ Since we are creating our UI every frame, we need to cache some of our date, for
 + ``gmui_cache_surface_get(id, width, height)``
 
 Particularly ``gmui_cache_surface_get(id, width, height)``, we use it to create surfaces with sleep timer, by default they have 30 seconds. any time you use ``gmui_cache_surface_get`` to create surface, it will be created in cache and set a timer, if ``gmui_cache_surface_get`` is not called within 30 seconds with specific ``id``, the surface will be deleted from memory.
+
