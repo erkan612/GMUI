@@ -67,8 +67,8 @@ enum gmui_pre_window_flags {
 	MODAL_SET = gmui_pre_window_flags.MODAL_DEFAULT | gmui_window_flags.ALWAYS_AUTO_RESIZE, 
 	CANVAS = gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
 	CANVAS_CLEAN = gmui_window_flags.NO_BACKGROUND | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE, 
-	CONTEXT_MENU = gmui_pre_window_flags.CANVAS | gmui_window_flags.POPUP, 
-	SUB_CONTEXT_MENU = gmui_pre_window_flags.CANVAS, 
+	CONTEXT_MENU = gmui_pre_window_flags.CANVAS | gmui_window_flags.POPUP | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
+	SUB_CONTEXT_MENU = gmui_pre_window_flags.CANVAS | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
 };
 
 function gmui_get() { return global.gmui; };
