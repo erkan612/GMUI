@@ -5,6 +5,14 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 ![GMUI Demo](https://img.shields.io/badge/GameMaker-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
+## Version Compatibility
+
+| **IDE Version** | **Status** | **Description** |
+|-----------------|------------|-----------------|
+| 2024.14        | ⚠️ | Memory Issues |
+| 2024.13        | ❌ | Memory Issues, Build Issues |
+| 2023.11        | ✔️ | No Issue Detected |
+
 ## Main Features
 
 - **Immediate-mode API** - UI elements return interaction results immediately, simplifying state management
