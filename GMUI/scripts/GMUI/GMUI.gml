@@ -82,6 +82,7 @@ function gmui_init() {
 			context_menu_cache: ds_map_create(),
 			current_context_menu_last_available_sub_pos: [ 0, 0 ],
 			current_context_menu: undefined,
+			current_context_menu_bg: undefined,
 			cache_surfaces: ds_map_create(),
 			cache: ds_map_create(),
 			wins_gap: 4,
@@ -1367,11 +1368,13 @@ function gmui_handle_modals() {
 			var is_context_menu = (flags & gmui_pre_window_flags.CONTEXT_MENU) != 0; // this is a temporary solution, if user decides to use custom flags, this method will fail
 			if (is_context_menu) {
 				global.gmui.current_context_menu = global.gmui.current_window;
+				global.gmui.current_context_menu_bg = gmui_get_window(global.gmui.current_context_menu.name + "_modal_background");
 			}
 			call(gmui_get_window(name));
 			gmui_end();
 			if (is_context_menu) {
 				global.gmui.current_context_menu = undefined;
+				global.gmui.current_context_menu_bg = undefined;
 			}
 		};
 	};
@@ -2038,6 +2041,7 @@ function gmui_context_menu_item(label, short_cut = "") {
 	
 	if (clicked && window.active) {
 		global.gmui.current_context_menu.open = false;
+		global.gmui.current_context_menu_bg.open = false;
 	}
     
     return clicked && window.active;
