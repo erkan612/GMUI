@@ -8,7 +8,7 @@
     "children":[],
     "name":"Default",
   },
-  "defaultScriptType":0,
+  "defaultScriptType":1,
   "Folders":[
     {"$GMFolder":"","%Name":"Animation Curves","folderPath":"folders/Animation Curves.yy","name":"Animation Curves","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Extensions","folderPath":"folders/Extensions.yy","name":"Extensions","resourceType":"GMFolder","resourceVersion":"2.0",},
@@ -37,10 +37,12 @@
   "name":"GMUI",
   "resources":[
     {"id":{"name":"fnCascadiaCode","path":"fonts/fnCascadiaCode/fnCascadiaCode.yy",},},
-    {"id":{"name":"ExampleObject","path":"objects/ExampleObject/ExampleObject.yy",},},
+    {"id":{"name":"oDemonstration","path":"objects/oDemonstration/oDemonstration.yy",},},
     {"id":{"name":"oSimplisticEditor","path":"objects/oSimplisticEditor/oSimplisticEditor.yy",},},
-    {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
-    {"id":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
+    {"id":{"name":"oWelcome","path":"objects/oWelcome/oWelcome.yy",},},
+    {"id":{"name":"rDemonstration","path":"rooms/rDemonstration/rDemonstration.yy",},},
+    {"id":{"name":"rSimplisticEditor","path":"rooms/rSimplisticEditor/rSimplisticEditor.yy",},},
+    {"id":{"name":"rWelcome","path":"rooms/rWelcome/rWelcome.yy",},},
     {"id":{"name":"cUtils","path":"scripts/cUtils/cUtils.yy",},},
     {"id":{"name":"GMUI","path":"scripts/GMUI/GMUI.yy",},},
     {"id":{"name":"gmui_shader_alpha_gradient","path":"shaders/gmui_shader_alpha_gradient/gmui_shader_alpha_gradient.yy",},},
@@ -53,8 +55,9 @@
   "resourceType":"GMProject",
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
-    {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
-    {"roomId":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
+    {"roomId":{"name":"rWelcome","path":"rooms/rWelcome/rWelcome.yy",},},
+    {"roomId":{"name":"rDemonstration","path":"rooms/rDemonstration/rDemonstration.yy",},},
+    {"roomId":{"name":"rSimplisticEditor","path":"rooms/rSimplisticEditor/rSimplisticEditor.yy",},},
   ],
   "templateType":"game",
   "TextureGroups":[

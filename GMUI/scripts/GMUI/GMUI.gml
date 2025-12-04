@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.7.16
+           Version 1.7.22
            
            by erkan612
 =======================================
@@ -2228,9 +2228,9 @@ function gmui_text_bullet(text) {
     var dc = window.dc;
     var size = gmui_calc_text_size(text);
     
-	gmui_add_rect_round(dc.cursor_x - 4, dc.cursor_y + size[1] / 4, 8, 8, global.gmui.style.text_color, 8);
+	gmui_add_rect_round(dc.cursor_x, dc.cursor_y + size[1] / 4, 8, 8, global.gmui.style.text_color, 8);
 	
-    gmui_add_text(dc.cursor_x + 12, dc.cursor_y, text, global.gmui.style.text_color);
+    gmui_add_text(dc.cursor_x + 16, dc.cursor_y, text, global.gmui.style.text_color);
     
 	dc.cursor_previous_x = dc.cursor_x;
     dc.cursor_x += size[0] + global.gmui.style.item_spacing[0];
@@ -2604,7 +2604,7 @@ function gmui_menu_item(label, context_menu_name = undefined) {
             clicked = true;
 			check = !check;
 			
-			if (check) {
+			if (context_menu_name != undefined && check) {
 				gmui_open_context_menu(context_menu_name, window.x + button_x, window.y + button_y + button_height);
 			}
         }
@@ -8584,6 +8584,7 @@ function gmui_wins_node_create(x, y, width, height, parent = undefined) {
 		children: undefined, 
 		ratio: 0.5, 
 		cut_axis: undefined, 
+		split_direction: undefined, 
 		target_window: undefined, 
 		parent: parent, 
 		is_dragging: false, 
@@ -8593,7 +8594,7 @@ function gmui_wins_node_create(x, y, width, height, parent = undefined) {
         visual_x: x, 
         visual_y: y, 
         visual_width: width, 
-        visual_height: height ,
+        visual_height: height, 
 	};
 	
 	return node;
@@ -8629,6 +8630,7 @@ function gmui_wins_node_split(node, dir, ratio = 0.5) {
         
         node.cut_axis = gmui_wins_cut_axis.VERTICAL;
         node.ratio = ratio;
+        node.split_direction = dir;
         
         node.children = [ primary_node, secondary_node ];
     } break;
@@ -8654,6 +8656,7 @@ function gmui_wins_node_split(node, dir, ratio = 0.5) {
         
         node.cut_axis = gmui_wins_cut_axis.HORIZONTAL;
         node.ratio = ratio;
+        node.split_direction = dir;
         
         node.children = [ primary_node, secondary_node ];
     } break;
@@ -8703,7 +8706,7 @@ function gmui_wins_resize_parent_node(parent_node, x, y, width, height) {
 	parent_node.visual_height = parent_node.height + global.gmui.wins_gap / 2;
 };
 
-function gmui_wins_recalculate_children(parent_node) {
+function gmui_wins_recalculate_children(parent_node) { // should work fine now
     if (parent_node.children == undefined || array_length(parent_node.children) != 2) return;
     
     var child_a = parent_node.children[0];
@@ -8715,132 +8718,195 @@ function gmui_wins_recalculate_children(parent_node) {
         var primary_width = parent_node.visual_width * parent_node.ratio;
         var secondary_width = parent_node.visual_width * (1.0 - parent_node.ratio);
         
-        child_a.visual_x = parent_node.visual_x;
-        child_a.visual_y = parent_node.visual_y;
-        child_a.visual_width = primary_width - gap/2;
-        child_a.visual_height = parent_node.visual_height;
+        var left_child = child_a;
+        var right_child = child_b;
+        var left_width = primary_width;
+        var right_width = secondary_width;
         
-        child_b.visual_x = parent_node.visual_x + primary_width + gap/2;
-        child_b.visual_y = parent_node.visual_y;
-        child_b.visual_width = secondary_width - gap/2;
-        child_b.visual_height = parent_node.visual_height;
+        if (parent_node.split_direction == gmui_wins_split_dir.RIGHT) {
+            // For RIGHT split:
+            // - children[0] is RIGHT (with primary_width = ratio)
+            // - children[1] is LEFT (with secondary_width = 1-ratio)
+            left_child = child_b;
+            right_child = child_a;
+            left_width = secondary_width;  // LEFT gets 1-ratio
+            right_width = primary_width;   // RIGHT gets ratio
+        }
         
-        // Update actual node dimensions (for splitter calculations)
-        child_a.x = child_a.visual_x;
-        child_a.y = child_a.visual_y;
-        child_a.width = child_a.visual_width;
-        child_a.height = child_a.visual_height;
+        // LEFT child
+        left_child.visual_x = parent_node.visual_x;
+        left_child.visual_y = parent_node.visual_y;
+        left_child.visual_width = left_width - gap/2;
+        left_child.visual_height = parent_node.visual_height;
         
-        child_b.x = child_b.visual_x;
-        child_b.y = child_b.visual_y;
-        child_b.width = child_b.visual_width;
-        child_b.height = child_b.visual_height;
+        // RIGHT child
+        right_child.visual_x = parent_node.visual_x + left_width + gap/2;
+        right_child.visual_y = parent_node.visual_y;
+        right_child.visual_width = right_width - gap/2;
+        right_child.visual_height = parent_node.visual_height;
         
     } else if (parent_node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
         // Horizontal split - up/down
         var primary_height = parent_node.visual_height * parent_node.ratio;
         var secondary_height = parent_node.visual_height * (1.0 - parent_node.ratio);
         
-        child_a.visual_x = parent_node.visual_x;
-        child_a.visual_y = parent_node.visual_y;
-        child_a.visual_width = parent_node.visual_width;
-        child_a.visual_height = primary_height - gap/2;
+        var top_child = child_a;
+        var bottom_child = child_b;
+        var top_height = primary_height;
+        var bottom_height = secondary_height;
         
-        child_b.visual_x = parent_node.visual_x;
-        child_b.visual_y = parent_node.visual_y + primary_height + gap/2;
-        child_b.visual_width = parent_node.visual_width;
-        child_b.visual_height = secondary_height - gap/2;
+        if (parent_node.split_direction == gmui_wins_split_dir.DOWN) {
+            // For DOWN split:
+            // - children[0] is BOTTOM (with primary_height = ratio)
+            // - children[1] is TOP (with secondary_height = 1-ratio)
+            top_child = child_b;
+            bottom_child = child_a;
+            top_height = secondary_height;  // TOP gets 1-ratio
+            bottom_height = primary_height; // BOTTOM gets ratio
+        }
         
-        // Update actual node dimensions (for splitter calculations)
-        child_a.x = child_a.visual_x;
-        child_a.y = child_a.visual_y;
-        child_a.width = child_a.visual_width;
-        child_a.height = child_a.visual_height;
+        // TOP child
+        top_child.visual_x = parent_node.visual_x;
+        top_child.visual_y = parent_node.visual_y;
+        top_child.visual_width = parent_node.visual_width;
+        top_child.visual_height = top_height - gap/2;
         
-        child_b.x = child_b.visual_x;
-        child_b.y = child_b.visual_y;
-        child_b.width = child_b.visual_width;
-        child_b.height = child_b.visual_height;
+        // BOTTOM child
+        bottom_child.visual_x = parent_node.visual_x;
+        bottom_child.visual_y = parent_node.visual_y + top_height + gap/2;
+        bottom_child.visual_width = parent_node.visual_width;
+        bottom_child.visual_height = bottom_height - gap/2;
     }
+    
+    // Update actual node dimensions (for splitter calculations)
+    child_a.x = child_a.visual_x;
+    child_a.y = child_a.visual_y;
+    child_a.width = child_a.visual_width;
+    child_a.height = child_a.visual_height;
+    
+    child_b.x = child_b.visual_x;
+    child_b.y = child_b.visual_y;
+    child_b.width = child_b.visual_width;
+    child_b.height = child_b.visual_height;
 }
 
-function gmui_wins_handle_splitter_drag(parent_node) { // this shouldnt have took so long wtf
+function gmui_wins_handle_splitter_drag(parent_node) { // had to go trough from basics and calculate everything, this should work fine
     if (parent_node.children == undefined || array_length(parent_node.children) != 2) return;
     
     var child_a = parent_node.children[0];
     var child_b = parent_node.children[1];
     
-    // calculate splitter bounds based on cut axis
+    // Calculate splitter bounds using VISUAL coordinates
     var splitter_bounds = undefined;
     var splitter_size = 8;
     
     if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
-        var splitter_x = child_a.x + child_a.width;
+        // Determine which child is left and which is right
+        var left_child = child_a;
+        var right_child = child_b;
+        if (child_a.visual_x > child_b.visual_x) {
+            left_child = child_b;
+            right_child = child_a;
+        }
+        
+        var splitter_x = left_child.visual_x + left_child.visual_width;
         splitter_bounds = [
             splitter_x - splitter_size / 2, 
-            parent_node.y, 
+            parent_node.visual_y, 
             splitter_x + splitter_size / 2, 
-            parent_node.y + parent_node.height
+            parent_node.visual_y + parent_node.visual_height
         ];
-    } else if (parent_node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
-        var splitter_y = child_a.y + child_a.height;
-        splitter_bounds = [
-            parent_node.x, 
-            splitter_y - splitter_size / 2, 
-            parent_node.x + parent_node.width, 
-            splitter_y + splitter_size / 2
-        ];
-    }
-    
-    if (splitter_bounds == undefined) return;
-    
-    // check if mouse is over splitter
-    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
-    
-    if (mouse_over_splitter) {
-        if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
-            window_set_cursor(cr_size_we);
-        } else {
-            window_set_cursor(cr_size_ns);
+        
+        // Check if mouse is over splitter (use screen coordinates)
+        var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && 
+                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
+        
+        // Handle dragging
+        if (mouse_over_splitter && global.gmui.mouse_clicked[0]) {
+            parent_node.is_dragging = true;
+            parent_node.drag_start_mouse_x = global.gmui.mouse_pos[0];
+            parent_node.drag_start_mouse_y = global.gmui.mouse_pos[1];
+            parent_node.drag_start_ratio = parent_node.ratio;
         }
-    }
-    
-    // handle dragging
-    if (mouse_over_splitter && global.gmui.mouse_clicked[0]) {
-        parent_node.is_dragging = true;
-        parent_node.drag_start_mouse_x = global.gmui.mouse_pos[0];
-        parent_node.drag_start_mouse_y = global.gmui.mouse_pos[1];
-        parent_node.drag_start_ratio = parent_node.ratio;
-    }
-    
-    if (parent_node.is_dragging && global.gmui.mouse_down[0]) {
-		// calculate new ratio
-        if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
+        
+        if (parent_node.is_dragging && global.gmui.mouse_down[0]) {
+            // Calculate new ratio
             var mouse_delta_x = global.gmui.mouse_pos[0] - parent_node.drag_start_mouse_x;
-            var total_width = parent_node.width;
+            var total_width = parent_node.visual_width;
             var ratio_delta = mouse_delta_x / total_width;
             
-            parent_node.ratio = clamp(parent_node.drag_start_ratio + ratio_delta, 0.01, 0.99);
+            // The ratio always represents the size of the LEFT child
+            // For LEFT split: ratio = left child width
+            // For RIGHT split: ratio = right child width (since children are swapped in recalculate)
             
-        } else if (parent_node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
+            if (parent_node.split_direction == gmui_wins_split_dir.LEFT) {
+                // LEFT split: dragging right increases left child width
+                parent_node.ratio = clamp(parent_node.drag_start_ratio + ratio_delta, 0.01, 0.99);
+            } else if (parent_node.split_direction == gmui_wins_split_dir.RIGHT) {
+                // RIGHT split: dragging right decreases left child width (increases right child)
+                // Since ratio represents right child width for RIGHT splits
+                parent_node.ratio = clamp(parent_node.drag_start_ratio - ratio_delta, 0.01, 0.99);
+            }
+            
+            // Recalculate children dimensions immediately during drag
+            gmui_wins_recalculate_children(parent_node);
+        } else {
+            parent_node.is_dragging = false;
+        }
+        
+    } else if (parent_node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
+        // Determine which child is top and which is bottom
+        var top_child = child_a;
+        var bottom_child = child_b;
+        if (child_a.visual_y > child_b.visual_y) {
+            top_child = child_b;
+            bottom_child = child_a;
+        }
+        
+        var splitter_y = top_child.visual_y + top_child.visual_height;
+        splitter_bounds = [
+            parent_node.visual_x, 
+            splitter_y - splitter_size / 2, 
+            parent_node.visual_x + parent_node.visual_width, 
+            splitter_y + splitter_size / 2
+        ];
+        
+        // Check if mouse is over splitter (use screen coordinates)
+        var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && 
+                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
+        
+        // Handle dragging
+        if (mouse_over_splitter && global.gmui.mouse_clicked[0]) {
+            parent_node.is_dragging = true;
+            parent_node.drag_start_mouse_x = global.gmui.mouse_pos[0];
+            parent_node.drag_start_mouse_y = global.gmui.mouse_pos[1];
+            parent_node.drag_start_ratio = parent_node.ratio;
+        }
+        
+        if (parent_node.is_dragging && global.gmui.mouse_down[0]) {
+            // Calculate new ratio
             var mouse_delta_y = global.gmui.mouse_pos[1] - parent_node.drag_start_mouse_y;
-            var total_height = parent_node.height;
+            var total_height = parent_node.visual_height;
             var ratio_delta = mouse_delta_y / total_height;
             
-            parent_node.ratio = clamp(parent_node.drag_start_ratio + ratio_delta, 0.1, 0.9);
-        }
-        
-        // recalculate children dimensions immediatly during drag
-        gmui_wins_recalculate_children(parent_node);
-        
-        // change cursor
-        if (parent_node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
-            window_set_cursor(cr_size_we);
+            // The ratio always represents the size of the TOP child
+            // For UP split: ratio = top child height
+            // For DOWN split: ratio = bottom child height (since children are swapped in recalculate)
+            
+            if (parent_node.split_direction == gmui_wins_split_dir.UP) {
+                // UP split: dragging down increases top child height
+                parent_node.ratio = clamp(parent_node.drag_start_ratio + ratio_delta, 0.01, 0.99);
+            } else if (parent_node.split_direction == gmui_wins_split_dir.DOWN) {
+                // DOWN split: dragging down decreases top child height (increases bottom child)
+                // Since ratio represents bottom child height for DOWN splits
+                parent_node.ratio = clamp(parent_node.drag_start_ratio - ratio_delta, 0.01, 0.99);
+            }
+            
+            // Recalculate children dimensions immediately during drag
+            gmui_wins_recalculate_children(parent_node);
         } else {
-            window_set_cursor(cr_size_ns);
+            parent_node.is_dragging = false;
         }
-    } else {
-        parent_node.is_dragging = false;
     }
 }
 
@@ -8880,48 +8946,43 @@ function gmui_wins_handle_splitters_recursive(node) {
     var splitter_active_color = style.wins_splitter_active_color;
     
     if (node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
-        // Vertical splitter
-        var splitter_x = child_a.x + child_a.width;
+        // Determine which child is actually on the left
+        var left_child = child_a;
+        var right_child = child_b;
+        
+        if (child_a.visual_x > child_b.visual_x) { // Just to be sure
+            left_child = child_b;
+            right_child = child_a;
+        }
+        
+        // Splitter is at the end of the left child
+        var splitter_x = left_child.visual_x + left_child.visual_width;
+        
+        // Use the parent's VISUAL coordinates for bounds
         splitter_bounds = [
             splitter_x - splitter_size / 2, 
-            node.y, 
+            node.visual_y, 
             splitter_x + splitter_size / 2, 
-            node.y + node.height
+            node.visual_y + node.visual_height
         ];
-    } else if (node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
-        // Horizontal splitter
-        var splitter_y = child_a.y + child_a.height;
-        splitter_bounds = [
-            node.x, 
-            splitter_y - splitter_size / 2, 
-            node.x + node.width, 
-            splitter_y + splitter_size / 2
-        ];
-    }
-    
-    if (splitter_bounds == undefined) return;
-    
-    // Check if mouse is over this splitter
-    var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
-    var is_active = node.is_dragging;
-    
-    // Choose color based on state
-    var draw_color = splitter_color;
-    if (is_active) {
-        draw_color = splitter_active_color;
-    } else if (mouse_over_splitter) {
-        draw_color = splitter_hover_color;
-    }
-    
-    // TODO: draw background
-    
-    // Draw visible splitter line using GMUI functions
-    if (node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
-        // Draw vertical line with handle dots
-        var line_x = splitter_bounds[0] + (splitter_bounds[2] - splitter_bounds[0]) / 2;
         
+        // Check if mouse is over this splitter
+        var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && 
+                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
+        
+        var is_active = node.is_dragging;
+        
+        // Choose color based on state
+        var draw_color = splitter_color;
+        if (is_active) {
+            draw_color = splitter_active_color;
+        } else if (mouse_over_splitter) {
+            draw_color = splitter_hover_color;
+        }
+        
+        // Draw visible splitter line
         // Main line
-        gmui_add_line(line_x, splitter_bounds[1], line_x, splitter_bounds[3], draw_color, 2);
+        gmui_add_line(splitter_x, splitter_bounds[1], splitter_x, splitter_bounds[3], draw_color, 2);
         
         // Handle dots
         var dot_spacing = 6;
@@ -8931,15 +8992,51 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         for (var i = 0; i < dot_count; i++) {
             var dot_y = start_y + i * dot_spacing;
-            gmui_add_rect(line_x, dot_y, 4, 4, draw_color);
+            gmui_add_rect(splitter_x - 2, dot_y, 4, 4, draw_color);
+        }
+        
+        // Set cursor if hovering
+        if (mouse_over_splitter || node.is_dragging) {
+            window_set_cursor(cr_size_we);
         }
         
     } else if (node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
-        // Draw horizontal line with handle dots
-        var line_y = splitter_bounds[1] + (splitter_bounds[3] - splitter_bounds[1]) / 2;
+        // Determine which child is actually on top
+        var top_child = child_a;
+        var bottom_child = child_b;
         
+        if (child_a.visual_y > child_b.visual_y) { // Just to be sure
+            top_child = child_b;
+            bottom_child = child_a;
+        }
+        
+        // Splitter is at the bottom of the top child
+        var splitter_y = top_child.visual_y + top_child.visual_height;
+        
+        splitter_bounds = [
+            node.visual_x, 
+            splitter_y - splitter_size / 2, 
+            node.visual_x + node.visual_width, 
+            splitter_y + splitter_size / 2
+        ];
+        
+        // Check if mouse is over this splitter
+        var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && 
+                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
+        
+        var is_active = node.is_dragging;
+        
+        // Choose color based on state
+        var draw_color = splitter_color;
+        if (is_active) {
+            draw_color = splitter_active_color;
+        } else if (mouse_over_splitter) {
+            draw_color = splitter_hover_color;
+        }
+        
+        // Draw visible splitter line
         // Main line
-        gmui_add_line(splitter_bounds[0], line_y, splitter_bounds[2], line_y, draw_color, 2);
+        gmui_add_line(splitter_bounds[0], splitter_y, splitter_bounds[2], splitter_y, draw_color, 2);
         
         // Handle dots
         var dot_spacing = 6;
@@ -8949,12 +9046,16 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         for (var i = 0; i < dot_count; i++) {
             var dot_x = start_x + i * dot_spacing;
-            gmui_add_rect(dot_x, line_y, 4, 4, draw_color);
+            gmui_add_rect(dot_x, splitter_y - 2, 4, 4, draw_color);
+        }
+        
+        // Set cursor if hovering
+        if (mouse_over_splitter || node.is_dragging) {
+            window_set_cursor(cr_size_ns);
         }
     }
     
-    // Recursively draw splitters for children
-    gmui_wins_handle_splitters_recursive(node.children[0]);
-    gmui_wins_handle_splitters_recursive(node.children[1]);
+    // Recursively handle splitters for children
+    gmui_wins_handle_splitters_recursive(child_a);
+    gmui_wins_handle_splitters_recursive(child_b);
 }
-
