@@ -1,11 +1,5 @@
 gmui_update();
 
-if (gmui_begin("test")) {
-	//nameData = gmui_textbox(nameData);
-	gmui_end();
-}
-
-/*
 gmui_demo();
 var demoWindow = gmui_get_window("GMUI Demo & Documentation");
 

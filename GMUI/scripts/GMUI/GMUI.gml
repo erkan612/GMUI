@@ -528,9 +528,6 @@ function gmui_init() {
 		gmui_cache_set("array.cache_surfaces.values", array_create(0));
 		gmui_cache_set("array.mouse_pos", array_create(2));
 		gmui_cache_set("array.mb_array", [ mb_left, mb_right, mb_middle, mb_side1, mb_side2 ]);
-		gmui_cache_set("array.bounds.gmui_handle_window_interaction", array_create(4));
-		gmui_cache_set("array.new_path.gmui_tree_node_begin", array_create(0));
-		gmui_cache_set("array.fill_points.gmui_plot_lines", array_create(0));
     }
 }
 

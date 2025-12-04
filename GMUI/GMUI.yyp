@@ -1,14 +1,14 @@
 {
-  "$GMProject":"v1",
+  "$GMProject":"",
   "%Name":"GMUI",
   "AudioGroups":[
-    {"$GMAudioGroup":"v1","%Name":"audiogroup_default","exportDir":"","name":"audiogroup_default","resourceType":"GMAudioGroup","resourceVersion":"2.0","targets":-1,},
+    {"$GMAudioGroup":"","%Name":"audiogroup_default","name":"audiogroup_default","resourceType":"GMAudioGroup","resourceVersion":"2.0","targets":-1,},
   ],
   "configs":{
     "children":[],
     "name":"Default",
   },
-  "defaultScriptType":1,
+  "defaultScriptType":0,
   "Folders":[
     {"$GMFolder":"","%Name":"Animation Curves","folderPath":"folders/Animation Curves.yy","name":"Animation Curves","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Extensions","folderPath":"folders/Extensions.yy","name":"Extensions","resourceType":"GMFolder","resourceVersion":"2.0",},
@@ -28,21 +28,18 @@
     {"$GMFolder":"","%Name":"Tile Sets","folderPath":"folders/Tile Sets.yy","name":"Tile Sets","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Timelines","folderPath":"folders/Timelines.yy","name":"Timelines","resourceType":"GMFolder","resourceVersion":"2.0",},
   ],
-  "ForcedPrefabProjectReferences":[],
   "IncludedFiles":[],
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.14.1.210",
+    "IDEVersion":"2024.11.0.179",
   },
   "name":"GMUI",
   "resources":[
     {"id":{"name":"fnCascadiaCode","path":"fonts/fnCascadiaCode/fnCascadiaCode.yy",},},
     {"id":{"name":"ExampleObject","path":"objects/ExampleObject/ExampleObject.yy",},},
-    {"id":{"name":"Object3","path":"objects/Object3/Object3.yy",},},
     {"id":{"name":"oSimplisticEditor","path":"objects/oSimplisticEditor/oSimplisticEditor.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
-    {"id":{"name":"Room3","path":"rooms/Room3/Room3.yy",},},
     {"id":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
     {"id":{"name":"cUtils","path":"scripts/cUtils/cUtils.yy",},},
     {"id":{"name":"GMUI","path":"scripts/GMUI/GMUI.yy",},},
@@ -57,7 +54,6 @@
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
     {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
-    {"roomId":{"name":"Room3","path":"rooms/Room3/Room3.yy",},},
     {"roomId":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
   ],
   "templateType":"game",
