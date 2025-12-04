@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.6.5
+           Version 1.6.11
            
            by erkan612
 =======================================
@@ -753,7 +753,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     if ((flags & gmui_window_flags.NO_BACKGROUND) == 0) {
         gmui_add_rect_alpha(0, 0, window.width, window.height, global.gmui.style.background_color, global.gmui.style.background_alpha);
 		if (!no_border) {
-			gmui_add_rect_round_outline_alpha(0, 0, window.width - 2, window.height - 2, global.gmui.style.border_color, window.rounding ? global.gmui.style.window_rounding : -1, 1, global.gmui.style.background_alpha);
+			gmui_add_rect_round_outline_alpha(0, 0, window.width - 1.5, window.height - 1.5, global.gmui.style.border_color, window.rounding ? global.gmui.style.window_rounding * 2 - 1 : -1, 1, global.gmui.style.background_alpha); // -1.5 is so stupid but works like a fucking charm
 		}
     }
     
@@ -1599,7 +1599,7 @@ function gmui_render() {
 			shader_set(gmui_shader_roundrect);
 			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_size"), window.width, window.height);
 			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_radius"), global.gmui.style.window_rounding);
-			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_smooth"), 2);
+			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_smooth"), 0);
 			shader_set_uniform_f(shader_get_uniform(gmui_shader_roundrect, "u_color"), 1, 1, 1, 1);
 	        draw_surface(window.surface, window.x, window.y);
 			shader_reset();
