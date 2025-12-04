@@ -39,8 +39,10 @@
   "resources":[
     {"id":{"name":"fnCascadiaCode","path":"fonts/fnCascadiaCode/fnCascadiaCode.yy",},},
     {"id":{"name":"ExampleObject","path":"objects/ExampleObject/ExampleObject.yy",},},
+    {"id":{"name":"Object3","path":"objects/Object3/Object3.yy",},},
     {"id":{"name":"oSimplisticEditor","path":"objects/oSimplisticEditor/oSimplisticEditor.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
+    {"id":{"name":"Room3","path":"rooms/Room3/Room3.yy",},},
     {"id":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
     {"id":{"name":"cUtils","path":"scripts/cUtils/cUtils.yy",},},
     {"id":{"name":"GMUI","path":"scripts/GMUI/GMUI.yy",},},
@@ -55,6 +57,7 @@
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
     {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
+    {"roomId":{"name":"Room3","path":"rooms/Room3/Room3.yy",},},
     {"roomId":{"name":"roSimplisticEditor","path":"rooms/roSimplisticEditor/roSimplisticEditor.yy",},},
   ],
   "templateType":"game",

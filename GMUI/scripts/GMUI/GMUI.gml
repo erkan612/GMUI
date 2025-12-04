@@ -524,6 +524,13 @@ function gmui_init() {
 				button: function(data) { gmui_add_rect(data.x, data.y, data.width, data.height, data.color); }, // here's an example
 			}
         };
+		
+		gmui_cache_set("array.cache_surfaces.values", array_create(0));
+		gmui_cache_set("array.mouse_pos", array_create(2));
+		gmui_cache_set("array.mb_array", [ mb_left, mb_right, mb_middle, mb_side1, mb_side2 ]);
+		gmui_cache_set("array.bounds.gmui_handle_window_interaction", array_create(4));
+		gmui_cache_set("array.new_path.gmui_tree_node_begin", array_create(0));
+		gmui_cache_set("array.fill_points.gmui_plot_lines", array_create(0));
     }
 }
 
@@ -683,7 +690,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     
     window.flags = flags;
     window.active = true;
-    window.treeview_stack = [];//
+    gmui_array_clear(window.treeview_stack);
     
     // Reset max cursor for content size calculation
     window.max_cursor_x = 0;
@@ -714,6 +721,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     // Recreate surface if size changed
     var size_changed = window.width != w || window.height != h;
     if ((size_changed && !no_move) || !surface_exists(window.surface)) {
+		surface_free(window.surface);
         gmui_create_surface(window);
     } else {
         window.surface_dirty = true;
@@ -737,13 +745,14 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     dc.cursor_x += dc.scroll_offset_x;
     dc.cursor_y += dc.scroll_offset_y;
     
-    window.draw_list = [];
+	gmui_array_clear(window.draw_list);
     array_push(global.gmui.window_stack, window);
     global.gmui.current_window = window;
     
     // Draw background
     if ((flags & gmui_window_flags.NO_BACKGROUND) == 0) {
         gmui_add_rect_alpha(0, 0, window.width, window.height, global.gmui.style.background_color, global.gmui.style.background_alpha);
+		gmui_add_rect_round_outline_alpha(0, 0, window.width - 2, window.height - 2, global.gmui.style.border_color, window.rounding ? global.gmui.style.window_rounding : -1, 1, global.gmui.style.background_alpha);
     }
     
     // Draw title bar if enabled
@@ -969,10 +978,14 @@ function gmui_end(_no_repeat = false) {
 
 function gmui_cleanup() {
     if (global.gmui && global.gmui.initialized) {
+        // Clean up windows
         for (var i = 0; i < ds_list_size(global.gmui.windows); i++) {
             var window = global.gmui.windows[| i];
+            
+            // Free surface
             if (surface_exists(window.surface)) surface_free(window.surface);
-            // Destroy the treeview_open_nodes for this window
+            
+            // Free window's treeview_open_nodes
             if (ds_exists(window.treeview_open_nodes, ds_type_map)) {
                 ds_map_destroy(window.treeview_open_nodes);
             }
@@ -984,18 +997,55 @@ function gmui_cleanup() {
         if (ds_exists(global.gmui.window_z_order, ds_type_priority)) {
             ds_priority_destroy(global.gmui.window_z_order);
         }
+        
+        // Clean up global treeview_open_nodes
+        if (ds_exists(global.gmui.treeview_open_nodes, ds_type_map)) {
+            ds_map_destroy(global.gmui.treeview_open_nodes);
+        }
+        
+		// Clean up cache
+		gmui_cleanup_cache();
+		
+        // Clean up cache surfaces
+        var cache_keys = ds_map_keys_to_array(global.gmui.cache_surfaces);
+        for (var i = 0; i < array_length(cache_keys); i++) {
+            var surface_data = global.gmui.cache_surfaces[? cache_keys[i]];
+            if (surface_exists(surface_data.surface)) {
+                surface_free(surface_data.surface);
+            }
+        }
+		
+		// Clean up cache
+		ds_map_destroy(global.gmui.cache);
+		ds_map_destroy(global.gmui.context_menu_cache);
 		
 		// Clean up table map
 		if (ds_exists(global.gmui.tables, ds_type_map)) {
 			ds_map_destroy(global.gmui.tables);
 		}
-		
-		// Clean up cache
-		ds_map_destroy(global.gmui.cache);
-		ds_map_destroy(global.gmui.cache_surfaces);
-		ds_map_destroy(global.gmui.context_menu_cache);
-		
+        
         global.gmui = undefined;
+    }
+}
+
+function gmui_cleanup_cache() {
+    var to_delete = [];
+    var keys = ds_map_keys_to_array(global.gmui.cache_surfaces);
+    for (var i = 0; i < array_length(keys); i++) {
+        var key = keys[i];
+        var surface_data = global.gmui.cache_surfaces[? key];
+        var difference = current_time - surface_data.time_start;
+        if (difference >= surface_data.sleep_timer * 1000) {
+            if (surface_exists(surface_data.surface)) {
+                surface_free(surface_data.surface);
+            }
+            array_push(to_delete, key);
+        }
+    }
+    
+    for (var i = 0; i < array_length(to_delete); i++) {
+        ds_map_delete(global.gmui.cache_surfaces, to_delete[i]);
+        gmui_cache_delete(to_delete[i]);
     }
 }
 
@@ -1043,14 +1093,17 @@ function gmui_reset_window(name) {
 function gmui_update_input() {
     if (!global.gmui.initialized) return;
     
-    global.gmui.mouse_pos = [device_mouse_x_to_gui(0), device_mouse_y_to_gui(0)];
+	var mouse_pos = gmui_cache_get("array.mouse_pos");
+	
+    global.gmui.mouse_pos[0] = device_mouse_x_to_gui(0);
+    global.gmui.mouse_pos[1] = device_mouse_y_to_gui(0);
     
-	var mbArray = [ mb_left, mb_right, mb_middle, mb_side1, mb_side2 ];
+	var mb_array = gmui_cache_get("array.mb_array");
 	
     for (var i = 0; i < 5; i++) {
-        global.gmui.mouse_clicked[i] = mouse_check_button_pressed(mbArray[i]);
-        global.gmui.mouse_released[i] = mouse_check_button_released(mbArray[i]);
-        global.gmui.mouse_down[i] = mouse_check_button(mbArray[i]);
+        global.gmui.mouse_clicked[i] = mouse_check_button_pressed(mb_array[i]);
+        global.gmui.mouse_released[i] = mouse_check_button_released(mb_array[i]);
+        global.gmui.mouse_down[i] = mouse_check_button(mb_array[i]);
     }
     
     global.gmui.frame_count++;
@@ -1272,13 +1325,17 @@ function gmui_update_input() {
 	        global.gmui.textbox_cursor_visible = true;
 	    }
 	}
+	
+	global.gmui.mouse_pos = mouse_pos;
 }
 
 function gmui_update() {
 	global.gmui.is_hovering_element = false;
 	gmui_update_input();
 	ds_list_clear(global.gmui.modals);
-	array_foreach(ds_map_values_to_array(global.gmui.cache_surfaces), function(e, i) {
+	var cache_surfaces_values = gmui_cache_get("array.cache_surfaces.values");
+	ds_map_values_to_array(global.gmui.cache_surfaces, cache_surfaces_values);
+	array_foreach(cache_surfaces_values, function(e, i) {
 	    var surface = e;
 		var c_time = current_time;
 		var difference = c_time - surface.time_start;
@@ -1287,6 +1344,7 @@ function gmui_update() {
 			ds_map_delete(global.gmui.cache_surfaces, surface.id);
 		};
 	});
+	gmui_array_clear(cache_surfaces_values);
 };
 
 function gmui_handle_modals() {
@@ -2136,6 +2194,10 @@ function gmui_menu_item(label, context_menu_name = undefined) {
 	if (mouse_over || check) {
 		gmui_add_rect_round(button_x, button_y, button_width, button_height, bg_color, style.menu_button_rounding);
 	}
+	
+	// Draw Border Lines
+	gmui_add_line(button_x, button_y, button_x, button_y + button_height, style.border_color, 1);
+	gmui_add_line(button_x + button_width, button_y, button_x + button_width, button_y + button_height, style.border_color, 1);
 	
 	// Close check if clicked outside
 	if (global.gmui.mouse_clicked[0] && !mouse_over) {
@@ -6938,25 +7000,27 @@ function gmui_cache_delete(id) {
 };
 
 function gmui_cache_surface_get(id, width, height, sleep_timer_seconds = 30) {
-	var surface = gmui_cache_get(id);
-	
-	if (surface == undefined) {
-		surface = {
-			id: id,
-			surface: surface_create(width, height), 
-			sleep_timer: sleep_timer_seconds,
-			time_start: current_time
-		};
-		global.gmui.cache_surfaces[? id] = surface;
-		gmui_cache_set(id, surface);
-	};
-	
-	if (!surface_exists(surface.surface)) {
-		surface.surface = surface_create(width, height);
-	};
-	surface.time_start = current_time;
-	
-	return surface;
+    var surface = gmui_cache_get(id);
+    
+    if (surface == undefined) {
+        surface = {
+            id: id,
+            surface: surface_create(width, height),
+            sleep_timer: sleep_timer_seconds,
+            time_start: current_time
+        };
+        global.gmui.cache_surfaces[? id] = surface;
+        gmui_cache_set(id, surface);
+    };
+    
+    if (!surface_exists(surface.surface)) {
+        surface_free(surface.surface);
+        surface.surface = surface_create(width, height);
+    };
+    
+    surface.time_start = current_time;
+    
+    return surface;
 }
 
 function gmui_demo() {
@@ -7767,6 +7831,16 @@ function gmui_demo() {
 //////////////////////////////////////
 // MATH (Color conversions, math helpers)
 //////////////////////////////////////
+function gmui_array_clear(array) {
+	var length = array_length(array);
+	if (length == 0) { return; }
+	for (var i = 0; i < length; i++) {
+	    array_delete(array, i, 1);
+		i--;
+		length--;
+	}
+}
+
 function gmui_lerp_color(color1, color2, t) {
     var r1 = color_get_red(color1);
     var g1 = color_get_green(color1);

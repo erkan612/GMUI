@@ -1,5 +1,11 @@
 gmui_update();
 
+if (gmui_begin("test")) {
+	//nameData = gmui_textbox(nameData);
+	gmui_end();
+}
+
+/*
 gmui_demo();
 var demoWindow = gmui_get_window("GMUI Demo & Documentation");
 
@@ -36,7 +42,7 @@ if (mouse_check_button_pressed(mb_right)) {
 	gmui_open_context_menu("Context Menu");
 };
 
-gmui_add_context_menu("Menu Context", function(window) {
+gmui_add_context_menu("Menu Context File", function(window) {
 	gmui_context_menu_item("New", "Ctrl+N");
 	gmui_context_menu_item("Open", "Ctrl+O");
 	gmui_context_menu_item("Save", "Ctrl+S");
@@ -49,8 +55,18 @@ gmui_add_context_menu("Menu Context", function(window) {
 	}
 });
 
+gmui_add_context_menu("Menu Context Edit", function(window) {
+	gmui_context_menu_item("Move");
+	gmui_context_menu_item("Scale");
+	gmui_context_menu_item("Rotate");
+	gmui_context_menu_item("New Object");
+	gmui_context_menu_item("Undo");
+	gmui_context_menu_item("Redo");
+});
+
 if (gmui_begin_menu("test menu")) {
-	gmui_menu_item("File", "Menu Context");
+	gmui_menu_item("File", "Menu Context File");
+	gmui_menu_item("Edit", "Menu Context Edit");
 	gmui_end_menu();
 };
 

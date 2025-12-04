@@ -5,6 +5,14 @@
 * GC cant catch up and builds up tiny bit of extra memory usage in time
 */
 
+/*
+* creating new arrays as 'my_array = [ ... ]'
+* creating new arrays as 'ds_map_values_to_array' or others
+* cleaning arrays as 'my_array = [ ]'
+* everyframe, causes GC to fall behind and increases the memory usage
+* to fix this, create static arrays in global.gmui.cache and instead if settings them to '[ ]' to clean up, use 'array_delete' or 'gmui_array_clean' to clean the entirety of an array
+*/
+
 gmui_init();
 
 tabIdx = 1;
