@@ -56,13 +56,14 @@ enum gmui_window_flags {
     AUTO_HSCROLL					= 1 << 28,
     AUTO_VSCROLL					= 1 << 29,
 	NO_MOVE_DEPTH					= 1 << 30,
+	NO_BORDER						= 1 << 31,
 }
 
 enum gmui_pre_window_flags {
 	MODAL_DEFAULT					= gmui_window_flags.NO_CLOSE			| gmui_window_flags.NO_RESIZE			| gmui_window_flags.NO_COLLAPSE					| gmui_window_flags.POPUP, 
 	MODAL_SET						= gmui_pre_window_flags.MODAL_DEFAULT	| gmui_window_flags.ALWAYS_AUTO_RESIZE, 
 	CANVAS							= gmui_window_flags.NO_TITLE_BAR		| gmui_window_flags.NO_RESIZE, 
-	CANVAS_CLEAN					= gmui_window_flags.NO_BACKGROUND		| gmui_window_flags.NO_TITLE_BAR		| gmui_window_flags.NO_RESIZE, 
+	CANVAS_CLEAN					= gmui_window_flags.NO_BACKGROUND		| gmui_window_flags.NO_TITLE_BAR		| gmui_window_flags.NO_RESIZE					| gmui_window_flags.NO_BORDER, 
 	CONTEXT_MENU					= gmui_pre_window_flags.CANVAS			| gmui_window_flags.POPUP				| gmui_window_flags.AUTO_VSCROLL				| gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
 	SUB_CONTEXT_MENU				= gmui_pre_window_flags.CANVAS			| gmui_window_flags.AUTO_VSCROLL		| gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
 	MENU							= gmui_pre_window_flags.CANVAS			| gmui_window_flags.NO_MOVE_DEPTH, 
@@ -666,7 +667,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     if (!window) return false;
     
     var no_move = (flags & gmui_window_flags.NO_MOVE) == 0;
-	
+	var no_border = (flags & gmui_window_flags.NO_BORDER) != 0;
 	var is_popup = (flags & gmui_window_flags.POPUP) != 0;
     
     // Handle initial positioning
@@ -749,7 +750,9 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     // Draw background
     if ((flags & gmui_window_flags.NO_BACKGROUND) == 0) {
         gmui_add_rect_alpha(0, 0, window.width, window.height, global.gmui.style.background_color, global.gmui.style.background_alpha);
-		gmui_add_rect_round_outline_alpha(0, 0, window.width - 2, window.height - 2, global.gmui.style.border_color, window.rounding ? global.gmui.style.window_rounding : -1, 1, global.gmui.style.background_alpha);
+		if (!no_border) {
+			gmui_add_rect_round_outline_alpha(0, 0, window.width - 2, window.height - 2, global.gmui.style.border_color, window.rounding ? global.gmui.style.window_rounding : -1, 1, global.gmui.style.background_alpha);
+		}
     }
     
     // Draw title bar if enabled
