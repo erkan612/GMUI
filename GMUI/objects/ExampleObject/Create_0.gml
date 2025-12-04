@@ -1,5 +1,4 @@
 /*Currently noticed problems
-* With the Update of GM-2024.14.1.210 surfaces seem to being destroyed in the first frame so gmui_surface and gmui_add_surface can be a bit struggle
 * horizontal scrolling is problematic with filling elements(collapsing headers, tree nodes, button width fills etc)
 * some style variables are not in use
 * memory management

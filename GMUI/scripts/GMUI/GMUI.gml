@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.6.0
+           Version 1.6.3
            
            by erkan612
 =======================================
@@ -5450,9 +5450,6 @@ function gmui_combo_dropdown() {
         gmui_add_rect_round_outline(cx, cy, width - 2, dropdown_height - 2, style.combo_dropdown_border_color, style.combo_dropdown_rounding, style.combo_border_size);
     }
     
-    // Setup scissor for dropdown content
-    gmui_begin_scissor(cx, cy, width, dropdown_height);
-    
     // Draw items
     var mouse_over_dropdown = gmui_is_mouse_over_window(window) && 
                               gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
@@ -5484,7 +5481,7 @@ function gmui_combo_dropdown() {
         }
         
         // Draw item background
-        gmui_add_rect(cx + 5, item_y, width - 10, item_height, bg_color);
+        gmui_add_rect(cx, item_y, width, item_height, bg_color);
         
         // Draw item text
         var text_size = gmui_calc_text_size(items[i]);
@@ -5513,9 +5510,6 @@ function gmui_combo_dropdown() {
 			global.gmui.to_delete_combo = true;
         }
     }
-    
-    // End scissor
-    gmui_end_scissor();
 }
 
 function gmui_combo_simple(label, current_index, items, width = -1) {
@@ -7273,7 +7267,7 @@ function gmui_demo() {
             gmui_label_text("Mouse Position", string(device_mouse_x_to_gui(0)) + ", " + string(device_mouse_y_to_gui(0)));
             
             gmui_text("Wrapping text demonstration:");
-            gmui_text_wrap("This is a longer piece of text that should wrap within the window boundaries and demonstrate how text flows in the GMUI system."); // add gmui_text_wrap
+            gmui_text_wrap("This is a longer piece of text that should wrap within the window boundaries and demonstrate how text flows in the GMUI system.");
             
             gmui_collapsing_header_end();
         }
