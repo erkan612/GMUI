@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.6.3
+           Version 1.6.5
            
            by erkan612
 =======================================
@@ -79,6 +79,7 @@ function gmui_init() {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+			last_pressed_clickable_id: undefined, // meant for release-action elements
 			context_menu_cache: ds_map_create(),
 			current_context_menu_last_available_sub_pos: [ 0, 0 ],
 			current_context_menu: undefined,
@@ -1612,6 +1613,10 @@ function gmui_render() {
     
     ds_priority_destroy(sorted_windows);
 	
+	if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id != undefined) {
+		global.gmui.last_pressed_clickable_id = undefined;
+	}
+	
 	/////////////////////////////////////
     
     //var names = variable_struct_get_names(global.gmui.windows);
@@ -2231,6 +2236,7 @@ function gmui_button(label, width = -1, height = -1) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_button_" + label + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
     
     // Calculate button size
     var text_size = gmui_calc_text_size(label);
@@ -2260,10 +2266,13 @@ function gmui_button(label, width = -1, height = -1) {
     
     if (mouse_over) {
 		global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
-            is_active = true;
+        if (global.gmui.mouse_clicked[0]) {
+			global.gmui.last_pressed_clickable_id = element_id;
         }
-        if (global.gmui.mouse_released[0]) {
+		if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+		}
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             clicked = true;
         }
     }
@@ -2322,6 +2331,7 @@ function gmui_button_invisible(label, width, height) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_button_" + label + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
     
     // Calculate button size
     var text_size = gmui_calc_text_size(label);
@@ -2351,10 +2361,13 @@ function gmui_button_invisible(label, width, height) {
     
     if (mouse_over) {
 		global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
-            is_active = true;
+        if (global.gmui.mouse_clicked[0]) {
+			global.gmui.last_pressed_clickable_id = element_id;
         }
-        if (global.gmui.mouse_released[0]) {
+		if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+		}
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             clicked = true;
         }
     }
@@ -2489,6 +2502,7 @@ function gmui_color_button(color_rgba, size = -1) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_button_color_" + string(dc.cursor_x) + string(dc.cursor_y);
 	
 	var arr_rgba = gmui_color_rgba_to_array(color_rgba);
     
@@ -2511,10 +2525,13 @@ function gmui_color_button(color_rgba, size = -1) {
     
     if (mouse_over && window.active) {
         global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             is_active = true;
         }
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             clicked = true;
         }
     }
@@ -3005,6 +3022,7 @@ function gmui_selectable(label, selected, width = -1, height = -1) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_selectable_" + label + string(dc.cursor_x) + string(dc.cursor_y);
     
     // Calculate selectable size
     var text_size = gmui_calc_text_size(label);
@@ -3034,10 +3052,13 @@ function gmui_selectable(label, selected, width = -1, height = -1) {
     
     if (mouse_over && window.active && !global.gmui.is_hovering_element) {
 		global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             is_active = true;
         }
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             clicked = true;
         }
     }
@@ -3366,6 +3387,7 @@ function gmui_tree_node_begin(label, selected = false) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_treenodebegin_" + label + string(dc.cursor_x) + string(dc.cursor_y);
     
     // Get current treeview context - FIXED PATH BUILDING
     var parent_path = array_length(window.treeview_stack) > 0 ? 
@@ -3404,10 +3426,13 @@ function gmui_tree_node_begin(label, selected = false) {
     
     if (mouse_over && window.active) {
         global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             is_active = true;
         }
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             clicked = true;
             
             // Check if click was on arrow
@@ -3514,6 +3539,7 @@ function gmui_tree_leaf(label, selected = false) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_treeleaf_" + label + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
     
     var current_path = gmui_treeview_get_current_path(window);
     var _depth = gmui_treeview_get_depth(window);
@@ -3539,10 +3565,13 @@ function gmui_tree_leaf(label, selected = false) {
     
     if (mouse_over && window.active) {
 		global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             is_active = true;
         }
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             clicked = true;
         }
     }
@@ -3755,6 +3784,7 @@ function gmui_collapsing_header(label, is_open) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_collapsingheader_" + label + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
     
     // Calculate header size
     var text_size = gmui_calc_text_size(label);
@@ -3777,10 +3807,13 @@ function gmui_collapsing_header(label, is_open) {
     
     if (mouse_over && window.active) {
 		global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             is_active = true;
         }
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             clicked = true;
             is_open = !is_open;
         }
@@ -3889,16 +3922,17 @@ function gmui_checkbox(label, value) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_ceckbox_" + label + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
     
     // Calculate total size needed
     var text_size = gmui_calc_text_size(label);
     var total_width = text_size[0] + style.checkbox_spacing + style.checkbox_size;
     var total_height = max(style.checkbox_size, text_size[1]);
     
-    // Check if checkbox fits on current line, otherwise move to new line
-    if (dc.cursor_x + total_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
-        gmui_new_line();
-    }
+    //// Check if checkbox fits on current line, otherwise move to new line
+    //if (dc.cursor_x + total_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //    gmui_new_line();
+    //}
     
     // Calculate label bounds (on the left)
     var label_x = dc.cursor_x;
@@ -3929,10 +3963,13 @@ function gmui_checkbox(label, value) {
     
     if (mouse_over && window.active) {
 		global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             is_active = true;
         }
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             toggled = true;
             value = !value;
         }
@@ -4065,6 +4102,7 @@ function gmui_checkbox_box(value, size = -1) {
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_ceckbox_box_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
     
     var checkbox_size = size > 0 ? size : style.checkbox_size;
     
@@ -4084,10 +4122,13 @@ function gmui_checkbox_box(value, size = -1) {
     
     if (mouse_over && window.active) {
 		global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             is_active = true;
         }
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             toggled = true;
             value = !value;
         }
@@ -5232,6 +5273,7 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
+	var element_id = "id_combo_" + label + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
     
     // Use array length if items_count not specified
     if (items_count == -1) {
@@ -5280,10 +5322,13 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
     
     if (mouse_over && window.active) {
         global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             is_pressed = true;
         }
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             clicked = true;
 			// Open dropdown
 			if (window.active_combo != combo_id) {
@@ -5511,7 +5556,7 @@ function gmui_combo_dropdown() {
         gmui_add_text(text_x, text_y, display_text, text_color);
         
         // Handle item selection
-        if (item_mouse_over && global.gmui.mouse_released[0]) {
+        if (item_mouse_over && global.gmui.mouse_clicked[0]) {
             window.combo_current_index = i;
             window.active_combo = undefined; // Close dropdown
 			global.gmui.to_delete_combo = true;
@@ -6693,6 +6738,7 @@ function gmui_draw_title_bar_close_button(window) {
     var style = global.gmui.style;
     var close_size = style.close_button_size;
     var close_padding = 4;
+	var element_id = "id_windowclosebutton_" + window.name + "_" + string(window.width) + "_" + string(window.height);
     
     var close_x = window.width - close_size - close_padding;
     var close_y = (style.title_bar_height - close_size) / 2;
@@ -6706,14 +6752,17 @@ function gmui_draw_title_bar_close_button(window) {
     var close_color = style.close_button_color;
     if (mouse_over_close) {
 		global.gmui.is_hovering_element = true;
-        if (global.gmui.mouse_down[0]) {
+		
+        // Close window on click
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
             close_color = style.close_button_active_color;
         } else {
             close_color = style.close_button_hover_color;
         }
-        
-        // Close window on click
-        if (global.gmui.mouse_released[0]) {
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
             window.open = false;
         }
     }
