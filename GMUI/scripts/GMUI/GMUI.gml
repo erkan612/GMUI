@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.6.11
+           Version 1.7.16
            
            by erkan612
 =======================================
@@ -521,6 +521,45 @@ function gmui_init() {
 				menu_text_color: make_colour_rgb(220, 220, 220),
 				menu_button_padding: 4,
 				menu_button_rounding: -1,
+                
+                // Progress bar styles
+                progress_bar_height: 20,
+                progress_bar_rounding: 4,
+                progress_bar_border_size: 1,
+                progress_bar_bg_color: make_color_rgb(50, 50, 50),
+                progress_bar_border_color: make_color_rgb(80, 80, 80),
+                progress_bar_fill_color: make_color_rgb(100, 150, 255),
+                progress_bar_fill_hover_color: make_color_rgb(120, 170, 255),
+                progress_bar_fill_active_color: make_color_rgb(80, 130, 235),
+                progress_bar_text_color: make_color_rgb(220, 220, 220),
+                progress_bar_text_disabled_color: make_color_rgb(128, 128, 128),
+                
+                // Circular progress bar styles
+                progress_circular_size: 40,
+                progress_circular_thickness: 4,
+                progress_circular_bg_color: make_color_rgb(50, 50, 50),
+                progress_circular_fill_color: make_color_rgb(100, 150, 255),
+                progress_circular_fill_hover_color: make_color_rgb(120, 170, 255),
+                progress_circular_text_color: make_color_rgb(220, 220, 220),
+                progress_circular_text_size: -1, // Use default if -1
+                progress_circular_show_text: true,
+                progress_circular_animation_speed: 1.0, // 1.0 = normal speed
+                
+                // Progress bar text options
+                progress_text_format: "percentage", // "percentage", "fraction", "value", "custom", "none"
+                progress_text_position: "center", // "left", "center", "right", "inside", "outside"
+                progress_text_padding: [4, 0],
+                
+                // Progress bar states
+                progress_animated: true,
+                progress_animation_duration: 0.3, // seconds
+                progress_animation_easing: "linear", // "linear", "easeIn", "easeOut", "easeInOut"
+                
+                // Gradient options (for linear progress bars)
+                progress_gradient_enabled: false,
+                progress_gradient_start_color: make_color_rgb(100, 150, 255),
+                progress_gradient_end_color: make_color_rgb(50, 100, 200),
+                progress_gradient_direction: "horizontal", // "horizontal", "vertical", "diagonal"
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -1772,12 +1811,398 @@ function gmui_add_surface(x, y, surface) {
     });
 };
 
+function gmui_add_circle(x, y, radius, color) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    // Draw circle using multiple line segments
+    var segments = 32;
+    var angle_step = 2 * pi / segments;
+    
+    for (var i = 0; i < segments; i++) {
+        var angle1 = i * angle_step;
+        var angle2 = (i + 1) * angle_step;
+        
+        var x1 = x + cos(angle1) * radius;
+        var y1 = y + sin(angle1) * radius;
+        var x2 = x + cos(angle2) * radius;
+        var y2 = y + sin(angle2) * radius;
+        
+        gmui_add_line(x1, y1, x2, y2, color, 1);
+    }
+}
+
+function gmui_add_circle_outline(x, y, radius, color, thickness) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    // Draw circle outline using multiple line segments
+    var segments = 32;
+    var angle_step = 2 * pi / segments;
+    
+    for (var i = 0; i < segments; i++) {
+        var angle1 = i * angle_step;
+        var angle2 = (i + 1) * angle_step;
+        
+        var x1 = x + cos(angle1) * radius;
+        var y1 = y + sin(angle1) * radius;
+        var x2 = x + cos(angle2) * radius;
+        var y2 = y + sin(angle2) * radius;
+        
+        gmui_add_line(x1, y1, x2, y2, color, thickness);
+    }
+}
+
+function gmui_add_arc(x, y, radius, thickness, start_angle, end_angle, color) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    // Draw arc using line segments
+    var segments = 32;
+    var total_angle = end_angle - start_angle;
+    var angle_step = total_angle / segments;
+    
+    for (var i = 0; i < segments; i++) {
+        var angle1 = start_angle + i * angle_step;
+        var angle2 = start_angle + (i + 1) * angle_step;
+        
+        var x1 = x + cos(angle1) * radius;
+        var y1 = y + sin(angle1) * radius;
+        var x2 = x + cos(angle2) * radius;
+        var y2 = y + sin(angle2) * radius;
+        
+        gmui_add_line(x1, y1, x2, y2, color, thickness);
+    }
+}
+
 /************************************
  * ELEMENTS
  ***********************************/
 //////////////////////////////////////
 // BASIC (Text, labels, buttons)
 //////////////////////////////////////
+function gmui_progress_bar(label, value, min_value = 0, max_value = 1, width = -1, height = -1, show_text = true) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return value;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate progress bar size
+    var text_size = gmui_calc_text_size(label);
+    var bar_height = (height > 0) ? height : style.progress_bar_height;
+    var bar_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+    
+    if (label != "") {
+        bar_width -= text_size[0] + style.item_spacing[0];
+    }
+    
+    // Total width needed (label + progress bar)
+    var total_width = bar_width;
+    if (label != "") {
+        total_width += text_size[0] + style.item_spacing[0];
+    }
+    
+    var total_height = max(bar_height, text_size[1]);
+    
+    // Calculate progress bar bounds
+    var bar_x = dc.cursor_x;
+    var bar_y = dc.cursor_y;
+    
+    // Draw label if provided
+    if (label != "") {
+        var label_x = bar_x;
+        var label_y = bar_y + (total_height - text_size[1]) / 2;
+        gmui_add_text(label_x, label_y, label, style.text_color);
+        bar_x += text_size[0] + style.item_spacing[0];
+    }
+    
+    var bar_bounds = [bar_x, bar_y, bar_x + bar_width, bar_y + bar_height];
+    
+    // Calculate normalized value
+    var normalized_value = clamp((value - min_value) / (max_value - min_value), 0, 1);
+    var fill_width = bar_width * normalized_value;
+    
+    // Check for mouse interaction (for hover effects)
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                    gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                        global.gmui.mouse_pos[1] - window.y, 
+                                        bar_bounds) && !global.gmui.is_hovering_element;
+    
+    // Draw progress bar background
+    gmui_add_rect_round(bar_x, bar_y, bar_width, bar_height, 
+                    style.progress_bar_bg_color, style.progress_bar_rounding);
+    
+    // Draw border
+    if (style.progress_bar_border_size > 0) {
+        gmui_add_rect_round_outline(bar_x, bar_y, bar_width, bar_height, 
+                                style.progress_bar_border_color, 
+                                style.progress_bar_rounding, 
+                                style.progress_bar_border_size);
+    }
+    
+    // Draw fill
+    if (fill_width > 0) {
+        var fill_color = style.progress_bar_fill_color;
+        if (mouse_over && window.active) {
+            fill_color = style.progress_bar_fill_hover_color;
+            global.gmui.is_hovering_element = true;
+        }
+        
+        // Clip fill to rounded rectangle
+        if (fill_width >= bar_width) {
+            // Full fill
+            gmui_add_rect_round(bar_x, bar_y, fill_width, bar_height, 
+                            fill_color, style.progress_bar_rounding);
+        } else if (fill_width > 0) {
+            // Partial fill - need to handle rounded corners
+            // For simplicity, draw rectangle with left rounding only
+            gmui_add_rect_round(bar_x, bar_y, fill_width, bar_height, 
+                            fill_color, style.progress_bar_rounding);
+            
+            // Draw a small rectangle to cover the right side rounding
+            if (fill_width > style.progress_bar_rounding) {
+                gmui_add_rect(bar_x + style.progress_bar_rounding, bar_y, 
+                            fill_width - style.progress_bar_rounding, bar_height, 
+                            fill_color);
+            }
+        }
+        
+        // Add gradient if enabled
+        if (style.progress_gradient_enabled && fill_width > 0) {
+            // Simple gradient implementation - could be improved with shader
+            var gradient_steps = 10;
+            var step_width = fill_width / gradient_steps;
+            
+            for (var i = 0; i < gradient_steps; i++) {
+                var step_x = bar_x + i * step_width;
+                var t = i / (gradient_steps - 1);
+                var gradient_color = gmui_lerp_color(
+                    style.progress_gradient_start_color,
+                    style.progress_gradient_end_color,
+                    t
+                );
+                
+                gmui_add_rect(step_x, bar_y, step_width, bar_height, gradient_color);
+            }
+        }
+    }
+    
+    // Draw progress text
+    if (show_text && style.progress_text_format != "none") {
+        var text_content = "";
+        switch (style.progress_text_format) {
+            case "percentage":
+                text_content = string(floor(normalized_value * 100)) + "%";
+                break;
+            case "fraction":
+                text_content = string(value) + "/" + string(max_value);
+                break;
+            case "value":
+                text_content = string_format(value, 1, 2);
+                break;
+            case "custom": // TODO: finish this
+                text_content = string(floor(normalized_value * 100)) + "%";
+                break;
+        }
+        
+        if (text_content != "") {
+            var text_size2 = gmui_calc_text_size(text_content);
+            var text_color = window.active ? style.progress_bar_text_color : style.progress_bar_text_disabled_color;
+            
+            var text_x, text_y;
+            
+            switch (style.progress_text_position) {
+                case "left":
+                    text_x = bar_x - text_size2[0] - style.progress_text_padding[0];
+                    text_y = bar_y + (bar_height - text_size2[1]) / 2;
+                    break;
+                    
+                case "center":
+                    text_x = bar_x + (bar_width - text_size2[0]) / 2;
+                    text_y = bar_y + (bar_height - text_size2[1]) / 2;
+                    break;
+                    
+                case "right":
+                    text_x = bar_x + bar_width + style.progress_text_padding[0];
+                    text_y = bar_y + (bar_height - text_size2[1]) / 2;
+                    break;
+                    
+                case "inside":
+                    if (text_size2[0] < fill_width - style.progress_text_padding[0] * 2) {
+                        text_x = bar_x + style.progress_text_padding[0];
+                    } else if (text_size2[0] < bar_width - style.progress_text_padding[0] * 2) {
+                        text_x = bar_x + (bar_width - text_size2[0]) / 2;
+                    } else {
+                        text_x = bar_x + bar_width + style.progress_text_padding[0];
+                    }
+                    text_y = bar_y + (bar_height - text_size2[1]) / 2;
+                    break;
+                    
+                case "outside":
+                default:
+                    text_x = bar_x + bar_width + style.progress_text_padding[0];
+                    text_y = bar_y + (bar_height - text_size2[1]) / 2;
+                    break;
+            }
+            
+            // Make sure text is visible (contrast)
+            if (style.progress_text_position == "inside" && text_x >= bar_x && text_x + text_size2[0] <= bar_x + fill_width) {
+                // Text is inside fill area - use light color
+                gmui_add_text(text_x, text_y, text_content, make_color_rgb(255, 255, 255));
+            } else {
+                gmui_add_text(text_x, text_y, text_content, text_color);
+            }
+        }
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += total_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, total_height);
+    
+    gmui_new_line();
+    
+    return value;
+}
+
+function gmui_progress_bar_indeterminate(label, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    var window = global.gmui.current_window;
+    var style = global.gmui.style;
+    
+    // Calculate animation progress
+    var time = current_time / 1000; // Convert to seconds
+    var animation_speed = style.progress_circular_animation_speed;
+    
+    // Create a ping-pong animation for indeterminate bar
+    var anim_value = (sin(time * 3 * animation_speed) * 0.5 + 0.5) * 0.7 + 0.3;
+    
+    // Draw with a special flag or use a fixed value with animation
+    return gmui_progress_bar(label, anim_value, 0, 1, width, height, false); // Simplified
+}
+
+function gmui_progress_circular(value, min_value = 0, max_value = 1, size = -1, show_text = true) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return value;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate size
+    var circle_size = (size > 0) ? size : style.progress_circular_size;
+    var thickness = style.progress_circular_thickness;
+    var radius = circle_size / 2;
+    
+    // Calculate bounds
+    var circle_x = dc.cursor_x + radius;
+    var circle_y = dc.cursor_y + radius;
+    var circle_bounds = [circle_x - radius, circle_y - radius, 
+                        circle_x + radius, circle_y + radius];
+    
+    // Calculate normalized value
+    var normalized_value = clamp((value - min_value) / (max_value - min_value), 0, 1);
+    var angle = 2 * pi * normalized_value;
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                    gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                        global.gmui.mouse_pos[1] - window.y, 
+                                        circle_bounds) && !global.gmui.is_hovering_element;
+    
+    // Draw background circle
+    gmui_add_circle_outline(circle_x, circle_y, radius, 
+                        style.progress_circular_bg_color, thickness);
+    
+    // Draw progress arc
+    if (normalized_value > 0) {
+        var fill_color = style.progress_circular_fill_color;
+        if (mouse_over && window.active) {
+            fill_color = style.progress_circular_fill_hover_color;
+            global.gmui.is_hovering_element = true;
+        }
+        
+        // Draw the arc
+        gmui_add_arc(circle_x, circle_y, radius, thickness, 
+                    -pi/2, -pi/2 + angle, fill_color);
+    }
+    
+    // Draw text in center
+    if (show_text && style.progress_circular_show_text) {
+        var text_content = "";
+        switch (style.progress_text_format) {
+            case "percentage":
+                text_content = string(floor(normalized_value * 100)) + "%";
+                break;
+            case "fraction":
+                text_content = string(value) + "/" + string(max_value);
+                break;
+            case "value":
+                text_content = string_format(value, 1, 2);
+                break;
+            case "custom":
+                text_content = string(floor(normalized_value * 100)) + "%";
+                break;
+            case "none":
+                // No text
+                break;
+        }
+        
+        if (text_content != "") {
+            var text_size = gmui_calc_text_size(text_content);
+            var text_color = window.active ? style.progress_circular_text_color : style.text_disabled_color;
+            var text_x = circle_x - text_size[0] / 2;
+            var text_y = circle_y - text_size[1] / 2;
+            
+            gmui_add_text(text_x, text_y, text_content, text_color);
+        }
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += circle_size + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, circle_size);
+    
+    gmui_new_line();
+    
+    return value;
+}
+
+function gmui_progress_spinner(size = -1, thickness = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    var window = global.gmui.current_window;
+    var style = global.gmui.style;
+    
+    // Calculate animation progress
+    var time = current_time / 1000;
+    var animation_speed = style.progress_circular_animation_speed;
+    
+    // Rotating spinner
+    var angle_offset = (time * 2 * pi * animation_speed) % (2 * pi);
+    var arc_length = pi * 1.5; // 270 degree arc
+    
+    // Calculate size
+    var circle_size = (size > 0) ? size : style.progress_circular_size;
+    var circle_thickness = (thickness > 0) ? thickness : style.progress_circular_thickness;
+    var radius = circle_size / 2;
+    
+    var circle_x = global.gmui.current_window.dc.cursor_x + radius;
+    var circle_y = global.gmui.current_window.dc.cursor_y + radius;
+    
+    // Draw rotating arc
+    gmui_add_arc(circle_x, circle_y, radius, circle_thickness, 
+                angle_offset, angle_offset + arc_length, 
+                style.progress_circular_fill_color);
+    
+    // Update cursor position
+    global.gmui.current_window.dc.cursor_previous_x = global.gmui.current_window.dc.cursor_x;
+    global.gmui.current_window.dc.cursor_x += circle_size + style.item_spacing[0];
+    global.gmui.current_window.dc.line_height = max(global.gmui.current_window.dc.line_height, circle_size);
+    
+    gmui_new_line();
+    
+    return true;
+}
+
 function gmui_text(text) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
     
@@ -7070,7 +7495,7 @@ function gmui_cache_surface_get(id, width, height, sleep_timer_seconds = 30) {
     return surface;
 }
 
-function gmui_demo() {
+function gmui_demo() { // Performance issues due to everything being dumped into one place without optimization, for now best to initialize headers as closed
     if (!global.gmui.initialized) return;
     
 	static window_flags = gmui_window_flags.NO_RESIZE | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL;
@@ -7083,7 +7508,7 @@ function gmui_demo() {
         gmui_separator();
         
         // Window information
-		static cho0 = true;
+		static cho0 = false;
 		var header = gmui_collapsing_header("Help & About", cho0);
 		cho0 = header[1] ? !cho0 : cho0;
         if (cho0) {
@@ -7108,7 +7533,7 @@ function gmui_demo() {
         }
         
         // Basic widgets
-		static cho1 = true;
+		static cho1 = false;
 		header = gmui_collapsing_header("Basic Widgets", cho1);
 		cho1 = header[1] ? !cho1 : cho1;
         if (cho1) {
@@ -7151,8 +7576,8 @@ function gmui_demo() {
         }
         
         // Sliders
-		static cho2 = true;
-		header = gmui_collapsing_header("Sliders & Progress", cho2);
+		static cho2 = false;
+		header = gmui_collapsing_header("Sliders", cho2);
 		cho2 = header[1] ? !cho2 : cho2;
         if (cho2) {
             static slider_int = 50;
@@ -7166,23 +7591,74 @@ function gmui_demo() {
             gmui_text("Disabled Sliders");
             gmui_slider_disabled("Locked slider", 75, 0, 100, 200);
             
-            gmui_text("Progress Indicators");
-            gmui_label_text("Progress", string(slider_int) + "%");
-            // Simple progress bar simulation
-            var progress_width = 200;
-            var progress_height = 20;
-            var progress_x = gmui_get_cursor()[0];
-            var progress_y = gmui_get_cursor()[1];
-            gmui_add_rect(progress_x, progress_y, progress_width, progress_height, global.gmui.style.slider_track_bg_color);
-            gmui_add_rect(progress_x, progress_y, progress_width * (slider_int / 100), progress_height, global.gmui.style.slider_track_fill_color);
-            gmui_add_rect_outline(progress_x, progress_y, progress_width, progress_height, global.gmui.style.slider_track_border_color, 1);
-            gmui_dummy(progress_width, progress_height);
+            gmui_collapsing_header_end();
+        }
+        
+        // Progress bars
+        static cho_progress = false;
+        header = gmui_collapsing_header("Progress Bars", cho_progress);
+        cho_progress = header[1] ? !cho_progress : cho_progress;
+        if (cho_progress) {
+            static progress_value = 0.65;
+            static circular_value = 0.75;
+            
+            gmui_text("Linear Progress Bars");
+            
+            gmui_progress_bar("Standard", progress_value, 0, 1, 200);
+            gmui_progress_bar("With Text", progress_value, 0, 1, 200);
+            gmui_progress_bar("Thin", progress_value, 0, 1, 200, 12);
+            gmui_progress_bar("No Label", progress_value, 0, 1, 200, -1, false);
+            
+            gmui_text("Different Values");
+            gmui_progress_bar("25%", 0.25, 0, 1, 200);
+            gmui_progress_bar("50%", 0.5, 0, 1, 200);
+            gmui_progress_bar("75%", 0.75, 0, 1, 200);
+            gmui_progress_bar("100%", 1.0, 0, 1, 200);
+            
+            gmui_text("Indeterminate Progress");
+            gmui_progress_bar_indeterminate("Loading...", 200);
+            
+            gmui_text("Circular Progress Bars");
+            
+            gmui_same_line();
+            gmui_progress_circular(circular_value, 0, 1, 40);
+            gmui_same_line();
+            gmui_progress_circular(0.25, 0, 1, 40);
+            gmui_same_line();
+            gmui_progress_circular(0.5, 0, 1, 40);
+            gmui_same_line();
+            gmui_progress_circular(0.75, 0, 1, 40);
+            gmui_same_line();
+            gmui_progress_circular(1.0, 0, 1, 40);
+            
+            gmui_text("Circular Spinners");
+            gmui_same_line();
+            gmui_progress_spinner(30, 3);
+            gmui_same_line();
+            gmui_progress_spinner(40, 4);
+            gmui_same_line();
+            gmui_progress_spinner(50, 5);
+            
+            gmui_text("Size Variations");
+            gmui_same_line();
+            gmui_progress_circular(0.65, 0, 1, 30);
+            gmui_same_line();
+            gmui_progress_circular(0.65, 0, 1, 50);
+            gmui_same_line();
+            gmui_progress_circular(0.65, 0, 1, 70);
+            
+            gmui_text("Controls");
+            gmui_text("Linear Progress Value"); gmui_same_line();
+            progress_value = gmui_slider("", progress_value, 0, 1, 150);
+            
+            gmui_text("Circular Progress Value"); gmui_same_line();
+            circular_value = gmui_slider("", circular_value, 0, 1, 150);
             
             gmui_collapsing_header_end();
         }
         
         // Color Picker
-		static cho3 = true;
+		static cho3 = false;
 		header = gmui_collapsing_header("Color Picker", cho3);
 		cho3 = header[1] ? !cho3 : cho3;
         if (cho3) {
@@ -7220,7 +7696,7 @@ function gmui_demo() {
         }
 		
         // Tree View
-		static cho4 = true;
+		static cho4 = false;
 		header = gmui_collapsing_header("Tree View", cho4);
 		cho4 = header[1] ? !cho4 : cho4;
         if (cho4) {
@@ -7273,7 +7749,7 @@ function gmui_demo() {
         }
         
         // Layout & Groups
-		static cho5 = true;
+		static cho5 = false;
 		header = gmui_collapsing_header("Layout & Groups", cho5);
 		cho5 = header[1] ? !cho5 : cho5;
         if (cho5) {
@@ -7310,7 +7786,7 @@ function gmui_demo() {
         }
         
         // Text Display
-		static cho6 = true;
+		static cho6 = false;
 		header = gmui_collapsing_header("Text Display", cho6);
 		cho6 = header[1] ? !cho6 : cho6;
         if (cho6) {
@@ -7329,7 +7805,7 @@ function gmui_demo() {
         }
         
         // Input Focus
-		static cho7 = true;
+		static cho7 = false;
 		header = gmui_collapsing_header("Input Focus", cho7);
 		cho7 = header[1] ? !cho7 : cho7;
         if (cho7) {
@@ -7358,7 +7834,7 @@ function gmui_demo() {
         }
         
         // Window Flags Demo
-		static cho8 = true;
+		static cho8 = false;
 		header = gmui_collapsing_header("Window Flags", cho8);
 		cho8 = header[1] ? !cho8 : cho8;
         if (cho8) {
@@ -7373,7 +7849,7 @@ function gmui_demo() {
         }
 		
 		// Data Tables
-		static cho_table = true;
+		static cho_table = false;
 		header = gmui_collapsing_header("Data Tables", cho_table);
 		cho_table = header[1] ? !cho_table : cho_table;
 		if (cho_table) {
@@ -7451,7 +7927,7 @@ function gmui_demo() {
 		}
 		
 		// Plotting & Charts Demo
-		static cho_plots = true;
+		static cho_plots = false;
 		header = gmui_collapsing_header("Plotting & Charts", cho_plots);
 		cho_plots = header[1] ? !cho_plots : cho_plots;
 		if (cho_plots) {
@@ -7484,7 +7960,7 @@ function gmui_demo() {
 		}
 		
         // Style Editor
-		static cho9 = true;
+		static cho9 = false;
 		header = gmui_collapsing_header("Style Editor", cho9);
 		cho9 = header[1] ? !cho9 : cho9;
 		if (cho9) {
@@ -7853,6 +8329,76 @@ function gmui_demo() {
 					
 					gmui_text("Context Menu Item Sub Arrow Thickness");
 					global.gmui.style.context_menu_sub_arrow_thickness = gmui_input_int(global.gmui.style.context_menu_sub_arrow_thickness, 1, 1, 8);
+                    
+                    // Progress Bar Styles
+                    gmui_text("Progress Bar Styles");
+                    gmui_separator();
+                    
+                    static sProgressBarBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_bar_bg_color);
+                    sProgressBarBgColor = gmui_color_button_4("Progress Bar BG", sProgressBarBgColor);
+                    global.gmui.style.progress_bar_bg_color = gmui_color_rgba_to_color_rgb(sProgressBarBgColor);
+                    
+                    static sProgressBarFillColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_bar_fill_color);
+                    sProgressBarFillColor = gmui_color_button_4("Progress Bar Fill", sProgressBarFillColor);
+                    global.gmui.style.progress_bar_fill_color = gmui_color_rgba_to_color_rgb(sProgressBarFillColor);
+                    
+                    static sProgressBarBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_bar_border_color);
+                    sProgressBarBorderColor = gmui_color_button_4("Progress Bar Border", sProgressBarBorderColor);
+                    global.gmui.style.progress_bar_border_color = gmui_color_rgba_to_color_rgb(sProgressBarBorderColor);
+                    
+                    gmui_text("Progress Bar Height"); gmui_same_line();
+                    global.gmui.style.progress_bar_height = gmui_input_int(global.gmui.style.progress_bar_height, 1, 8, 48);
+                    
+                    gmui_text("Progress Bar Rounding"); gmui_same_line();
+                    global.gmui.style.progress_bar_rounding = gmui_input_int(global.gmui.style.progress_bar_rounding, 1, 0, 20);
+                    
+                    gmui_text("Progress Bar Border Size"); gmui_same_line();
+                    global.gmui.style.progress_bar_border_size = gmui_input_int(global.gmui.style.progress_bar_border_size, 1, 0, 5);
+                    
+                    // Progress Bar Text
+                    static sProgressBarTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_bar_text_color);
+                    sProgressBarTextColor = gmui_color_button_4("Progress Text Color", sProgressBarTextColor);
+                    global.gmui.style.progress_bar_text_color = gmui_color_rgba_to_color_rgb(sProgressBarTextColor);
+                    
+                    // Circular Progress Styles
+                    static sProgressCircularBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_circular_bg_color);
+                    sProgressCircularBgColor = gmui_color_button_4("Circular BG Color", sProgressCircularBgColor);
+                    global.gmui.style.progress_circular_bg_color = gmui_color_rgba_to_color_rgb(sProgressCircularBgColor);
+                    
+                    static sProgressCircularFillColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_circular_fill_color);
+                    sProgressCircularFillColor = gmui_color_button_4("Circular Fill Color", sProgressCircularFillColor);
+                    global.gmui.style.progress_circular_fill_color = gmui_color_rgba_to_color_rgb(sProgressCircularFillColor);
+                    
+                    gmui_text("Circular Size"); gmui_same_line();
+                    global.gmui.style.progress_circular_size = gmui_input_int(global.gmui.style.progress_circular_size, 1, 16, 100);
+                    
+                    gmui_text("Circular Thickness"); gmui_same_line();
+                    global.gmui.style.progress_circular_thickness = gmui_input_int(global.gmui.style.progress_circular_thickness, 1, 1, 20);
+                    
+                    static sProgressCircularTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_circular_text_color);
+                    sProgressCircularTextColor = gmui_color_button_4("Circular Text Color", sProgressCircularTextColor);
+                    global.gmui.style.progress_circular_text_color = gmui_color_rgba_to_color_rgb(sProgressCircularTextColor);
+                    
+                    gmui_text("Show Circular Text"); gmui_same_line();
+                    global.gmui.style.progress_circular_show_text = gmui_checkbox_box(global.gmui.style.progress_circular_show_text);
+                    
+                    gmui_text("Animation Speed"); gmui_same_line();
+                    global.gmui.style.progress_circular_animation_speed = gmui_input_float(global.gmui.style.progress_circular_animation_speed, 0.1, 0.1, 5.0, 80);
+                    
+                    // Gradient Options
+                    gmui_text("Gradient Options");
+                    gmui_separator();
+                    
+                    gmui_text("Enable Gradient"); gmui_same_line();
+                    global.gmui.style.progress_gradient_enabled = gmui_checkbox_box(global.gmui.style.progress_gradient_enabled);
+                    
+                    static sProgressGradientStartColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_gradient_start_color);
+                    sProgressGradientStartColor = gmui_color_button_4("Gradient Start", sProgressGradientStartColor);
+                    global.gmui.style.progress_gradient_start_color = gmui_color_rgba_to_color_rgb(sProgressGradientStartColor);
+                    
+                    static sProgressGradientEndColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_gradient_end_color);
+                    sProgressGradientEndColor = gmui_color_button_4("Gradient End", sProgressGradientEndColor);
+                    global.gmui.style.progress_gradient_end_color = gmui_color_rgba_to_color_rgb(sProgressGradientEndColor);
 
 		            gmui_end();
 		        }
