@@ -30,12 +30,31 @@ if (gmui_begin("Explorer", undefined, undefined, undefined, undefined, gmui_pre_
 }
 
 if (gmui_begin("Hierarchy", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS_SET)) {
-	gmui_text_bullet(global.gmui.current_window.name);
+	gmui_tree_node_reset();
+	
+	var root = gmui_tree_node_begin("Scene", selectedObject == "Scene");
+	if (global.gmui.frame_count == 1) { gmui_treeview_set_node_open(global.gmui.current_window, gmui_treeview_get_current_path(global.gmui.current_window), true); }
+	selectedObject = root[1] ? "Scene" : selectedObject;
+	if (root[0]) {
+		array_foreach(objectList, function(e, i) {
+			if (gmui_tree_leaf(e.name, selectedObject == e.name)) { selectedObject = e.name; };
+		});
+	}
+	gmui_tree_node_end();
+	
 	gmui_end();
 }
 
 if (gmui_begin("Info", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS_SET)) {
-	gmui_text_bullet(global.gmui.current_window.name);
+	var obj = undefined;
+	for (var i = 0; i < array_length(objectList); i++) {
+	    if (objectList[i].name == selectedObject) { obj = objectList[i]; break; }
+	};
+	if (obj != undefined) {
+		gmui_text("Name"); gmui_same_line();
+		obj.name = gmui_textbox(obj.name);
+		selectedObject = obj.name;
+	}
 	gmui_end();
 }
 

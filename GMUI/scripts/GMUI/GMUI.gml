@@ -2918,6 +2918,43 @@ function gmui_surface(surface) {
 	gmui_new_line();
 };
 
+function gmui_sprite(sprite, subimg = 0) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+	gmui_add_sprite(dc.cursor_x, dc.cursor_y, sprite_get_width(sprite), sprite_get_height(sprite), sprite, subimg);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += surface_get_width(surface) + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, surface_get_height(surface));
+	
+	gmui_new_line();
+};
+
+function gmui_sprite_size(sprite, subimg = 0, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+	
+	width = width == -1 ? sprite_get_width(sprite) : width;
+	height = height == -1 ? sprite_get_height(sprite) : height;
+    
+	gmui_add_sprite(dc.cursor_x, dc.cursor_y, width, height, sprite, subimg);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += surface_get_width(surface) + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, surface_get_height(surface));
+	
+	gmui_new_line();
+};
+
 //////////////////////////////////////
 // COLOR
 //////////////////////////////////////
