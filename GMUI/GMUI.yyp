@@ -55,8 +55,8 @@
   "resourceType":"GMProject",
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
-    {"roomId":{"name":"rWelcome","path":"rooms/rWelcome/rWelcome.yy",},},
     {"roomId":{"name":"rDemonstration","path":"rooms/rDemonstration/rDemonstration.yy",},},
+    {"roomId":{"name":"rWelcome","path":"rooms/rWelcome/rWelcome.yy",},},
     {"roomId":{"name":"rSimplisticEditor","path":"rooms/rSimplisticEditor/rSimplisticEditor.yy",},},
   ],
   "templateType":"game",
