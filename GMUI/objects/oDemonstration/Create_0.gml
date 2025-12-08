@@ -1,8 +1,6 @@
 /*Currently noticed problems
 * horizontal scrolling is problematic with filling elements(collapsing headers, tree nodes, button width fills etc)
 * some style variables are not in use
-* memory management
-* GM GC overloading
 */
 
 gmui_init();
@@ -30,7 +28,5 @@ combo_index = 0;
 nameData = "";
 
 winsFrame = undefined;
-
-
 
 

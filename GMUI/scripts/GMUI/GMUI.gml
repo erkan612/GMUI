@@ -493,8 +493,8 @@ function gmui_init() {
 
 				// Color palettes for multiple series
 				plot_color_palette: [
-				    make_color_rgb(100, 200, 255),  // Blue
 				    make_color_rgb(255, 100, 100),  // Red
+				    make_color_rgb(100, 200, 255),  // Blue
 				    make_color_rgb(100, 255, 100),  // Green
 				    make_color_rgb(255, 200, 50),   // Yellow
 				    make_color_rgb(200, 100, 255),  // Purple
@@ -564,8 +564,11 @@ function gmui_init() {
             font: draw_get_font(),
 			styler: { // TODO: do this...
 				button: function(data) { gmui_add_rect(data.x, data.y, data.width, data.height, data.color); }, // here's an example
-			}
+			},
+			lite_search: undefined,
         };
+		
+		gmui_ls_init();
 		
 		gmui_cache_set("array.cache_surfaces.values", array_create(0));
 		gmui_cache_set("array.mouse_pos", array_create(2));
@@ -1064,6 +1067,9 @@ function gmui_cleanup() {
 		if (ds_exists(global.gmui.tables, ds_type_map)) {
 			ds_map_destroy(global.gmui.tables);
 		}
+		
+		// Clean the search engine
+		gmui_ls_cleanup();
         
         global.gmui = undefined;
     }
@@ -6444,10 +6450,10 @@ function gmui_plot_lines(label, values, count, width = -1, height = 120, show_po
                      style.plot_grid_color, style.plot_grid_thickness);
         
         // Value label
-        var value_text = string_format(value, 1, 2);
-        var text_size = gmui_calc_text_size(value_text);
-        gmui_add_text(plot_x - text_size[0] - 4, _y - text_size[1] / 2, 
-                     value_text, style.plot_text_color);
+        //var value_text = string_format(value, 1, 2);
+        //var text_size = gmui_calc_text_size(value_text);
+        //gmui_add_text(plot_x - text_size[0] - 4, _y - text_size[1] / 2, 
+        //             value_text, style.plot_text_color);
     }
     
     // Draw zero line if applicable
@@ -6723,13 +6729,13 @@ function gmui_plot_histogram(label, values, count, width = -1, height = 120, bin
     }
     
     // Draw frequency axis labels
-    for (var i = 0; i <= 5; i++) {
-        var freq = (i * max_bin_count / 5);
-        var _y = plot_y + plot_height - (i * plot_height / 5);
-        var freq_text = string(floor(freq));
-        var text_size = gmui_calc_text_size(freq_text);
-        gmui_add_text(plot_x - text_size[0] - 4, _y - text_size[1] / 2, freq_text, style.plot_text_color);
-    }
+    //for (var i = 0; i <= 5; i++) {
+    //    var freq = (i * max_bin_count / 5);
+    //    var _y = plot_y + plot_height - (i * plot_height / 5);
+    //    var freq_text = string(floor(freq));
+    //    var text_size = gmui_calc_text_size(freq_text);
+    //    gmui_add_text(plot_x - text_size[0] - 4, _y - text_size[1] / 2, freq_text, style.plot_text_color);
+    //}
     
     // Update cursor position
     dc.cursor_previous_x = dc.cursor_x;
@@ -8011,7 +8017,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		        if (gmui_begin("Style Editor", 650, 20, 400, 500, gmui_window_flags.NO_CLOSE | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 		            var style = global.gmui.style;
             
-		            // Window Styles
 		            gmui_text("Window Padding");
 		            gmui_same_line();
 		            global.gmui.style.window_padding[0] = gmui_input_int(global.gmui.style.window_padding[0], 1, 0, 50);
@@ -8028,7 +8033,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            gmui_same_line();
 		            global.gmui.style.window_min_size[1] = gmui_input_int(global.gmui.style.window_min_size[1], 1, 10, 500);
             
-		            // Colors
 		            static sBackgroundColor = gmui_color_rgb_to_color_rgba(global.gmui.style.background_color);
 		            sBackgroundColor = gmui_color_button_4("Background Color", sBackgroundColor);
 		            global.gmui.style.background_color = gmui_color_rgba_to_color_rgb(sBackgroundColor);
@@ -8045,7 +8049,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            sTextDisabledColor = gmui_color_button_4("Text Disabled Color", sTextDisabledColor);
 		            global.gmui.style.text_disabled_color = gmui_color_rgba_to_color_rgb(sTextDisabledColor);
             
-		            // Button Colors
 		            static sButtonTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.button_text_color);
 		            sButtonTextColor = gmui_color_button_4("Button Text Color", sButtonTextColor);
 		            global.gmui.style.button_text_color = gmui_color_rgba_to_color_rgb(sButtonTextColor);
@@ -8066,7 +8069,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            sButtonHoverBorderColor = gmui_color_button_4("Button Hover Border", sButtonHoverBorderColor);
 		            global.gmui.style.button_hover_border_color = gmui_color_rgba_to_color_rgb(sButtonHoverBorderColor);
             
-		            // Button Sizes
 		            gmui_text("Button Rounding");
 		            gmui_same_line();
 		            global.gmui.style.button_rounding = gmui_input_int(global.gmui.style.button_rounding, 1, 0, 50);
@@ -8087,7 +8089,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            gmui_same_line();
 		            global.gmui.style.button_min_size[1] = gmui_input_int(global.gmui.style.button_min_size[1], 1, 10, 500);
             
-		            // Title Bar Colors
 		            static sTitleBarColor = gmui_color_rgb_to_color_rgba(global.gmui.style.title_bar_color);
 		            sTitleBarColor = gmui_color_button_4("Title Bar Color", sTitleBarColor);
 		            global.gmui.style.title_bar_color = gmui_color_rgba_to_color_rgb(sTitleBarColor);
@@ -8100,7 +8101,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            sTitleTextColor = gmui_color_button_4("Title Text Color", sTitleTextColor);
 		            global.gmui.style.title_text_color = gmui_color_rgba_to_color_rgb(sTitleTextColor);
             
-		            // Title Bar Sizes
 		            gmui_text("Title Bar Height");
 		            gmui_same_line();
 		            global.gmui.style.title_bar_height = gmui_input_int(global.gmui.style.title_bar_height, 1, 10, 100);
@@ -8111,7 +8111,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            gmui_same_line();
 		            global.gmui.style.title_padding[1] = gmui_input_int(global.gmui.style.title_padding[1], 1, 0, 50);
             
-		            // Checkbox Colors
 		            static sCheckboxBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.checkbox_bg_color);
 		            sCheckboxBgColor = gmui_color_button_4("Checkbox BG Color", sCheckboxBgColor);
 		            global.gmui.style.checkbox_bg_color = gmui_color_rgba_to_color_rgb(sCheckboxBgColor);
@@ -8124,7 +8123,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            sCheckboxCheckColor = gmui_color_button_4("Checkbox Check Color", sCheckboxCheckColor);
 		            global.gmui.style.checkbox_check_color = gmui_color_rgba_to_color_rgb(sCheckboxCheckColor);
             
-		            // Checkbox Sizes
 		            gmui_text("Checkbox Size");
 		            gmui_same_line();
 		            global.gmui.style.checkbox_size = gmui_input_int(global.gmui.style.checkbox_size, 1, 8, 32);
@@ -8137,7 +8135,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            gmui_same_line();
 		            global.gmui.style.checkbox_rounding = gmui_input_int(global.gmui.style.checkbox_rounding, 1, 0, 16);
             
-		            // Slider Colors
 		            static sSliderTrackBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.slider_track_bg_color);
 		            sSliderTrackBgColor = gmui_color_button_4("Slider Track BG", sSliderTrackBgColor);
 		            global.gmui.style.slider_track_bg_color = gmui_color_rgba_to_color_rgb(sSliderTrackBgColor);
@@ -8150,7 +8147,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            sSliderHandleBgColor = gmui_color_button_4("Slider Handle BG", sSliderHandleBgColor);
 		            global.gmui.style.slider_handle_bg_color = gmui_color_rgba_to_color_rgb(sSliderHandleBgColor);
             
-		            // Slider Sizes
 		            gmui_text("Slider Track Height");
 		            gmui_same_line();
 		            global.gmui.style.slider_track_height = gmui_input_int(global.gmui.style.slider_track_height, 1, 2, 20);
@@ -8163,7 +8159,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            gmui_same_line();
 		            global.gmui.style.slider_handle_height = gmui_input_int(global.gmui.style.slider_handle_height, 1, 10, 40);
             
-		            // Textbox Colors
 		            static sTextboxBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.textbox_bg_color);
 		            sTextboxBgColor = gmui_color_button_4("Textbox BG Color", sTextboxBgColor);
 		            global.gmui.style.textbox_bg_color = gmui_color_rgba_to_color_rgb(sTextboxBgColor);
@@ -8176,7 +8171,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            sTextboxTextColor = gmui_color_button_4("Textbox Text Color", sTextboxTextColor);
 		            global.gmui.style.textbox_text_color = gmui_color_rgba_to_color_rgb(sTextboxTextColor);
             
-		            // Textbox Sizes
 		            gmui_text("Textbox Padding");
 		            gmui_same_line();
 		            global.gmui.style.textbox_padding[0] = gmui_input_int(global.gmui.style.textbox_padding[0], 1, 0, 20);
@@ -8187,12 +8181,10 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		            gmui_same_line();
 		            global.gmui.style.textbox_rounding = gmui_input_int(global.gmui.style.textbox_rounding, 1, 0, 10);
 					
-					// Table background
 					static sTableBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_bg_color);
 					sTableBgColor = gmui_color_button_4("Table BG Color", sTableBgColor);
 					global.gmui.style.table_bg_color = gmui_color_rgba_to_color_rgb(sTableBgColor);
 
-					// Table Header styles
 					static sTableHeaderBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_header_bg_color);
 					sTableHeaderBgColor = gmui_color_button_4("Header BG Color", sTableHeaderBgColor);
 					global.gmui.style.table_header_bg_color = gmui_color_rgba_to_color_rgb(sTableHeaderBgColor);
@@ -8201,7 +8193,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					sTableHeaderTextColor = gmui_color_button_4("Header Text Color", sTableHeaderTextColor);
 					global.gmui.style.table_header_text_color = gmui_color_rgba_to_color_rgb(sTableHeaderTextColor);
 
-					// Table Row styles
 					static sTableRowBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_row_bg_color);
 					sTableRowBgColor = gmui_color_button_4("Row BG Color", sTableRowBgColor);
 					global.gmui.style.table_row_bg_color = gmui_color_rgba_to_color_rgb(sTableRowBgColor);
@@ -8214,7 +8205,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					sTableRowSelectedColor = gmui_color_button_4("Row Selected Color", sTableRowSelectedColor);
 					global.gmui.style.table_row_selected_bg_color = gmui_color_rgba_to_color_rgb(sTableRowSelectedColor);
 
-					// Table Alternate row colors
 					static sTableAltRowColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_alternate_row_bg_color);
 					sTableAltRowColor = gmui_color_button_4("Alt Row BG Color", sTableAltRowColor);
 					global.gmui.style.table_alternate_row_bg_color = gmui_color_rgba_to_color_rgb(sTableAltRowColor);
@@ -8223,7 +8213,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					sTableAltRowHoverColor = gmui_color_button_4("Alt Row Hover Color", sTableAltRowHoverColor);
 					global.gmui.style.table_alternate_row_hover_bg_color = gmui_color_rgba_to_color_rgb(sTableAltRowHoverColor);
 
-					// Table Text colors
 					static sTableRowTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_row_text_color);
 					sTableRowTextColor = gmui_color_button_4("Row Text Color", sTableRowTextColor);
 					global.gmui.style.table_row_text_color = gmui_color_rgba_to_color_rgb(sTableRowTextColor);
@@ -8232,7 +8221,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					sTableRowSelectedTextColor = gmui_color_button_4("Selected Text Color", sTableRowSelectedTextColor);
 					global.gmui.style.table_row_selected_text_color = gmui_color_rgba_to_color_rgb(sTableRowSelectedTextColor);
 
-					// Table Border colors
 					static sTableBorderColor = gmui_color_rgb_to_color_rgba(global.gmui.style.table_border_color);
 					sTableBorderColor = gmui_color_button_4("Table Border Color", sTableBorderColor);
 					global.gmui.style.table_border_color = gmui_color_rgba_to_color_rgb(sTableBorderColor);
@@ -8241,7 +8229,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					sTableCellBorderColor = gmui_color_button_4("Cell Border Color", sTableCellBorderColor);
 					global.gmui.style.table_cell_border_color = gmui_color_rgba_to_color_rgb(sTableCellBorderColor);
 
-					// Table Sizes
 					gmui_text("Row Height"); gmui_same_line();
 					global.gmui.style.table_row_height = gmui_input_int(global.gmui.style.table_row_height, 1, 16, 48);
 
@@ -8254,7 +8241,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					gmui_text("Cell Padding Y"); gmui_same_line();
 					global.gmui.style.table_cell_padding[1] = gmui_input_int(global.gmui.style.table_cell_padding[1], 1, 0, 20);
 					
-					// Plot background and border
 					static sPlotBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_bg_color);
 					sPlotBgColor = gmui_color_button_4("Plot BG Color", sPlotBgColor);
 					global.gmui.style.plot_bg_color = gmui_color_rgba_to_color_rgb(sPlotBgColor);
@@ -8266,7 +8252,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					gmui_text("Plot Border Size"); gmui_same_line();
 					global.gmui.style.plot_border_size = gmui_input_int(global.gmui.style.plot_border_size, 1, 0, 5);
 
-					// Grid styles
 					static sPlotGridColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_grid_color);
 					sPlotGridColor = gmui_color_button_4("Grid Color", sPlotGridColor);
 					global.gmui.style.plot_grid_color = gmui_color_rgba_to_color_rgb(sPlotGridColor);
@@ -8277,12 +8262,10 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					gmui_text("Grid Steps"); gmui_same_line();
 					global.gmui.style.plot_grid_steps = gmui_input_int(global.gmui.style.plot_grid_steps, 1, 2, 20);
 
-					// Text styles
 					static sPlotTextColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_text_color);
 					sPlotTextColor = gmui_color_button_4("Text Color", sPlotTextColor);
 					global.gmui.style.plot_text_color = gmui_color_rgba_to_color_rgb(sPlotTextColor);
 
-					// Line plot styles
 					static sPlotLineColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_line_color);
 					sPlotLineColor = gmui_color_button_4("Line Color", sPlotLineColor);
 					global.gmui.style.plot_line_color = gmui_color_rgba_to_color_rgb(sPlotLineColor);
@@ -8304,7 +8287,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					gmui_text("Fill Enabled"); gmui_same_line();
 					global.gmui.style.plot_fill_enabled = gmui_checkbox_box(global.gmui.style.plot_fill_enabled);
 
-					// Bar chart styles
 					static sPlotBarColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_bar_color);
 					sPlotBarColor = gmui_color_button_4("Bar Color", sPlotBarColor);
 					global.gmui.style.plot_bar_color = gmui_color_rgba_to_color_rgb(sPlotBarColor);
@@ -8333,7 +8315,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					sPlotBarMaxColor = gmui_color_button_4("Bar Max Color", sPlotBarMaxColor);
 					global.gmui.style.plot_bar_max_color = gmui_color_rgba_to_color_rgb(sPlotBarMaxColor);
 
-					// Histogram styles
 					static sPlotHistogramColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_histogram_color);
 					sPlotHistogramColor = gmui_color_button_4("Histogram Color", sPlotHistogramColor);
 					global.gmui.style.plot_histogram_color = gmui_color_rgba_to_color_rgb(sPlotHistogramColor);
@@ -8341,7 +8322,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					gmui_text("Default Bins"); gmui_same_line();
 					global.gmui.style.plot_histogram_default_bins = gmui_input_int(global.gmui.style.plot_histogram_default_bins, 1, 3, 20);
 
-					// Scatter plot styles
 					static sPlotScatterColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_scatter_color);
 					sPlotScatterColor = gmui_color_button_4("Scatter Color", sPlotScatterColor);
 					global.gmui.style.plot_scatter_color = gmui_color_rgba_to_color_rgb(sPlotScatterColor);
@@ -8366,10 +8346,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 					
 					gmui_text("Context Menu Item Sub Arrow Thickness");
 					global.gmui.style.context_menu_sub_arrow_thickness = gmui_input_int(global.gmui.style.context_menu_sub_arrow_thickness, 1, 1, 8);
-                    
-                    // Progress Bar Styles
-                    gmui_text("Progress Bar Styles");
-                    gmui_separator();
                     
                     static sProgressBarBgColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_bar_bg_color);
                     sProgressBarBgColor = gmui_color_button_4("Progress Bar BG", sProgressBarBgColor);
@@ -8421,10 +8397,6 @@ function gmui_demo() { // Performance issues due to everything being dumped into
                     
                     gmui_text("Animation Speed"); gmui_same_line();
                     global.gmui.style.progress_circular_animation_speed = gmui_input_float(global.gmui.style.progress_circular_animation_speed, 0.1, 0.1, 5.0, 80);
-                    
-                    // Gradient Options
-                    gmui_text("Gradient Options");
-                    gmui_separator();
                     
                     gmui_text("Enable Gradient"); gmui_same_line();
                     global.gmui.style.progress_gradient_enabled = gmui_checkbox_box(global.gmui.style.progress_gradient_enabled);
@@ -9095,4 +9067,753 @@ function gmui_wins_handle_splitters_recursive(node) {
     // Recursively handle splitters for children
     gmui_wins_handle_splitters_recursive(child_a);
     gmui_wins_handle_splitters_recursive(child_b);
+}
+
+/************************************
+ * GMUILITE SEARCH
+ ***********************************/
+function gmui_ls_init() { // Being called in gmui_init by default
+    if (global.gmui.lite_search == undefined) {
+        global.gmui.lite_search = {
+            // Core data structures
+            inverted_index: ds_map_create(),      // word -> document IDs
+            documents: ds_map_create(),           // doc_id -> document data
+            word_stats: ds_map_create(),          // word -> frequency stats
+            doc_count: 0,
+            
+            // Configuration
+            case_sensitive: false,
+            enable_stemming: false,
+            min_word_length: 2,
+            stop_words: ds_list_create(),
+            
+            // UI settings
+            search_window_width: 400,
+            search_window_height: 300,
+            max_visible_results: 10,
+            result_item_height: 24
+        };
+        
+        // Initialize common stop words
+        var _stop_words = ["a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by"];
+        for (var i = 0; i < array_length(_stop_words); i++) {
+            ds_list_add(global.gmui.lite_search.stop_words, _stop_words[i]);
+        }
+    }
+}
+
+function gmui_ls_get() {
+    return global.gmui.lite_search;
+}
+
+function gmui_ls_add_document(_id, _text, _metadata = undefined) {
+    if (global.gmui.lite_search == undefined) return false;
+    
+    var ls = global.gmui.lite_search;
+    
+    if (is_undefined(_metadata)) {
+        _metadata = {
+            title: "",
+            tags: [],
+            timestamp: current_time
+        };
+    }
+    
+    // Store document
+    ds_map_add(ls.documents, _id, {
+        id: _id,
+        text: _text,
+        metadata: _metadata,
+        word_count: 0
+    });
+    
+    // Process and index text
+    var _words = _gmui_ls_process_text(_text);
+    var _doc_words = ds_map_create();
+    
+    // Count word frequencies in this document
+    for (var i = 0; i < array_length(_words); i++) {
+        var _word = _words[i];
+        
+        if (!ds_map_exists(_doc_words, _word)) {
+            ds_map_add(_doc_words, _word, 0);
+        }
+        ds_map_set(_doc_words, _word, ds_map_find_value(_doc_words, _word) + 1);
+    }
+    
+    // Update inverted index
+    var _keys = ds_map_find_first(_doc_words);
+    while (!is_undefined(_keys)) {
+        var _word = _keys;
+        var _freq = ds_map_find_value(_doc_words, _word);
+        
+        // Add to inverted index
+        if (!ds_map_exists(ls.inverted_index, _word)) {
+            ds_map_add(ls.inverted_index, _word, ds_map_create());
+        }
+        
+        var _word_docs = ds_map_find_value(ls.inverted_index, _word);
+        ds_map_add(_word_docs, _id, _freq);
+        
+        // Update word statistics
+        if (!ds_map_exists(ls.word_stats, _word)) {
+            ds_map_add(ls.word_stats, _word, {
+                total_frequency: 0,
+                document_frequency: 0
+            });
+        }
+        
+        var _stats = ds_map_find_value(ls.word_stats, _word);
+        _stats.total_frequency += _freq;
+        _stats.document_frequency++;
+        
+        _keys = ds_map_find_next(_doc_words, _keys);
+    }
+    
+    // Update document word count
+    var _doc = ds_map_find_value(ls.documents, _id);
+    _doc.word_count = ds_map_size(_doc_words);
+    
+    ds_map_destroy(_doc_words);
+    ls.doc_count++;
+    
+    return true;
+}
+
+function gmui_ls_add_document_enhanced(_id, _text, _metadata = undefined) { // includes title and tags to the search
+    if (global.gmui.lite_search == undefined) return false;
+    
+    var ls = global.gmui.lite_search;
+    
+    if (is_undefined(_metadata)) {
+        _metadata = {
+            title: "",
+            tags: [],
+            timestamp: current_time
+        };
+    }
+    
+    // Combination
+    var _searchable_text = _text;
+    
+    // Add title (repeat 2x for higher weight)
+    if (_metadata.title != "") {
+        _searchable_text += " " + _metadata.title + " " + _metadata.title;
+    }
+    
+    // Add tags (repeat 2x for higher weight)
+    if (variable_struct_exists(_metadata, "tags")) {
+        for (var i = 0; i < array_length(_metadata.tags); i++) {
+            _searchable_text += " " + _metadata.tags[i] + " " + _metadata.tags[i];
+        }
+    }
+    
+    // Add other metadata fields if you want them searchable
+    if (variable_struct_exists(_metadata, "author")) {
+        _searchable_text += " " + _metadata.author;
+    }
+    if (variable_struct_exists(_metadata, "category")) {
+        _searchable_text += " " + _metadata.category;
+    }
+    
+    // Now add the document with combined text
+    return gmui_ls_add_document(_id, _searchable_text, _metadata);
+}
+
+function gmui_ls_add_document_weighted(_id, _text, _metadata = undefined) {
+    if (global.gmui.lite_search == undefined) return false;
+    
+    var ls = global.gmui.lite_search;
+    
+    if (is_undefined(_metadata)) {
+        _metadata = {
+            title: "",
+            tags: [],
+            timestamp: current_time
+        };
+    }
+    
+    // Combination
+    var _searchable_text = "";
+    
+    // Content weight: 1x (normal)
+    _searchable_text += _text + " ";
+    
+    // Title weight: 3x (very important)
+    if (_metadata.title != "") {
+        _searchable_text += _metadata.title + " " + _metadata.title + " " + _metadata.title + " ";
+    }
+    
+    // Tags weight: 2x (important)
+    if (variable_struct_exists(_metadata, "tags")) {
+        for (var i = 0; i < array_length(_metadata.tags); i++) {
+            _searchable_text += _metadata.tags[i] + " " + _metadata.tags[i] + " ";
+        }
+    }
+    
+    // Author/description weight: 1x (normal)
+    if (variable_struct_exists(_metadata, "author")) {
+        _searchable_text += _metadata.author + " ";
+    }
+    if (variable_struct_exists(_metadata, "description")) {
+        _searchable_text += _metadata.description + " ";
+    }
+    
+    // Use original function with weighted text
+    return gmui_ls_add_document(_id, _searchable_text, _metadata);
+}
+
+function gmui_ls_search(_query, _max_results = -1) {
+    if (global.gmui.lite_search == undefined) return [];
+    
+    var ls = global.gmui.lite_search;
+    var _query_terms = _gmui_ls_process_text(_query);
+    if (array_length(_query_terms) == 0) {
+        return [];
+    }
+    
+    // Get document scores
+    var _doc_scores = ds_map_create();
+    var _doc_matches = ds_map_create();
+    
+    for (var i = 0; i < array_length(_query_terms); i++) {
+        var _term = _query_terms[i];
+        
+        if (ds_map_exists(ls.inverted_index, _term)) {
+            var _term_docs = ds_map_find_value(ls.inverted_index, _term);
+            var _doc_id = ds_map_find_first(_term_docs);
+            
+            while (!is_undefined(_doc_id)) {
+                var _tf = ds_map_find_value(_term_docs, _doc_id);
+				
+				var _doc_freq = ds_map_find_value(ls.word_stats, _term).document_frequency;
+				var _base_score = max(1, 100 - _doc_freq * 10);
+				
+				//var _doc_freq = ds_map_find_value(ls.word_stats, _term).document_frequency;
+				//var _idf = 1.0 / (1.0 + _doc_freq);
+				
+                //var _idf = log10(ls.doc_count / (1 + ds_map_find_value(ls.word_stats, _term).document_frequency));
+                
+                // TF-IDF scoring
+               // var _score = _tf * _idf;
+				var _score = _tf * _base_score;
+                
+                if (!ds_map_exists(_doc_scores, _doc_id)) {
+                    ds_map_add(_doc_scores, _doc_id, 0);
+                    ds_map_add(_doc_matches, _doc_id, ds_list_create());
+                }
+                
+                ds_map_set(_doc_scores, _doc_id, ds_map_find_value(_doc_scores, _doc_id) + _score);
+                ds_list_add(ds_map_find_value(_doc_matches, _doc_id), _term);
+                
+                _doc_id = ds_map_find_next(_term_docs, _doc_id);
+            }
+        }
+    }
+    
+    // Convert to array and sort
+    var _results = [];
+    var _doc_id = ds_map_find_first(_doc_scores);
+    
+    while (!is_undefined(_doc_id)) {
+        var _doc = ds_map_find_value(ls.documents, _doc_id);
+        var _score = ds_map_find_value(_doc_scores, _doc_id);
+        var _matched_terms = ds_map_find_value(_doc_matches, _doc_id);
+        
+        array_push(_results, {
+            id: _doc_id,
+            score: _score,
+            document: _doc,
+            matched_terms: _gmui_ls_array_from_list(_matched_terms),
+            snippet: _gmui_ls_generate_snippet(_doc.text, _query_terms)
+        });
+        
+        _doc_id = ds_map_find_next(_doc_scores, _doc_id);
+    }
+    
+    // Sort by score (descending)
+    array_sort(_results, function(a, b) {
+        return b.score - a.score;
+    });
+    
+    // Clean up
+    var _doc_id = ds_map_find_first(_doc_matches);
+    while (!is_undefined(_doc_id)) {
+        ds_list_destroy(ds_map_find_value(_doc_matches, _doc_id));
+        _doc_id = ds_map_find_next(_doc_matches, _doc_id);
+    }
+    
+    ds_map_destroy(_doc_scores);
+    ds_map_destroy(_doc_matches);
+    
+    // Limit results
+    if (_max_results != -1 && array_length(_results) > _max_results) {
+        array_resize(_results, _max_results);
+    }
+    
+    // Store results for UI
+    ls.search_results = _results;
+    ls.selected_result = -1;
+    
+    return _results;
+}
+
+function gmui_ls_fuzzy_search(_query, _max_results = 50, _threshold = 0.7) {
+    if (global.gmui.lite_search == undefined) return [];
+    
+    var ls = global.gmui.lite_search;
+    var _query_terms = _gmui_ls_process_text(_query);
+    if (array_length(_query_terms) == 0) {
+        return [];
+    }
+    
+    var _results_map = ds_map_create();
+    
+    // Get all words from index
+    var _all_words = ds_map_find_first(ls.inverted_index);
+    while (!is_undefined(_all_words)) {
+        // Check similarity with each query term
+        for (var i = 0; i < array_length(_query_terms); i++) {
+            var _similarity = _gmui_ls_calculate_similarity(_all_words, _query_terms[i]);
+            
+            if (_similarity >= _threshold) {
+                // Add documents containing this similar word
+                var _term_docs = ds_map_find_value(ls.inverted_index, _all_words);
+                var _doc_id = ds_map_find_first(_term_docs);
+                
+                while (!is_undefined(_doc_id)) {
+                    if (!ds_map_exists(_results_map, _doc_id)) {
+                        ds_map_add(_results_map, _doc_id, 0);
+                    }
+                    
+                    ds_map_set(_results_map, _doc_id, 
+                        ds_map_find_value(_results_map, _doc_id) + _similarity);
+                    
+                    _doc_id = ds_map_find_next(_term_docs, _doc_id);
+                }
+            }
+        }
+        
+        _all_words = ds_map_find_next(ls.inverted_index, _all_words);
+    }
+    
+    // Convert to results array
+    var _results = [];
+    var _doc_id = ds_map_find_first(_results_map);
+    
+    while (!is_undefined(_doc_id)) {
+        var _doc = ds_map_find_value(ls.documents, _doc_id);
+        var _score = ds_map_find_value(_results_map, _doc_id);
+        
+        array_push(_results, {
+            id: _doc_id,
+            score: _score,
+            document: _doc,
+            snippet: _gmui_ls_generate_snippet(_doc.text, _query_terms)
+        });
+        
+        _doc_id = ds_map_find_next(_results_map, _doc_id);
+    }
+    
+    // Sort and limit
+    array_sort(_results, function(a, b) {
+        return b.score - a.score;
+    });
+    
+    ds_map_destroy(_results_map);
+    
+    if (array_length(_results) > _max_results) {
+        array_resize(_results, _max_results);
+    }
+    
+    // Store results for UI
+    ls.search_results = _results;
+    ls.selected_result = -1;
+    
+    return _results;
+}
+
+function gmui_ls_remove_document(_id) {
+    if (global.gmui.lite_search == undefined) return false;
+    
+    var ls = global.gmui.lite_search;
+    
+    if (!ds_map_exists(ls.documents, _id)) {
+        return false;
+    }
+    
+    // Remove from inverted index
+    var _word = ds_map_find_first(ls.inverted_index);
+    while (!is_undefined(_word)) {
+        var _word_docs = ds_map_find_value(ls.inverted_index, _word);
+        
+        if (ds_map_exists(_word_docs, _id)) {
+            ds_map_delete(_word_docs, _id);
+            
+            // Update word stats
+            var _stats = ds_map_find_value(ls.word_stats, _word);
+            _stats.document_frequency--;
+            _stats.total_frequency -= ds_map_find_value(_word_docs, _id);
+            
+            // Remove word if no documents left
+            if (ds_map_size(_word_docs) == 0) {
+                ds_map_delete(ls.inverted_index, _word);
+                ds_map_delete(ls.word_stats, _word);
+            }
+        }
+        
+        _word = ds_map_find_next(ls.inverted_index, _word);
+    }
+    
+    // Remove document
+    ds_map_delete(ls.documents, _id);
+    ls.doc_count--;
+    
+    return true;
+}
+
+function gmui_ls_get_stats() {
+    if (global.gmui.lite_search == undefined) return undefined;
+    
+    var ls = global.gmui.lite_search;
+    return {
+        document_count: ls.doc_count,
+        unique_words: ds_map_size(ls.inverted_index),
+        total_words: _gmui_ls_sum_word_frequencies()
+    };
+}
+
+function gmui_ls_set_config(_case_sensitive, _enable_stemming, _min_word_length) {
+    if (global.gmui.lite_search == undefined) return;
+    
+    var ls = global.gmui.lite_search;
+    ls.case_sensitive = _case_sensitive;
+    ls.enable_stemming = _enable_stemming;
+    ls.min_word_length = _min_word_length;
+}
+
+function gmui_ls_add_stop_word(_word) {
+    if (global.gmui.lite_search == undefined) return;
+    
+    var ls = global.gmui.lite_search;
+    if (!ls.case_sensitive) {
+        _word = string_lower(_word);
+    }
+    ds_list_add(ls.stop_words, _word);
+}
+
+function gmui_ls_get_document(_id) {
+    if (global.gmui.lite_search == undefined) return undefined;
+    
+    var ls = global.gmui.lite_search;
+    if (ds_map_exists(ls.documents, _id)) {
+        return ds_map_find_value(ls.documents, _id);
+    }
+    return undefined;
+}
+
+function gmui_ls_clear() {
+    if (global.gmui.lite_search == undefined) return;
+    
+    var ls = global.gmui.lite_search;
+    
+    // Save data
+    var _case_sensitive = ls.case_sensitive;
+    var _enable_stemming = ls.enable_stemming;
+    var _min_word_length = ls.min_word_length;
+    var _stop_words = ds_list_create();
+    
+    for (var i = 0; i < ds_list_size(ls.stop_words); i++) {
+        ds_list_add(_stop_words, ds_list_find_value(ls.stop_words, i));
+    }
+    
+    gmui_ls_cleanup();
+    
+    // Re-initialize
+    gmui_ls_init();
+    
+    // Restore data
+    ls = global.gmui.lite_search;
+	
+    ls.case_sensitive = _case_sensitive;
+    ls.enable_stemming = _enable_stemming;
+    ls.min_word_length = _min_word_length;
+    
+    ds_list_clear(ls.stop_words);
+    for (var i = 0; i < ds_list_size(_stop_words); i++) {
+        ds_list_add(ls.stop_words, ds_list_find_value(_stop_words, i));
+    }
+    
+    ds_list_destroy(_stop_words);
+}
+
+function gmui_ls_cleanup() { // Being called by gmui_cleanup by default
+    if (global.gmui.lite_search == undefined) return;
+    
+	var ls = global.gmui.lite_search;
+	
+    // Destroy all ds_maps in inverted index
+    var _word = ds_map_find_first(ls.inverted_index);
+    while (!is_undefined(_word)) {
+        ds_map_destroy(ds_map_find_value(ls.inverted_index, _word));
+        _word = ds_map_find_next(ls.inverted_index, _word);
+    }
+    
+    ds_map_destroy(ls.inverted_index);
+    ds_map_destroy(ls.documents);
+    ds_map_destroy(ls.word_stats);
+    ds_list_destroy(ls.stop_words);
+    
+    global.gmui.lite_search = undefined;
+}
+
+//////////////////////////////////////
+// PRIVATE HELPER FUNCTIONS
+//////////////////////////////////////
+
+function _gmui_ls_extract_words(_text) {
+    var _result = [];
+    var _current_word = "";
+    var _len = string_length(_text);
+    
+    for (var i = 1; i <= _len; i++) {
+        var _char = string_char_at(_text, i);
+        var _code = ord(_char);
+        
+        // Check if character is alphanumeric (A-Z, a-z, 0-9)
+        if ((_code >= 48 && _code <= 57) ||   // 0-9
+            (_code >= 65 && _code <= 90) ||   // A-Z
+            (_code >= 97 && _code <= 122)) {  // a-z
+            _current_word += _char;
+        } else {
+            // Non-alphanumeric character - end of word
+            if (_current_word != "") {
+                array_push(_result, _current_word);
+                _current_word = "";
+            }
+        }
+    }
+    
+    // Don't forget the last word
+    if (_current_word != "") {
+        array_push(_result, _current_word);
+    }
+    
+    return _result;
+}
+
+function _gmui_ls_process_text(_text) {
+    if (global.gmui.lite_search == undefined) return [];
+    
+    var ls = global.gmui.lite_search;
+    var _result = [];
+    
+    // Convert to lowercase if not case sensitive
+    if (!ls.case_sensitive) {
+        _text = string_lower(_text);
+    }
+    
+    // Tokenize - extract words using our custom function
+    var _tokens = _gmui_ls_extract_words(_text);
+    
+    for (var i = 0; i < array_length(_tokens); i++) {
+        var _token = _tokens[i];
+        
+        // Check minimum length
+        if (string_length(_token) < ls.min_word_length) {
+            continue;
+        }
+        
+        // Check stop words
+        if (ds_list_find_index(ls.stop_words, _token) != -1) {
+            continue;
+        }
+        
+        // Apply stemming if enabled
+        if (ls.enable_stemming) {
+            _token = _gmui_ls_stem_word(_token);
+        }
+        
+        array_push(_result, _token);
+    }
+    
+    return _result;
+}
+
+function _gmui_ls_string_endswith(_str, _suffix) {
+    var _str_len = string_length(_str);
+    var _suffix_len = string_length(_suffix);
+    
+    if (_suffix_len > _str_len) {
+        return false;
+    }
+    
+    var _end_part = string_copy(_str, _str_len - _suffix_len + 1, _suffix_len);
+    return _end_part == _suffix;
+}
+
+function _gmui_ls_stem_word(_word) {
+    if (string_length(_word) < 3) return _word;
+    
+    // Common suffixes
+    var _suffixes = ["ing", "ed", "s", "es", "ly", "ment", "ness", "tion"];
+    
+    for (var i = 0; i < array_length(_suffixes); i++) {
+        var _suffix = _suffixes[i];
+        if (_gmui_ls_string_endswith(_word, _suffix)) {
+            return string_delete(_word, string_length(_word) - string_length(_suffix) + 1, string_length(_suffix));
+        }
+    }
+    
+    return _word;
+}
+
+function _gmui_ls_generate_snippet(_text, _query_terms, _snippet_length = 200) {
+    if (string_length(_text) <= _snippet_length) {
+        return _gmui_ls_highlight_terms(_text, _query_terms);
+    }
+    
+    // Find the best position with most query terms
+    var _best_pos = 0;
+    var _best_score = 0;
+    var _text_lower = string_lower(_text);
+    
+    for (var _pos = 0; _pos < string_length(_text) - _snippet_length; _pos += 50) {
+        var _chunk = string_copy(_text_lower, _pos, _snippet_length);
+        var _score = 0;
+        
+        for (var i = 0; i < array_length(_query_terms); i++) {
+            if (string_pos(_query_terms[i], _chunk) > 0) {
+                _score++;
+            }
+        }
+        
+        if (_score > _best_score) {
+            _best_score = _score;
+            _best_pos = _pos;
+        }
+    }
+    
+    var _snippet = string_copy(_text, _best_pos, _snippet_length);
+    
+    // Add ellipsis if not at beginning
+    if (_best_pos > 0) {
+        _snippet = "..." + _snippet;
+    }
+    
+    // Add ellipsis if not at end
+    if (_best_pos + _snippet_length < string_length(_text)) {
+        _snippet += "...";
+    }
+    
+    return _gmui_ls_highlight_terms(_snippet, _query_terms);
+}
+
+function _gmui_ls_highlight_terms(_text, _terms) {
+    var _result = _text;
+    
+    for (var i = 0; i < array_length(_terms); i++) {
+        var _term = _terms[i];
+        var _pos = string_pos(_term, string_lower(_result));
+        
+        while (_pos > 0) {
+            var _before = string_copy(_result, 1, _pos - 1);
+            var _match = string_copy(_result, _pos, string_length(_term));
+            var _after = string_copy(_result, _pos + string_length(_term), string_length(_result));
+            
+            _result = _before + "[*" + _match + "*]" + _after;
+            _pos = string_pos_ext(_term, string_lower(_result), _pos + string_length(_term) + 4); // +4 for [**]
+        }
+    }
+    
+    return _result;
+}
+
+function _gmui_ls_strip_highlighting(_text) {
+    var _result = _text;
+    var _pos = string_pos("[*", _result);
+    
+    while (_pos > 0) {
+        var _end_pos = string_pos_ext("*]", _result, _pos);
+        if (_end_pos > 0) {
+            var _before = string_copy(_result, 1, _pos - 1);
+            var _match = string_copy(_result, _pos + 2, _end_pos - _pos - 2);
+            var _after = string_copy(_result, _end_pos + 2, string_length(_result));
+            
+            _result = _before + _match + _after;
+        }
+        _pos = string_pos_ext("[*", _result, _pos);
+    }
+    
+    return _result;
+}
+
+function _gmui_ls_calculate_similarity(_str1, _str2) {
+    if (_str1 == _str2) return 1.0;
+    
+    // Levenshtein distance based similarity
+    var _len1 = string_length(_str1);
+    var _len2 = string_length(_str2);
+    var _max_len = max(_len1, _len2);
+    
+    if (_max_len == 0) return 1.0;
+    
+    var _distance = _gmui_ls_levenshtein_distance(_str1, _str2);
+    return 1.0 - (_distance / _max_len);
+}
+
+function _gmui_ls_levenshtein_distance(_str1, _str2) {
+    var _len1 = string_length(_str1);
+    var _len2 = string_length(_str2);
+    
+    if (_len1 == 0) return _len2;
+    if (_len2 == 0) return _len1;
+    
+    // Create matrix
+    var _matrix = array_create(_len1 + 1);
+    for (var i = 0; i <= _len1; i++) {
+        _matrix[i] = array_create(_len2 + 1);
+        _matrix[i][0] = i;
+    }
+    
+    for (var j = 0; j <= _len2; j++) {
+        _matrix[0][j] = j;
+    }
+    
+    // Calculate distance
+    for (var i = 1; i <= _len1; i++) {
+        for (var j = 1; j <= _len2; j++) {
+            var _cost = (string_char_at(_str1, i) == string_char_at(_str2, j)) ? 0 : 1;
+            _matrix[i][j] = min(
+                _matrix[i-1][j] + 1,      // deletion
+                _matrix[i][j-1] + 1,      // insertion
+                _matrix[i-1][j-1] + _cost // substitution
+            );
+        }
+    }
+    
+    return _matrix[_len1][_len2];
+}
+
+function _gmui_ls_array_from_list(_list) {
+    var _arr = array_create(ds_list_size(_list));
+    for (var i = 0; i < ds_list_size(_list); i++) {
+        _arr[i] = ds_list_find_value(_list, i);
+    }
+    return _arr;
+}
+
+function _gmui_ls_sum_word_frequencies() {
+    if (global.gmui.lite_search == undefined) return 0;
+    
+    var ls = global.gmui.lite_search;
+    var _total = 0;
+    var _word = ds_map_find_first(ls.word_stats);
+    
+    while (!is_undefined(_word)) {
+        _total += ds_map_find_value(ls.word_stats, _word).total_frequency;
+        _word = ds_map_find_next(ls.word_stats, _word);
+    }
+    
+    return _total;
 }
