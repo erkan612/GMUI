@@ -6,7 +6,7 @@
   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║
    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝
  GameMaker Immediate Mode UI Library
-           Version 1.7.22
+           Version 1.8.3
            
            by erkan612
 =======================================
@@ -6389,150 +6389,99 @@ function gmui_table_cleanup() {
 //////////////////////////////////////
 // PLOTTING & CHARTS
 //////////////////////////////////////
-
-function gmui_plot_lines(label, values, count, width = -1, height = 120, show_points = true) {
+function gmui_plot_lines(label, values, count, width = -1, height = 120, show_points = true) { // this should work fine
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
     
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
-    
-    // Calculate plot size
-    var plot_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
-    var plot_height = height;
-    
-    // Check if plot fits on current line
-    //if (dc.cursor_x + plot_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
-    //    gmui_new_line();
-    //}
-    
-    var plot_x = dc.cursor_x;
-    var plot_y = dc.cursor_y;
-    
-    // Draw label if provided
+
+    var label_height = 0;
     if (label != "") {
         gmui_text(label);
+        label_height = string_height(label);
+        dc.cursor_y += style.item_spacing[1]; 
     }
-    
-    // Calculate data bounds
-    var min_val = 0;
-    var max_val = 0;
-    if (count > 0) {
-        min_val = values[0];
-        max_val = values[0];
-        for (var i = 1; i < count; i++) {
-            min_val = min(min_val, values[i]);
-            max_val = max(max_val, values[i]);
-        }
+
+    var plot_width  = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+    var plot_height = height;
+
+    var plot_x = dc.cursor_x;
+    var plot_y = dc.cursor_y;
+
+    var min_val = values[0];
+    var max_val = values[0];
+
+    for (var i = 1; i < count; i++) {
+        var v = values[i];
+        if (v < min_val) min_val = v;
+        if (v > max_val) max_val = v;
     }
-    
-    // Add some padding to data range
+
     var range = max_val - min_val;
-    if (range == 0) range = 1;
+    if (range <= 0) range = 1;
+
     min_val -= range * 0.1;
     max_val += range * 0.1;
-    
-    // Draw plot background and border
+
     gmui_add_rect(plot_x, plot_y, plot_width, plot_height, style.plot_bg_color);
-    if (style.plot_border_size > 0) {
-        gmui_add_rect_outline(plot_x, plot_y, plot_width, plot_height, 
-                            style.plot_border_color, style.plot_border_size);
-    }
-    
-    // Draw grid lines
+
+    if (style.plot_border_size > 0)
+        gmui_add_rect_outline(plot_x, plot_y, plot_width, plot_height, style.plot_border_color, style.plot_border_size);
+
     var grid_steps = style.plot_grid_steps;
     for (var i = 0; i <= grid_steps; i++) {
         var _y = plot_y + plot_height - (i * plot_height / grid_steps);
-        var value = min_val + (i * (max_val - min_val) / grid_steps);
-        
-        // Grid line
-        gmui_add_line(plot_x, _y, plot_x + plot_width, _y, 
-                     style.plot_grid_color, style.plot_grid_thickness);
-        
-        // Value label
-        //var value_text = string_format(value, 1, 2);
-        //var text_size = gmui_calc_text_size(value_text);
-        //gmui_add_text(plot_x - text_size[0] - 4, _y - text_size[1] / 2, 
-        //             value_text, style.plot_text_color);
+        gmui_add_line(plot_x, _y, plot_x + plot_width, _y, style.plot_grid_color, style.plot_grid_thickness);
     }
-    
-    // Draw zero line if applicable
+
     if (min_val <= 0 && max_val >= 0) {
         var zero_y = plot_y + plot_height * (1 - (-min_val) / (max_val - min_val));
-        gmui_add_line(plot_x, zero_y, plot_x + plot_width, zero_y, 
-                     style.plot_grid_color, style.plot_grid_thickness);
+        gmui_add_line(plot_x, zero_y, plot_x + plot_width, zero_y, style.plot_grid_color, style.plot_grid_thickness);
     }
-    
-    // Draw data lines
-    if (count > 1) {
-        // Create line path
-        var prev_x = 0;
-        var prev_y = 0;
-        
-        for (var i = 0; i < count; i++) {
-            var _x = plot_x + (i * plot_width / (count - 1));
-            var _y = plot_y + plot_height * (1 - (values[i] - min_val) / (max_val - min_val));
-            
-            if (i > 0) {
-                // Draw line between points
-                gmui_add_line(prev_x, prev_y, _x, _y, 
-                             style.plot_line_color, style.plot_line_thickness);
-            }
-            
-            // Draw data points if enabled
-            if (show_points) {
-                gmui_add_rect_round(_x - style.plot_point_size/2, _y - style.plot_point_size/2, 
-                                  style.plot_point_size, style.plot_point_size, 
-                                  style.plot_point_color, style.plot_point_size/2);
-            }
-            
-            prev_x = _x;
-            prev_y = _y;
+
+    if (style.plot_fill_enabled && count > 1) {
+        for (var i = 0; i < count - 1; i++) {
+            var x1 = plot_x + (i     * plot_width / (count - 1));
+            var x2 = plot_x + ((i+1) * plot_width / (count - 1));
+
+            var y1 = plot_y + plot_height * (1 - (values[i]   - min_val) / (max_val - min_val));
+            var y2 = plot_y + plot_height * (1 - (values[i+1] - min_val) / (max_val - min_val));
+
+            // triangle 1 (top-left, top-right, bottom-right)
+            gmui_add_triangle(x1, y1, x2, y2, x2, plot_y + plot_height, style.plot_fill_color);
+            // triangle 2 (top-left, bottom-right, bottom-left)
+            gmui_add_triangle(x1, y1, x2, plot_y + plot_height, x1, plot_y + plot_height, style.plot_fill_color);
         }
-        
-        // Fill area under line if enabled
-        if (style.plot_fill_enabled && count >= 2) {
-            // Simple fill implementation
-            var fill_points = [];
-            // Start from bottom left
-            array_push(fill_points, [plot_x, plot_y + plot_height]);
-            // Add all data points
-            for (var i = 0; i < count; i++) {
-                var _x = plot_x + (i * plot_width / (count - 1));
-                var _y = plot_y + plot_height * (1 - (values[i] - min_val) / (max_val - min_val));
-                array_push(fill_points, [_x, _y]);
-            }
-            // End at bottom right
-            array_push(fill_points, [plot_x + plot_width, plot_y + plot_height]);
-            
-            // Draw filled polygon (simplified as multiple triangles)
-            for (var i = 1; i < array_length(fill_points) - 1; i++) {
-                gmui_add_triangle(
-                    fill_points[0][0], fill_points[0][1],
-                    fill_points[i][0], fill_points[i][1],
-                    fill_points[i + 1][0], fill_points[i + 1][1],
-                    style.plot_fill_color
-                );
-            }
-        }
-    } else if (count == 1) {
-        // Single point
-        var _x = plot_x + plot_width / 2;
-        var _y = plot_y + plot_height * (1 - (values[0] - min_val) / (max_val - min_val));
-        gmui_add_rect_round(_x - style.plot_point_size/2, _y - style.plot_point_size/2, 
-                          style.plot_point_size, style.plot_point_size, 
-                          style.plot_point_color, style.plot_point_size/2);
     }
-    
-    // Update cursor position
+
+    var prev_x, prev_y;
+
+    for (var i = 0; i < count; i++)
+    {
+        var _x = plot_x + (i * plot_width / (count - 1));
+        var _y = plot_y + plot_height * (1 - (values[i] - min_val) / (max_val - min_val));
+
+        if (i > 0)
+            gmui_add_line(prev_x, prev_y, _x, _y, style.plot_line_color, style.plot_line_thickness);
+
+        if (show_points)
+            gmui_add_rect_round(_x - 2, _y - 2, 4, 4, style.plot_point_color, 2);
+
+        prev_x = _x;
+        prev_y = _y;
+    }
+
+    var total_height = label_height + plot_height + style.item_spacing[1];
+
     dc.cursor_previous_x = dc.cursor_x;
-    dc.cursor_x += plot_width + style.item_spacing[0];
-    dc.line_height = max(dc.line_height, plot_height + (label != "" ? string_height(label) : 0));
-    
-    gmui_new_line();
-    
+    dc.cursor_x = dc.cursor_start_x;
+    dc.cursor_y += total_height;
+    dc.line_height = 0;
+
     return true;
 }
+
 
 function gmui_plot_bars(label, values, count, width = -1, height = 120) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
@@ -9070,7 +9019,7 @@ function gmui_wins_handle_splitters_recursive(node) {
 }
 
 /************************************
- * GMUILITE SEARCH
+ * GMUILiteSearch
  ***********************************/
 function gmui_ls_init() { // Being called in gmui_init by default
     if (global.gmui.lite_search == undefined) {
