@@ -8872,6 +8872,7 @@ function gmui_wins_handle_splitters(node) {
     if (gmui_begin("##splitters_window", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), 
                    gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_MOVE | gmui_window_flags.NO_MOVE_DEPTH | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_SCROLLBAR)) {
         
+		global.gmui.current_window.rounding = false;
 		global.gmui.current_window.x = 0;
 		global.gmui.current_window.y = 0;
 		global.gmui.current_window.width = surface_get_width(application_surface);
@@ -9035,12 +9036,11 @@ function gmui_ls_init() { // Being called in gmui_init by default
             enable_stemming: false,
             min_word_length: 2,
             stop_words: ds_list_create(),
-            
-            // UI settings
-            search_window_width: 400,
-            search_window_height: 300,
-            max_visible_results: 10,
-            result_item_height: 24
+			
+			// N-Gram
+			ngram_index: ds_map_create(),
+			ngram_size: 3,
+			enable_ngrams: true,
         };
         
         // Initialize common stop words
@@ -9210,6 +9210,22 @@ function gmui_ls_add_document_weighted(_id, _text, _metadata = undefined) {
     
     // Use original function with weighted text
     return gmui_ls_add_document(_id, _searchable_text, _metadata);
+}
+
+function gmui_ls_add_document_with_ngrams(_id, _text, _metadata = undefined) {
+    if (global.gmui.lite_search == undefined) return false;
+    
+    var ls = global.gmui.lite_search;
+    
+    // Use existing function for word-based indexing
+    var success = gmui_ls_add_document(_id, _text, _metadata);
+    
+    if (success && ls.enable_ngrams) {
+        // Also index n-grams
+        _gmui_ls_index_ngrams(_text, _id);
+    }
+    
+    return success;
 }
 
 function gmui_ls_search(_query, _max_results = -1) {
@@ -9382,6 +9398,243 @@ function gmui_ls_fuzzy_search(_query, _max_results = 50, _threshold = 0.7) {
     return _results;
 }
 
+function gmui_ls_search_prefix(_query, _max_results = -1) {
+    if (global.gmui.lite_search == undefined) return [];
+    
+    var ls = global.gmui.lite_search;
+    var _query_lower = string_lower(_query);
+    var _results = [];
+    var _doc_scores = ds_map_create();
+    
+    // Get all indexed words
+    var _word = ds_map_find_first(ls.inverted_index);
+    
+    while (!is_undefined(_word)) {
+        // Check if this word STARTS WITH the query
+        if (string_pos(_query_lower, string_lower(_word)) == 1) {
+            // This word is a prefix match
+            var _term_docs = ds_map_find_value(ls.inverted_index, _word);
+            var _doc_id = ds_map_find_first(_term_docs);
+            
+            while (!is_undefined(_doc_id)) {
+                var _tf = ds_map_find_value(_term_docs, _doc_id);
+                var _doc_freq = ds_map_find_value(ls.word_stats, _word).document_frequency;
+                var _score = _tf / (1 + _doc_freq); // Simple scoring
+                
+                if (!ds_map_exists(_doc_scores, _doc_id)) {
+                    ds_map_add(_doc_scores, _doc_id, 0);
+                }
+                
+                ds_map_set(_doc_scores, _doc_id, 
+                    ds_map_find_value(_doc_scores, _doc_id) + _score);
+                
+                _doc_id = ds_map_find_next(_term_docs, _doc_id);
+            }
+        }
+        
+        _word = ds_map_find_next(ls.inverted_index, _word);
+    }
+    
+    // Convert to results array
+    var _doc_id = ds_map_find_first(_doc_scores);
+    while (!is_undefined(_doc_id)) {
+        var _doc = ds_map_find_value(ls.documents, _doc_id);
+        var _score = ds_map_find_value(_doc_scores, _doc_id);
+        
+        array_push(_results, {
+            id: _doc_id,
+            score: _score,
+            document: _doc,
+            snippet: _gmui_ls_generate_snippet_prefix(_doc.text, _query)
+        });
+        
+        _doc_id = ds_map_find_next(_doc_scores, _doc_id);
+    }
+    
+    // Sort and limit
+    array_sort(_results, function(a, b) {
+        return b.score - a.score;
+    });
+    
+    if (_max_results != -1 && array_length(_results) > _max_results) {
+        array_resize(_results, _max_results);
+    }
+    
+    ds_map_destroy(_doc_scores);
+    ls.search_results = _results;
+    
+    return _results;
+}
+
+function gmui_ls_search_hybrid(_query, _max_results = -1) {
+    var ls = global.gmui.lite_search;
+    
+    // Try exact word search first
+    var _word_results = gmui_ls_search(_query, _max_results);
+    
+    // If no results or query is short, try prefix search
+    if (array_length(_word_results) == 0 || string_length(_query) <= 3) {
+        var _prefix_results = gmui_ls_search_prefix(_query, _max_results);
+        
+        // Combine and deduplicate
+        var _combined = _word_results;
+        for (var i = 0; i < array_length(_prefix_results); i++) {
+            var _prefix_doc = _prefix_results[i];
+            var _exists = false;
+            
+            // Check if already in results
+            for (var j = 0; j < array_length(_combined); j++) {
+                if (_combined[j].id == _prefix_doc.id) {
+                    _exists = true;
+                    // Boost score for multiple match types
+                    _combined[j].score += _prefix_doc.score * 0.5;
+                    break;
+                }
+            }
+            
+            if (!_exists) {
+                array_push(_combined, _prefix_doc);
+            }
+        }
+        
+        // Resort
+        array_sort(_combined, function(a, b) {
+            return b.score - a.score;
+        });
+        
+        // Store and return
+        ls.search_results = _combined;
+        if (_max_results != -1 && array_length(_combined) > _max_results) {
+            array_resize(_combined, _max_results);
+        }
+        
+        return _combined;
+    }
+    
+    return _word_results;
+}
+
+function gmui_ls_search_ngrams(_query, _max_results = -1) {
+    if (global.gmui.lite_search == undefined) return [];
+    
+    var ls = global.gmui.lite_search;
+    
+    if (!ls.enable_ngrams) {
+        return gmui_ls_search(_query, _max_results);
+    }
+    
+    // Clean query
+    var _query_clean = "";
+    var _query_len = string_length(_query);
+    
+    for (var i = 1; i <= _query_len; i++) {
+        var _char = string_char_at(_query, i);
+        var _code = ord(_char);
+        
+        if ((_code >= 48 && _code <= 57) ||   // 0-9
+            (_code >= 65 && _code <= 90) ||   // A-Z
+            (_code >= 97 && _code <= 122)) {  // a-z
+            _query_clean += ls.case_sensitive ? _char : string_lower(_char);
+        }
+    }
+    
+    if (string_length(_query_clean) < ls.ngram_size) {
+        // Query too short for n-grams, fall back to regular search
+        return gmui_ls_search(_query, _max_results);
+    }
+    
+    // Score documents based on n-gram matches
+    var _doc_scores = ds_map_create();
+    var _doc_matches = ds_map_create();
+    
+    // Generate n-grams from query
+    var _query_grams = [];
+    var _query_clean_len = string_length(_query_clean);
+    
+    for (var i = 1; i <= _query_clean_len - ls.ngram_size + 1; i++) {
+        var _ngram = string_copy(_query_clean, i, ls.ngram_size);
+        array_push(_query_grams, _ngram);
+    }
+    
+    // Score each document
+    for (var i = 0; i < array_length(_query_grams); i++) {
+        var _ngram = _query_grams[i];
+        
+        if (ds_map_exists(ls.ngram_index, _ngram)) {
+            var _ngram_docs = ds_map_find_value(ls.ngram_index, _ngram);
+            var _doc_id = ds_map_find_first(_ngram_docs);
+            
+            while (!is_undefined(_doc_id)) {
+                var _ngram_freq = ds_map_find_value(_ngram_docs, _doc_id);
+                
+                // Calculate IDF for n-gram
+                var _doc_freq = ds_map_size(_ngram_docs);
+                var _ngram_weight = 1.0 / (1.0 + _doc_freq); // Simplified IDF
+                
+                // Score = n-gram frequency * weight
+                var _score = _ngram_freq * _ngram_weight;
+                
+                if (!ds_map_exists(_doc_scores, _doc_id)) {
+                    ds_map_add(_doc_scores, _doc_id, 0);
+                    ds_map_add(_doc_matches, _doc_id, ds_list_create());
+                }
+                
+                ds_map_set(_doc_scores, _doc_id, 
+                    ds_map_find_value(_doc_scores, _doc_id) + _score);
+                ds_list_add(ds_map_find_value(_doc_matches, _doc_id), _ngram);
+                
+                _doc_id = ds_map_find_next(_ngram_docs, _doc_id);
+            }
+        }
+    }
+    
+    // Convert to results array
+    var _results = [];
+    var _doc_id = ds_map_find_first(_doc_scores);
+    
+    while (!is_undefined(_doc_id)) {
+        var _doc = ds_map_find_value(ls.documents, _doc_id);
+        var _score = ds_map_find_value(_doc_scores, _doc_id);
+        var _matched_ngrams = ds_map_find_value(_doc_matches, _doc_id);
+        
+        array_push(_results, {
+            id: _doc_id,
+            score: _score,
+            document: _doc,
+            matched_ngrams: _gmui_ls_array_from_list(_matched_ngrams),
+            snippet: _gmui_ls_generate_snippet_ngrams(_doc.text, _query)
+        });
+        
+        _doc_id = ds_map_find_next(_doc_scores, _doc_id);
+    }
+    
+    // Clean up
+    var _doc_id = ds_map_find_first(_doc_matches);
+    while (!is_undefined(_doc_id)) {
+        ds_list_destroy(ds_map_find_value(_doc_matches, _doc_id));
+        _doc_id = ds_map_find_next(_doc_matches, _doc_id);
+    }
+    
+    ds_map_destroy(_doc_scores);
+    ds_map_destroy(_doc_matches);
+    
+    // Sort by score
+    array_sort(_results, function(a, b) {
+        return b.score - a.score;
+    });
+    
+    // Limit results
+    if (_max_results != -1 && array_length(_results) > _max_results) {
+        array_resize(_results, _max_results);
+    }
+    
+    // Store results for UI
+    ls.search_results = _results;
+    ls.selected_result = -1;
+    
+    return _results;
+}
+
 function gmui_ls_remove_document(_id) {
     if (global.gmui.lite_search == undefined) return false;
     
@@ -9511,6 +9764,7 @@ function gmui_ls_cleanup() { // Being called by gmui_cleanup by default
     ds_map_destroy(ls.inverted_index);
     ds_map_destroy(ls.documents);
     ds_map_destroy(ls.word_stats);
+    ds_map_destroy(ls.ngram_index);
     ds_list_destroy(ls.stop_words);
     
     global.gmui.lite_search = undefined;
@@ -9765,4 +10019,197 @@ function _gmui_ls_sum_word_frequencies() {
     }
     
     return _total;
+}
+
+function _gmui_ls_generate_snippet_prefix(_text, _prefix) {
+    var _text_lower = string_lower(_text);
+    var _prefix_lower = string_lower(_prefix);
+    var _pos = string_pos(_prefix_lower, _text_lower);
+    
+    if (_pos > 0) {
+        var _start = max(1, _pos - 50);
+        var _end = min(string_length(_text), _pos + 100);
+        var _snippet = string_copy(_text, _start, _end - _start + 1);
+        
+        if (_start > 1) _snippet = "..." + _snippet;
+        if (_end < string_length(_text)) _snippet = _snippet + "...";
+        
+        // Highlight the matching part
+        var _match_start = _pos - _start + 1;
+        var _match_length = string_length(_prefix);
+        var _before = string_copy(_snippet, 1, _match_start - 1);
+        var _match = string_copy(_snippet, _match_start, _match_length);
+        var _after = string_copy(_snippet, _match_start + _match_length, string_length(_snippet));
+        
+        return _before + "[*" + _match + "*]" + _after;
+    }
+    
+    return _gmui_ls_generate_snippet(_text, [_prefix]);
+}
+
+function _gmui_ls_index_ngrams(_text, _doc_id) {
+    var ls = global.gmui.lite_search;
+    
+    var _clean_text = "";
+    var _len = string_length(_text);
+    
+    for (var i = 1; i <= _len; i++) {
+        var _char = string_char_at(_text, i);
+        var _code = ord(_char);
+        
+        if ((_code >= 48 && _code <= 57) ||   // 0-9
+            (_code >= 65 && _code <= 90) ||   // A-Z
+            (_code >= 97 && _code <= 122)) {  // a-z
+            _clean_text += ls.case_sensitive ? _char : string_lower(_char);
+        } else if (_char == " ") {
+            _clean_text += " "; // Keep spaces for word boundaries
+        }
+    }
+    
+    var _words = _gmui_ls_split_words(_clean_text);
+    
+    for (var w = 0; w < array_length(_words); w++) {
+        var _word = _words[w];
+        var _word_len = string_length(_word);
+        
+        if (_word_len < ls.ngram_size) {
+            continue;
+        }
+        
+        for (var i = 1; i <= _word_len - ls.ngram_size + 1; i++) {
+            var _ngram = string_copy(_word, i, ls.ngram_size);
+            
+            if (!ds_map_exists(ls.ngram_index, _ngram)) {
+                ds_map_add(ls.ngram_index, _ngram, ds_map_create());
+            }
+            
+            var _ngram_docs = ds_map_find_value(ls.ngram_index, _ngram);
+            
+            if (!ds_map_exists(_ngram_docs, _doc_id)) {
+                ds_map_add(_ngram_docs, _doc_id, 0);
+            }
+            
+            ds_map_set(_ngram_docs, _doc_id, 
+                ds_map_find_value(_ngram_docs, _doc_id) + 1);
+        }
+    }
+}
+
+function _gmui_ls_split_words(_text) {
+    var _result = [];
+    var _current_word = "";
+    var _len = string_length(_text);
+    
+    for (var i = 1; i <= _len; i++) {
+        var _char = string_char_at(_text, i);
+        
+        if (_char == " ") {
+            if (_current_word != "") {
+                array_push(_result, _current_word);
+                _current_word = "";
+            }
+        } else {
+            _current_word += _char;
+        }
+    }
+    
+    if (_current_word != "") {
+        array_push(_result, _current_word);
+    }
+    
+    return _result;
+}
+
+function _gmui_ls_generate_snippet_ngrams(_text, _query, _snippet_length = 200) {
+    var ls = global.gmui.lite_search;
+    
+    // Clean query for n-gram matching
+    var _query_clean = "";
+    var _query_len = string_length(_query);
+    
+    for (var i = 1; i <= _query_len; i++) {
+        var _char = string_char_at(_query, i);
+        var _code = ord(_char);
+        
+        if ((_code >= 48 && _code <= 57) ||   // 0-9
+            (_code >= 65 && _code <= 90) ||   // A-Z
+            (_code >= 97 && _code <= 122)) {  // a-z
+            _query_clean += ls.case_sensitive ? _char : string_lower(_char);
+        }
+    }
+    
+    if (string_length(_query_clean) < ls.ngram_size) {
+        // Query too short, use regular snippet
+        return _gmui_ls_generate_snippet(_text, [_query_clean]);
+    }
+    
+    var _text_lower = ls.case_sensitive ? _text : string_lower(_text);
+    var _query_lower = string_lower(_query_clean);
+    
+    // Try to find exact word matches first
+    var _pos = string_pos(_query_lower, _text_lower);
+    
+    if (_pos > 0) {
+        return _gmui_ls_generate_snippet_from_position(_text, _pos, string_length(_query_lower), _snippet_length);
+    }
+    
+    // Try to find partial matches using n-grams
+    var _best_pos = 0;
+    var _best_score = 0;
+    
+    // Generate n-grams from query
+    var _query_grams = [];
+    var _query_len_clean = string_length(_query_clean);
+    
+    for (var i = 1; i <= _query_len_clean - ls.ngram_size + 1; i++) {
+        var _ngram = string_copy(_query_lower, i, ls.ngram_size);
+        array_push(_query_grams, _ngram);
+    }
+    
+    // Search for best matching position
+    for (var _start = 1; _start <= string_length(_text) - _snippet_length; _start += 50) {
+        var _chunk = string_copy(_text_lower, _start, _snippet_length);
+        var _score = 0;
+        
+        // Count matching n-grams in this chunk
+        for (var i = 0; i < array_length(_query_grams); i++) {
+            if (string_pos(_query_grams[i], _chunk) > 0) {
+                _score++;
+            }
+        }
+        
+        if (_score > _best_score) {
+            _best_score = _score;
+            _best_pos = _start;
+        }
+    }
+    
+    if (_best_score > 0) {
+        return _gmui_ls_generate_snippet_from_position(_text, _best_pos, _snippet_length, _snippet_length);
+    }
+    
+    // Fallback to regular snippet
+    return _gmui_ls_generate_snippet(_text, [_query]);
+}
+
+function _gmui_ls_generate_snippet_from_position(_text, _pos, _match_length, _snippet_length) {
+    var _start = max(1, _pos - (_snippet_length / 2));
+    var _end = min(string_length(_text), _start + _snippet_length - 1);
+    
+    var _snippet = string_copy(_text, _start, _end - _start + 1);
+    
+    var _highlight_pos = _pos - _start + 1;
+    
+    if (_start > 1) _snippet = "..." + _snippet;
+    if (_end < string_length(_text)) _snippet = _snippet + "...";
+    
+    if (_highlight_pos > 0 && _highlight_pos <= string_length(_snippet)) {
+        var _before = string_copy(_snippet, 1, _highlight_pos - 1);
+        var _match = string_copy(_snippet, _highlight_pos, _match_length);
+        var _after = string_copy(_snippet, _highlight_pos + _match_length, string_length(_snippet));
+        
+        return _before + "[*" + _match + "*]" + _after;
+    }
+    
+    return _snippet;
 }

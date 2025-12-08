@@ -64,7 +64,7 @@ if (gmui_begin_menu("test menu")) {
 	gmui_end_menu();
 };
 
-if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.AUTO_HSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
+if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 	var oldSpacingX = global.gmui.style.item_spacing[0];
 	var oldRounding = global.gmui.style.selectable_rounding;
 	global.gmui.style.selectable_rounding = -1;
@@ -73,7 +73,8 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 	if (gmui_selectable("Example 2", tabIdx == 2)) { tabIdx = 2; }; gmui_same_line();
 	if (gmui_selectable("Example 3", tabIdx == 3)) { tabIdx = 3; }; gmui_same_line();
 	if (gmui_selectable("Example 4", tabIdx == 4)) { tabIdx = 4; }; gmui_same_line();
-	if (gmui_selectable("Example 5", tabIdx == 5)) { tabIdx = 5; }; gmui_separator();
+	if (gmui_selectable("Example 5", tabIdx == 5)) { tabIdx = 5; }; gmui_same_line();
+	if (gmui_selectable("Example 6", tabIdx == 6)) { tabIdx = 6; }; gmui_separator();
 	global.gmui.style.item_spacing[0] = oldSpacingX;
 	global.gmui.style.selectable_rounding = oldRounding;
 	
@@ -161,6 +162,29 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 		var demo_items = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"];
 		
 		combo_index = gmui_combo("Simple Combo", combo_index, demo_items);
+	} break;
+	
+	case 6: {
+		gmui_text("Lite Search Demonstration");
+		searchText = gmui_textbox(searchText, "Search...", global.gmui.current_window.width - global.gmui.style.window_padding[0] * 2);
+		if (gmui_textbox_id() == gmui_get_focused_textbox_id() && string_length(gmui_get_focused_textbox_text()) > 2 && keyboard_check(vk_anykey)) {
+			searchResults = gmui_ls_search_hybrid(gmui_get_focused_textbox_text()); // update the list
+			show_debug_message("List Updated! " + string(counter));
+			counter++;
+		}
+		else if (string_length(gmui_get_focused_textbox_text()) <= 2 && array_length(searchResults) != 0) {
+			searchResults = [ ];
+		}
+		if (array_length(searchResults) > 0) {
+			array_foreach(searchResults, function(e, i) {
+				gmui_text(e.document.text);
+			});
+		}
+		else {
+			array_foreach(ds_map_values_to_array(global.gmui.lite_search.documents), function(e, i) {
+				gmui_text(e.text);
+			});
+		}
 	} break;
 	};
 	
