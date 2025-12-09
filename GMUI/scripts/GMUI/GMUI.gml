@@ -6887,6 +6887,8 @@ function gmui_plot_stem(label, values, labels, count, w = 200, h = 120, radius =
     var style = global.gmui.style;
 
     var font_h = font_get_size(global.gmui.font);
+	
+	w = (w > 0) ? w : window.width - style.window_padding[0] * 2;
 
     // Draw label above chart
     var label_height = 0;
@@ -6932,7 +6934,7 @@ function gmui_plot_stem(label, values, labels, count, w = 200, h = 120, radius =
 
         // Normalize value into pixel y
         var t = (v - minv) / (maxv - minv);
-        var px = x0 + i * step;
+        var px = x0 + i * step + step / 2;
         var py = y1 - t * h;
 
         // Draw line stem
@@ -6957,6 +6959,107 @@ function gmui_plot_stem(label, values, labels, count, w = 200, h = 120, radius =
     dc.cursor_y += total_height;
     dc.line_height = 0;
 
+    return true;
+}
+
+function gmui_plot_stairs(label, values, count, width = -1, height = 120, mode = "post")
+{
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+
+    // Label
+    if (label != "")
+        gmui_text(label);
+
+    // Dimensions
+    var plot_width  = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+    var plot_height = height;
+
+    var plot_x = dc.cursor_x;
+    var plot_y = dc.cursor_y;
+
+    if (count <= 0) return false;
+
+    // Determine min/max
+    var min_val = values[0];
+    var max_val = values[0];
+
+    for (var i = 1; i < count; i++)
+    {
+        min_val = min(min_val, values[i]);
+        max_val = max(max_val, values[i]);
+    }
+
+    var range = max_val - min_val;
+    if (range == 0) range = 1;
+
+    min_val -= range * 0.1;
+    max_val += range * 0.1;
+
+    // Draw background + border
+    gmui_add_rect(plot_x, plot_y, plot_width, plot_height, style.plot_bg_color);
+
+    if (style.plot_border_size > 0)
+    {
+        gmui_add_rect_outline(
+            plot_x, plot_y, plot_width, plot_height,
+            style.plot_border_color, style.plot_border_size
+        );
+    }
+
+    // Zero line
+    if (min_val <= 0 && max_val >= 0)
+    {
+        var zy = plot_y + plot_height * (1 - (-min_val) / (max_val - min_val));
+        gmui_add_line(plot_x, zy, plot_x + plot_width, zy, style.plot_grid_color, style.plot_grid_thickness);
+    }
+
+    // STEP PLOT
+    if (count >= 2)
+    {
+        var inv = 1 / (count - 1);
+        var prev_x = 0;
+        var prev_y = 0;
+
+        for (var i = 0; i < count; i++)
+        {
+            var _x = plot_x + (i * inv) * plot_width;
+            var _y = plot_y + plot_height * (1 - (values[i] - min_val) / (max_val - min_val));
+
+            if (i > 0)
+            {
+                if (mode == "pre")
+                {
+                    // PRE - left-step
+                    // Horizontal to new value
+                    gmui_add_line(prev_x, prev_y, _x, prev_y, style.plot_line_color, style.plot_line_thickness);
+                    // Vertical drop/rise
+                    gmui_add_line(_x, prev_y, _x, _y, style.plot_line_color, style.plot_line_thickness);
+                }
+                else
+                {
+                    // POST - right-step (default)
+                    // Vertical line first
+                    gmui_add_line(prev_x, prev_y, prev_x, _y, style.plot_line_color, style.plot_line_thickness);
+                    // Horizontal after
+                    gmui_add_line(prev_x, _y, _x, _y, style.plot_line_color, style.plot_line_thickness);
+                }
+            }
+
+            prev_x = _x;
+            prev_y = _y;
+        }
+    }
+
+    // Cursor advance
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += plot_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, plot_height + (label != "" ? font_get_size(global.gmui.font) : 0));
+
+    gmui_new_line();
     return true;
 }
 
@@ -8175,7 +8278,11 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 			
 			// Stem plot example
 			gmui_text("Stem Plot - Discrete Signal");
-			gmui_plot_stem("Stem Data", plot_data, ["A","B","C","D","E","F","G","H","I","J"], array_length(plot_data), 200, 150, 3, c_lime);
+			gmui_plot_stem("Stem Data", plot_data, ["A","B","C","D","E","F","G","H","I","J"], array_length(plot_data), -1, 150, 3, c_lime);
+			
+			// Stair plot example
+			gmui_text("Stair Plot - Step Function");
+			gmui_plot_stairs("Step Data", plot_data, array_length(plot_data), -1, 150, "post");
     
 		    gmui_collapsing_header_end();
 		}
