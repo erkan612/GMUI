@@ -583,9 +583,9 @@ function gmui_window_state() {
         initial_x: 0, initial_y: 0, initial_width: 0, initial_height: 0, // Store initial values
         flags: 0, open: true, active: false,
         surface: -1, surface_dirty: true,
-        draw_list: [],
+        draw_list: [ ],
 		rounding: true,
-        
+		
         // Title bar state
         title_bar_hovered: false,
         title_bar_active: false,
@@ -733,14 +733,14 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     window.flags = flags;
     window.active = true;
     gmui_array_clear(window.treeview_stack);
+	
+	// Title bar (handle it in the 'end')
+    var has_title_bar = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
+    var title_bar_height = has_title_bar ? global.gmui.style.title_bar_height : 0;
     
     // Reset max cursor for content size calculation
     window.max_cursor_x = 0;
     window.max_cursor_y = 0;
-    
-    // Calculate title bar height
-    var has_title_bar = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
-    var title_bar_height = has_title_bar ? global.gmui.style.title_bar_height : 0;
     
     // Check if scrollbars are enabled
     var has_vertical_scroll = (flags & gmui_window_flags.VERTICAL_SCROLL) != 0;
@@ -799,18 +799,13 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
 		}
     }
     
-    // Draw title bar if enabled
-    if (has_title_bar) {
-        gmui_draw_title_bar(window, name);
-    }
-    
     // Setup scissor for content area (accounts for scrollbars)
     var scissor_x = 0;
     var scissor_y = title_bar_height;
     var scissor_width = content_width;
     var scissor_height = content_height;
     
-    gmui_begin_scissor(scissor_x, scissor_y, scissor_width, scissor_height);
+    //gmui_begin_scissor(scissor_x, scissor_y, scissor_width, scissor_height);
     
     // Handle window interaction (dragging, resizing)
     gmui_handle_window_interaction(window);
@@ -929,8 +924,17 @@ function gmui_end(_no_repeat = false) {
     window.content_width = window.max_cursor_x + global.gmui.style.window_padding[0];
     window.content_height = window.max_cursor_y + global.gmui.style.window_padding[1];
     
+    // Calculate title bar height
+    var has_title_bar = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
+    var title_bar_height = has_title_bar ? global.gmui.style.title_bar_height : 0;
+	
+    // Draw title bar if enabled
+    if (has_title_bar) {
+        gmui_draw_title_bar(window, window.name);
+    }
+    
     // End content scissor
-    gmui_end_scissor();
+    //gmui_end_scissor();
     
     // Handle scrollbars
     gmui_handle_scrollbars(window);
@@ -7164,7 +7168,7 @@ function gmui_draw_title_bar_close_button(window) {
     // Check close button interaction
     var mouse_over_close = gmui_is_mouse_over_window(window) && 
                           gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
-                                              global.gmui.mouse_pos[1] - window.y, close_bounds) && !global.gmui.is_hovering_element;
+                                              global.gmui.mouse_pos[1] - window.y, close_bounds) && !window.title_bar_hovered;
     
     var close_color = style.close_button_color;
     if (mouse_over_close) {
@@ -7216,6 +7220,28 @@ function gmui_handle_window_interaction(window) {
     // Reset hover states
     window.title_bar_hovered = false;
     
+	// Check close button hover
+	var close_size = style.close_button_size;
+	var close_padding = 4;
+	var close_x = window.width - close_size - close_padding;
+	var close_y = (style.title_bar_height - close_size) / 2;
+	var close_bounds = [close_x, close_y, close_x + close_size, close_y + close_size];
+	var close_button_id = "id_windowclosebutton_" + window.name + "_" + string(window.width) + "_" + string(window.height);
+	var mouse_over_close = gmui_is_mouse_over_window(window) && 
+                      gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                          global.gmui.mouse_pos[1] - window.y, close_bounds) && !global.gmui.is_hovering_element;
+	if (has_title_bar && mouse_over_window && mouse_over_close && !global.gmui.is_hovering_element) {
+        global.gmui.is_hovering_element = true;
+		
+		// Close on click
+		if (global.gmui.mouse_clicked[0]) {
+			global.gmui.last_pressed_clickable_id = close_button_id;
+		}
+		if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == close_button_id) {
+			window.open = false;
+		}
+	}
+	
     // Check title bar hover
     if (has_title_bar && mouse_over_window && mouse_y_in_window <= style.title_bar_height && !global.gmui.is_hovering_element) {
         global.gmui.is_hovering_element = true;

@@ -29,9 +29,8 @@ nameData = "";
 
 winsFrame = undefined;
 
-counter = 0;
 searchText = "";
-searchResults = [];
+searchResults = [ ];
 // Document 1-10: Health & Wellness
 gmui_ls_add_document("doc_001", "Drinking enough water is essential for maintaining good health and energy levels", {
     title: "Hydration Importance",

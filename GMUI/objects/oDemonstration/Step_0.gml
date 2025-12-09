@@ -169,8 +169,6 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 		searchText = gmui_textbox(searchText, "Search...", global.gmui.current_window.width - global.gmui.style.window_padding[0] * 2);
 		if (gmui_textbox_id() == gmui_get_focused_textbox_id() && string_length(gmui_get_focused_textbox_text()) > 2 && keyboard_check(vk_anykey)) {
 			searchResults = gmui_ls_search_hybrid(gmui_get_focused_textbox_text()); // update the list
-			show_debug_message("List Updated! " + string(counter));
-			counter++;
 		}
 		else if (string_length(gmui_get_focused_textbox_text()) <= 2 && array_length(searchResults) != 0) {
 			searchResults = [ ];
