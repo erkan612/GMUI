@@ -3,11 +3,11 @@ gmui_update();
 if (global.gmui.frame_count == 1) {
 	winsFrame = gmui_wins_node_create(0, 0, 1310, 700);
 	
-	var split = gmui_wins_node_split(winsFrame, gmui_wins_split_dir.LEFT, 0.2);
+	var split = gmui_wins_node_split2(winsFrame, gmui_wins_split_dir.LEFT, 0.2);
 	var nodeDetails = split[0];
 	var node = split[1];
 	
-	split = gmui_wins_node_split(node, gmui_wins_split_dir.LEFT, 0.7);
+	split = gmui_wins_node_split2(node, gmui_wins_split_dir.LEFT, 0.7);
 	var nodeView = split[0];
 	var nodeInfo = split[1];
 	

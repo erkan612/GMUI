@@ -6486,7 +6486,6 @@ function gmui_plot_lines(label, values, count, width = -1, height = 120, show_po
     return true;
 }
 
-
 function gmui_plot_bars(label, values, count, width = -1, height = 120) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
     
@@ -6766,6 +6765,198 @@ function gmui_plot_scatter(label, x_values, y_values, count, width = -1, height 
     
     gmui_new_line();
     
+    return true;
+}
+
+function gmui_plot_pie(label, values, labels, count, radius = 60, colors = undefined) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+
+    var font_h = font_get_size(global.gmui.font);
+
+    var label_height = 0;
+    if (label != "")
+    {
+        gmui_text(label);
+        label_height = font_h;
+        dc.cursor_y += style.item_spacing[1];
+    }
+
+    var cx = dc.cursor_x + radius;
+    var cy = dc.cursor_y + radius;
+
+    var chart_width  = radius * 2;
+    var chart_height = radius * 2;
+
+    var total = 0;
+    for (var i = 0; i < count; i++)
+        total += max(values[i], 0);
+
+    if (total <= 0) return false;
+
+    var cache_id = "__pie_" + label + "_" + string(radius) + "_" + string(count);
+
+    for (var i = 0; i < count; i++)
+        cache_id += "_" + string(values[i]);
+
+    var final_colors;
+
+    if (!is_undefined(colors))
+    {
+        final_colors = colors;
+    }
+    else
+    {
+        final_colors = gmui_cache_get(cache_id);
+
+        if (is_undefined(final_colors))
+        {
+            final_colors = array_create(count);
+            for (var i = 0; i < count; i++)
+            {
+                final_colors[i] = make_color_rgb(
+                    irandom_range(80, 230),
+                    irandom_range(80, 230),
+                    irandom_range(80, 230)
+                );
+            }
+
+            gmui_cache_set(cache_id, final_colors);
+        }
+    }
+
+    var angle_start = 0;
+
+    for (var i = 0; i < count; i++)
+    {
+        var value = max(values[i], 0);
+        var angle_size = (value / total) * 360;
+        var angle_mid = angle_start + angle_size * 0.5;
+
+        var a1 = degtorad(angle_start);
+        var a2 = degtorad(angle_start + angle_size);
+
+        // Triangle fan smoothing
+        var steps = max(3, ceil(angle_size / 6));
+        var da = (a2 - a1) / steps;
+
+        for (var t = 0; t < steps; t++)
+        {
+            var A = a1 + da * t;
+            var B = a1 + da * (t + 1);
+
+            gmui_add_triangle(
+                cx, cy,
+                cx + cos(A) * radius, cy + sin(A) * radius,
+                cx + cos(B) * radius, cy + sin(B) * radius,
+                final_colors[i]
+            );
+        }
+
+        // Optional slice label
+        if (!is_undefined(labels))
+        {
+            var ang = degtorad(angle_mid);
+            var lx = cx + cos(ang) * (radius * 0.65);
+            var ly = cy + sin(ang) * (radius * 0.65);
+
+            gmui_add_text(lx, ly, labels[i], style.text_color);
+        }
+
+        angle_start += angle_size;
+    }
+
+    var total_height = chart_height + label_height + style.item_spacing[1];
+
+    dc.cursor_x = dc.cursor_start_x;
+    dc.cursor_y += total_height;
+    dc.line_height = 0;
+
+    return true;
+}
+
+function gmui_plot_stem(label, values, labels, count, w = 200, h = 120, radius = 3, color = c_white)
+{
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+
+    var font_h = font_get_size(global.gmui.font);
+
+    // Draw label above chart
+    var label_height = 0;
+    if (label != "")
+    {
+        gmui_text(label);
+        label_height = font_h;
+        dc.cursor_y += style.item_spacing[1];
+    }
+
+    // Find min & max
+    var minv = infinity;
+    var maxv = -infinity;
+
+    for (var i = 0; i < count; i++)
+    {
+        var v = values[i];
+        if (v < minv) minv = v;
+        if (v > maxv) maxv = v;
+    }
+
+    if (minv == maxv) maxv = minv + 1; // avoid div zero
+
+    var cx = dc.cursor_x;
+    var cy = dc.cursor_y;
+
+    // Coordinates inside drawing region
+    var x0 = cx;
+    var y0 = cy;
+    var x1 = cx + w;
+    var y1 = cy + h;
+
+    // Draw bounding box (optional)
+    gmui_add_rect(x0 - 4, y0 - radius, w + 8, h + radius, style.border_color); // Small gap for convenience
+
+    // Horizontal spacing between stems
+    var step = w / max(count - 1, 1);
+
+    // Plot stems
+    for (var i = 0; i < count; i++)
+    {
+        var v = values[i];
+
+        // Normalize value into pixel y
+        var t = (v - minv) / (maxv - minv);
+        var px = x0 + i * step;
+        var py = y1 - t * h;
+
+        // Draw line stem
+        gmui_add_line(px, y1, px, py, color, 1);
+
+        // Draw circle cap
+        gmui_add_circle(px, py, radius, color);
+
+        // Labels under the points
+        if (!is_undefined(labels))
+        {
+            var tx = px - string_width(labels[i]) * 0.5;
+            var ty = y1 + 2;
+            gmui_add_text(tx, ty, labels[i], style.text_color);
+        }
+    }
+
+    // Advance cursor
+    var total_height = h + label_height + style.item_spacing[1] + (is_undefined(labels) ? 0 : font_h + 4);
+
+    dc.cursor_x = dc.cursor_start_x;
+    dc.cursor_y += total_height;
+    dc.line_height = 0;
+
     return true;
 }
 
@@ -7953,6 +8144,10 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		    static frame_times = [16.7, 15.2, 18.3, 14.8, 22.1, 16.9, 15.7, 17.2, 19.5, 16.1];
 		    static scatter_x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 		    static scatter_y = [2, 4, 5, 4, 5, 7, 8, 7, 9, 8];
+			static pie_values = [10, 5, 8, 2];
+			static pie_names = ["HP", "MP", "Armor", "Luck"];
+			static pie_colors = [c_red, c_blue, c_purple, c_aqua];
+			static pie_radius = 120;
     
 		    gmui_text("Data Visualization Examples");
 		    gmui_text_disabled("Various chart types with customizable styling");
@@ -7973,6 +8168,14 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		    // Scatter plot example
 		    gmui_text("Scatter Plot - Correlation");
 		    gmui_plot_scatter("X vs Y Correlation", scatter_x, scatter_y, array_length(scatter_x), -1, 150);
+			
+			// Pie plot example
+		    gmui_text("Pie Plot - Proportional Data");
+			gmui_plot_pie("Category Proportions", pie_values, pie_names, 4, pie_radius, pie_colors);
+			
+			// Stem plot example
+			gmui_text("Stem Plot - Discrete Signal");
+			gmui_plot_stem("Stem Data", plot_data, ["A","B","C","D","E","F","G","H","I","J"], array_length(plot_data), 200, 150, 3, c_lime);
     
 		    gmui_collapsing_header_end();
 		}
@@ -8546,7 +8749,6 @@ function gmui_color_rgb_to_color_rgba(rgb, alpha = 255) {
 /************************************
  * WINS
  ***********************************/
-
 enum gmui_wins_split_dir {
 	LEFT,
 	RIGHT,
