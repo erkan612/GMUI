@@ -583,6 +583,21 @@ function gmui_init() {
                 progress_gradient_start_color: make_color_rgb(100, 150, 255),
                 progress_gradient_end_color: make_color_rgb(50, 100, 200),
                 progress_gradient_direction: "horizontal", // "horizontal", "vertical", "diagonal"
+				
+				// Pie plot styles
+				plot_pie_show_labels: true,
+				plot_pie_label_color: make_color_rgb(255, 255, 255),
+				plot_pie_label_bg_color: gmui_make_color_rgba(0, 0, 0, 180),
+				plot_pie_label_padding: [4, 2],
+				plot_pie_label_rounding: 4,
+				plot_pie_explode_distance: 5, // Distance for exploded slices
+				plot_pie_start_angle: -90, // Start angle in degrees (12 o'clock position)
+				plot_pie_donut_ratio: 0.0, // 0.0 = pie, 0.5 = donut with 50% hole
+				plot_pie_show_percentages: true,
+				plot_pie_percentage_format: "percentage", // "percentage", "fraction", "value"
+				plot_pie_min_percentage_to_show: 5, // Don't show labels for slices smaller than 5%
+				plot_pie_animation_duration: 0.5, // Animation duration in seconds
+				plot_pie_animation_easing: "easeOut",
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -7129,114 +7144,304 @@ function gmui_plot_scatter(label, x_values, y_values, count, width = -1, height 
     return true;
 }
 
-function gmui_plot_pie(label, values, labels, count, radius = 60, colors = undefined) {
+function gmui_plot_pie(label, values, labels, count, width = -1, height = -1, show_legend = true) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
-
+    
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
-
-    var font_h = font_get_size(global.gmui.font);
-
-    var label_height = 0;
-    if (label != "")
-    {
+    
+    // Calculate plot size
+    var plot_width = (width > 0) ? width : 200;
+    var plot_height = (height > 0) ? height : 200;
+    
+    // Check if plot fits on current line
+    if (dc.cursor_x + plot_width > window.width - style.window_padding[0] * 2 && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+    }
+    
+    var plot_x = dc.cursor_x;
+    var plot_y = dc.cursor_y;
+    
+    // Draw label if provided
+    if (label != "") {
         gmui_text(label);
-        label_height = font_h;
-        dc.cursor_y += style.item_spacing[1];
     }
-
-    var cx = dc.cursor_x + radius;
-    var cy = dc.cursor_y + radius;
-
-    var chart_width  = radius * 2;
-    var chart_height = radius * 2;
-
+    
+    // Calculate total for percentages
     var total = 0;
-    for (var i = 0; i < count; i++)
-        total += max(values[i], 0);
-
-    if (total <= 0) return false;
-
-    var cache_id = "__pie_" + label + "_" + string(radius) + "_" + string(count);
-
-    for (var i = 0; i < count; i++)
-        cache_id += "_" + string(values[i]);
-
-    var final_colors;
-
-    if (!is_undefined(colors))
-    {
-        final_colors = colors;
+    for (var i = 0; i < count; i++) {
+        total += values[i];
     }
-    else
-    {
-        final_colors = gmui_cache_get(cache_id);
-
-        if (is_undefined(final_colors))
-        {
-            final_colors = array_create(count);
-            for (var i = 0; i < count; i++)
-            {
-                final_colors[i] = make_color_rgb(
-                    irandom_range(80, 230),
-                    irandom_range(80, 230),
-                    irandom_range(80, 230)
-                );
+    if (total == 0) total = 1;
+    
+    // Draw plot background and border
+    gmui_add_rect(plot_x, plot_y, plot_width, plot_height, style.plot_bg_color);
+    if (style.plot_border_size > 0) {
+        gmui_add_rect_outline(plot_x, plot_y, plot_width, plot_height, 
+                            style.plot_border_color, style.plot_border_size);
+    }
+    
+    // Calculate pie chart dimensions
+    var center_x = plot_x + plot_width / 2;
+    var center_y = plot_y + plot_height / 2;
+    var radius = min(plot_width, plot_height) / 2 - 10;
+    
+    // Donut chart option
+    var inner_radius = radius * style.plot_pie_donut_ratio;
+    
+    // Draw pie slices
+    var current_angle = style.plot_pie_start_angle * pi / 180; // Convert to radians
+    
+    for (var i = 0; i < count; i++) {
+        var slice_value = values[i];
+        var slice_percentage = slice_value / total;
+        var slice_angle = 2 * pi * slice_percentage;
+        
+        // Get color from palette (cycle through colors if needed)
+        var color_index = i % array_length(style.plot_color_palette);
+        var slice_color = style.plot_color_palette[color_index];
+        
+        // Draw slice
+        if (inner_radius > 0) {
+            // Donut chart (draw thick arc)
+            gmui_draw_pie_slice(center_x, center_y, inner_radius, radius, 
+                              current_angle, current_angle + slice_angle, 
+                              slice_color);
+        } else {
+            // Pie chart (draw filled arc)
+            gmui_draw_pie_slice(center_x, center_y, 0, radius, 
+                              current_angle, current_angle + slice_angle, 
+                              slice_color);
+        }
+        
+        // Calculate label position (mid-point of the slice)
+        var mid_angle = current_angle + slice_angle / 2;
+        var label_distance = radius * 0.7; // Position labels at 70% of radius
+        
+        // Check if we should show label for this slice
+        var show_label = style.plot_pie_show_labels && 
+                        (slice_percentage * 100 >= style.plot_pie_min_percentage_to_show);
+        
+        if (show_label) {
+            var label_x = center_x + cos(mid_angle) * label_distance;
+            var label_y = center_y + sin(mid_angle) * label_distance;
+            
+            // Create label text
+            var label_text = "";
+            if (style.plot_pie_show_percentages) {
+                var percentage = slice_percentage * 100;
+                switch (style.plot_pie_percentage_format) {
+                    case "percentage":
+                        label_text = string_format(percentage, 1, 1) + "%";
+                        break;
+                    case "fraction":
+                        label_text = string(slice_value) + "/" + string(total);
+                        break;
+                    case "value":
+                        label_text = string_format(slice_value, 1, 2);
+                        break;
+                }
+            } else {
+                label_text = labels[i];
             }
-
-            gmui_cache_set(cache_id, final_colors);
+            
+            var text_size = gmui_calc_text_size(label_text);
+            
+            // Draw label background if enabled
+            if (style.plot_pie_label_bg_color != -1) {
+                gmui_add_rect_round(label_x - text_size[0]/2 - style.plot_pie_label_padding[0],
+                                  label_y - text_size[1]/2 - style.plot_pie_label_padding[1],
+                                  text_size[0] + style.plot_pie_label_padding[0]*2,
+                                  text_size[1] + style.plot_pie_label_padding[1]*2,
+                                  style.plot_pie_label_bg_color,
+                                  style.plot_pie_label_rounding);
+            }
+            
+            // Draw label text
+            gmui_add_text(label_x - text_size[0]/2, label_y - text_size[1]/2,
+                         label_text, style.plot_pie_label_color);
+        }
+        
+        // Draw legend if enabled
+        if (show_legend && i == 0) {
+            // Calculate legend position (right side of plot)
+            var legend_x = plot_x + plot_width + 10;
+            var legend_y = plot_y;
+            
+            // Draw legend items
+            for (var j = 0; j < count; j++) {
+                var legend_color_index = j % array_length(style.plot_color_palette);
+                var legend_color = style.plot_color_palette[legend_color_index];
+                var legend_percentage = (values[j] / total) * 100;
+                
+                // Color swatch
+                gmui_add_rect(legend_x, legend_y + j * 20, 16, 16, legend_color);
+                
+                // Label with percentage
+                var legend_text = labels[j] + " (" + string_format(legend_percentage, 1, 1) + "%)";
+                gmui_add_text(legend_x + 20, legend_y + j * 20 + 2, 
+                             legend_text, style.plot_text_color);
+            }
+        }
+        
+        current_angle += slice_angle;
+    }
+    
+    // Draw center circle for donut chart
+    if (inner_radius > 0) {
+        gmui_add_circle(center_x, center_y, inner_radius, style.plot_bg_color);
+        if (style.plot_border_size > 0) {
+            gmui_add_circle_outline(center_x, center_y, inner_radius, 
+                                  style.plot_border_color, 1);
         }
     }
-
-    var angle_start = 0;
-
-    for (var i = 0; i < count; i++)
-    {
-        var value = max(values[i], 0);
-        var angle_size = (value / total) * 360;
-        var angle_mid = angle_start + angle_size * 0.5;
-
-        var a1 = degtorad(angle_start);
-        var a2 = degtorad(angle_start + angle_size);
-
-        // Triangle fan smoothing
-        var steps = max(3, ceil(angle_size / 6));
-        var da = (a2 - a1) / steps;
-
-        for (var t = 0; t < steps; t++)
-        {
-            var A = a1 + da * t;
-            var B = a1 + da * (t + 1);
-
-            gmui_add_triangle(
-                cx, cy,
-                cx + cos(A) * radius, cy + sin(A) * radius,
-                cx + cos(B) * radius, cy + sin(B) * radius,
-                final_colors[i]
-            );
-        }
-
-        // Optional slice label
-        if (!is_undefined(labels))
-        {
-            var ang = degtorad(angle_mid);
-            var lx = cx + cos(ang) * (radius * 0.65);
-            var ly = cy + sin(ang) * (radius * 0.65);
-
-            gmui_add_text(lx, ly, labels[i], style.text_color);
-        }
-
-        angle_start += angle_size;
-    }
-
-    var total_height = chart_height + label_height + style.item_spacing[1];
-
-    dc.cursor_x = dc.cursor_start_x;
-    dc.cursor_y += total_height;
-    dc.line_height = 0;
-
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += plot_width + (show_legend ? 150 : 0) + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, plot_height);
+    
+    gmui_new_line();
+    
     return true;
+}
+
+// Helper function to draw a pie slice
+function gmui_draw_pie_slice(center_x, center_y, inner_radius, outer_radius, start_angle, end_angle, color) {
+    // Number of segments for smooth arc
+    var segments = max(3, floor((end_angle - start_angle) * 16 / (2 * pi)));
+    var angle_step = (end_angle - start_angle) / segments;
+    
+    // Create vertex array for the slice
+    var vertices = [];
+    
+    // Add outer edge vertices
+    for (var i = 0; i <= segments; i++) {
+        var angle = start_angle + i * angle_step;
+        var _x = center_x + cos(angle) * outer_radius;
+        var _y = center_y + sin(angle) * outer_radius;
+        array_push(vertices, [_x, _y]);
+    }
+    
+    // If inner_radius > 0, it's a donut slice
+    if (inner_radius > 0) {
+        // Add inner edge vertices (in reverse order)
+        for (var i = segments; i >= 0; i--) {
+            var angle = start_angle + i * angle_step;
+            var _x = center_x + cos(angle) * inner_radius;
+            var _y = center_y + sin(angle) * inner_radius;
+            array_push(vertices, [_x, _y]);
+        }
+    } else {
+        // Add center point for pie slice
+        array_push(vertices, [center_x, center_y]);
+    }
+    
+    // Draw as triangle fan
+    for (var i = 1; i < array_length(vertices) - 1; i++) {
+        gmui_add_triangle(vertices[0][0], vertices[0][1],
+                         vertices[i][0], vertices[i][1],
+                         vertices[i + 1][0], vertices[i + 1][1],
+                         color);
+    }
+}
+
+function gmui_plot_pie_exploded(label, values, labels, count, width = -1, height = -1, explode_all = false) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate plot size
+    var plot_width = (width > 0) ? width : 200;
+    var plot_height = (height > 0) ? height : 200;
+    
+    if (dc.cursor_x + plot_width > window.width - style.window_padding[0] * 2 && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+    }
+    
+    var plot_x = dc.cursor_x;
+    var plot_y = dc.cursor_y;
+    
+    // Draw label if provided
+    if (label != "") {
+        gmui_text(label);
+    }
+    
+    // Calculate total
+    var total = 0;
+    for (var i = 0; i < count; i++) {
+        total += values[i];
+    }
+    if (total == 0) total = 1;
+    
+    // Draw plot background
+    gmui_add_rect(plot_x, plot_y, plot_width, plot_height, style.plot_bg_color);
+    if (style.plot_border_size > 0) {
+        gmui_add_rect_outline(plot_x, plot_y, plot_width, plot_height, 
+                            style.plot_border_color, style.plot_border_size);
+    }
+    
+    var center_x = plot_x + plot_width / 2;
+    var center_y = plot_y + plot_height / 2;
+    var radius = min(plot_width, plot_height) / 2 - 20; // More space for exploded slices
+    var inner_radius = radius * style.plot_pie_donut_ratio;
+    var explode_distance = style.plot_pie_explode_distance;
+    var current_angle = style.plot_pie_start_angle * pi / 180;
+    
+    // Draw exploded slices
+    for (var i = 0; i < count; i++) {
+        var slice_value = values[i];
+        var slice_percentage = slice_value / total;
+        var slice_angle = 2 * pi * slice_percentage;
+        
+        // Check if this slice should be exploded
+        var should_explode = explode_all || (slice_percentage >= 0.25); // Explode large slices
+        var explosion_offset = should_explode ? explode_distance : 0;
+        
+        // Calculate explosion direction (mid-point of slice)
+        var mid_angle = current_angle + slice_angle / 2;
+        var explode_x = cos(mid_angle) * explosion_offset;
+        var explode_y = sin(mid_angle) * explosion_offset;
+        
+        var color_index = i % array_length(style.plot_color_palette);
+        var slice_color = style.plot_color_palette[color_index];
+        
+        // Draw exploded slice
+        gmui_draw_pie_slice(center_x + explode_x, center_y + explode_y,
+                          inner_radius, radius,
+                          current_angle, current_angle + slice_angle,
+                          slice_color);
+        
+        current_angle += slice_angle;
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += plot_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, plot_height);
+    
+    gmui_new_line();
+    
+    return true;
+}
+
+function gmui_plot_donut(label, values, labels, count, width = -1, height = -1, donut_ratio = 0.5) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    // Temporarily set donut ratio
+    var old_ratio = global.gmui.style.plot_pie_donut_ratio;
+    global.gmui.style.plot_pie_donut_ratio = donut_ratio;
+    
+    // Use the regular pie plot function
+    var result = gmui_plot_pie(label, values, labels, count, width, height, false);
+    
+    // Restore original ratio
+    global.gmui.style.plot_pie_donut_ratio = old_ratio;
+    
+    return result;
 }
 
 function gmui_plot_stem(label, values, labels, count, w = 200, h = 120, radius = 3, color = c_white)
@@ -8661,10 +8866,8 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		    static frame_times = [16.7, 15.2, 18.3, 14.8, 22.1, 16.9, 15.7, 17.2, 19.5, 16.1];
 		    static scatter_x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 		    static scatter_y = [2, 4, 5, 4, 5, 7, 8, 7, 9, 8];
-			static pie_values = [10, 5, 8, 2];
-			static pie_names = ["HP", "MP", "Armor", "Luck"];
-			static pie_colors = [c_red, c_blue, c_purple, c_aqua];
-			static pie_radius = 120;
+			static pie_values = [25, 20, 15, 30, 10];
+			static pie_labels = ["Red", "Blue", "Green", "Yellow", "Purple"];
     
 		    gmui_text("Data Visualization Examples");
 		    gmui_text_disabled("Various chart types with customizable styling");
@@ -8688,7 +8891,15 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 			
 			// Pie plot example
 		    gmui_text("Pie Plot - Proportional Data");
-			gmui_plot_pie("Category Proportions", pie_values, pie_names, 4, pie_radius, pie_colors);
+		    gmui_plot_pie("Sales Distribution", pie_values, pie_labels, array_length(pie_values), 300, 200);
+		    gmui_plot_donut("Donut Chart Example", pie_values, pie_labels, array_length(pie_values), 300, 200, 0.4);
+		    gmui_plot_pie_exploded("Exploded View", pie_values, pie_labels, array_length(pie_values), 300, 200, false);
+    
+		    gmui_text("Controls");
+		    for (var i = 0; i < array_length(pie_values); i++) {
+		        gmui_text(pie_labels[i]); gmui_same_line();
+		        pie_values[i] = gmui_input_int(pie_values[i], 1, 0, 100, 80);
+		    }
 			
 			// Stem plot example
 			gmui_text("Stem Plot - Discrete Signal");
