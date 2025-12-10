@@ -1744,78 +1744,89 @@ function gmui_render() {
     //}
 }
 
-function gmui_add_sprite(x, y, w, h, sprite, subimg = 0) {
+function gmui_add_sprite(x, y, w, h, sprite, subimg = 0, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "sprite", spr: sprite, x: x, y: y, width: w, height: h, index: subimg
     });
 }
 
-function gmui_add_rect(x, y, w, h, col) {
+function gmui_add_rect(x, y, w, h, col, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "rect", x: x, y: y, width: w, height: h, color: col
     });
 }
 
-function gmui_add_rect_alpha(x, y, w, h, col, a) {
+function gmui_add_rect_alpha(x, y, w, h, col, a, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_alpha", x: x, y: y, width: w, height: h, color: col, alpha: a
     });
 }
 
-function gmui_add_rect_outline(x, y, w, h, col, thickness) {
+function gmui_add_rect_outline(x, y, w, h, col, thickness, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_outline", x: x, y: y, width: w, height: h, color: col, thickness: thickness
     });
 }
 
-function gmui_add_rect_outline_alpha(x, y, w, h, col, thickness, a) {
+function gmui_add_rect_outline_alpha(x, y, w, h, col, thickness, a, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_outline", x: x, y: y, width: w, height: h, color: col, thickness: thickness, alpha: a
     });
 }
 
-function gmui_add_rect_round(x, y, w, h, col, rnd) {
+function gmui_add_rect_round(x, y, w, h, col, rnd, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_round", x: x, y: y, width: w, height: h, color: col, rounding: rnd
     });
 }
 
-function gmui_add_rect_round_outline(x, y, w, h, col, rnd, thickness) {
+function gmui_add_rect_round_outline(x, y, w, h, col, rnd, thickness, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_round_outline", x: x, y: y, width: w, height: h, color: col, rounding: rnd, thickness: thickness
     });
 }
 
-function gmui_add_rect_round_outline_alpha(x, y, w, h, col, rnd, thickness, a) {
+function gmui_add_rect_round_outline_alpha(x, y, w, h, col, rnd, thickness, a, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_round_outline_alpha", x: x, y: y, width: w, height: h, color: col, rounding: rnd, thickness: thickness, alpha: a
     });
 }
 
-function gmui_add_rect_round_alpha(x, y, w, h, col, rnd, a) {
+function gmui_add_rect_round_alpha(x, y, w, h, col, rnd, a, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "rect_round_alpha", x: x, y: y, width: w, height: h, color: col, rounding: rnd, alpha: a
     });
 }
 
-function gmui_add_text(x, y, text, col) {
+function gmui_add_text(x, y, text, col, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "text", x: x, y: y, text: text, color: col
     });
 }
 
-function gmui_add_line(x1, y1, x2, y2, col, thickness) {
+function gmui_add_line(x1, y1, x2, y2, col, thickness, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     
     array_push(global.gmui.current_window.draw_list, {
         type: "line", 
@@ -1824,8 +1835,9 @@ function gmui_add_line(x1, y1, x2, y2, col, thickness) {
     });
 }
 
-function gmui_add_triangle(x1, y1, x2, y2, x3, y3, col) {
+function gmui_add_triangle(x1, y1, x2, y2, x3, y3, col, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "triangle",
         x1: x1, y1: y1,
@@ -1835,7 +1847,7 @@ function gmui_add_triangle(x1, y1, x2, y2, x3, y3, col) {
     });
 }
 
-function gmui_add_shader_rect(x, y, w, h, shader, uniforms) {
+function gmui_add_shader_rect(x, y, w, h, shader, uniforms) { // bounding? maybe later..
     if (!global.gmui.initialized || !global.gmui.current_window) return;
     array_push(global.gmui.current_window.draw_list, {
         type: "shader_rect",
@@ -1845,32 +1857,36 @@ function gmui_add_shader_rect(x, y, w, h, shader, uniforms) {
     });
 }
 
-function gmui_add_surface(x, y, surface) {
+function gmui_add_surface(x, y, surface, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "surface_o",
         x: x, y: y, surface: surface
     });
 };
 
-function gmui_add_circle(x, y, radius, color) {
+function gmui_add_circle(x, y, radius, color, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "circle_fill",
         x: x, y: y, radius: radius, color: color
     });
 }
 
-function gmui_add_circle_outline(x, y, radius, color, thickness) {
+function gmui_add_circle_outline(x, y, radius, color, thickness, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "circle_outline",
         x: x, y: y, radius: radius, color: color
     });
 }
 
-function gmui_add_arc(x, y, radius, thickness, start_angle, end_angle, color) {
+function gmui_add_arc(x, y, radius, thickness, start_angle, end_angle, color, bounds = undefined) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     
     // Draw arc using line segments
     var segments = 32;
@@ -7728,6 +7744,21 @@ function gmui_scroll_to_top(window_name) {
 //////////////////////////////////////
 // HELPERS (Utility functions, state management)
 //////////////////////////////////////
+function gmui_is_bound_in_current_window(bounds) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+	
+	var window = global.gmui.current_window;
+	
+	if (!rectangle_in_rectangle(
+		window.x, window.y, window.x + window.width, window.y + window.height,
+		bounds[0], bounds[1], bounds[0] + bounds[2], bounds[1] + bounds[3]
+	)) {
+		return false;
+	}
+	
+	return true;
+}
+
 function gmui_is_mouse_over_window(window) {
     var mx = global.gmui.mouse_pos[0];
     var my = global.gmui.mouse_pos[1];
@@ -7736,13 +7767,11 @@ function gmui_is_mouse_over_window(window) {
 	return result;
 }
 
-// Utility function: Check if point is in rectangle
 function gmui_is_point_in_rect(point_x, point_y, rect) {
     return (point_x >= rect[0] && point_x <= rect[2] &&
             point_y >= rect[1] && point_y <= rect[3]);
 }
 
-// Draw title bar with close button
 function gmui_draw_title_bar(window, title) {
     var style = global.gmui.style;
     var flags = window.flags;
@@ -7781,7 +7810,6 @@ function gmui_draw_title_bar(window, title) {
 	}
 }
 
-// Draw resize triangle
 function gmui_draw_window_resize(window) {
 	var origin_x = window.width;
 	var origin_y = window.height;
@@ -7794,7 +7822,6 @@ function gmui_draw_window_resize(window) {
 	gmui_add_line(origin_x - size, origin_y, origin_x, origin_y - size, col, thickness);
 }
 
-// Draw close button in title bar
 function gmui_draw_title_bar_close_button(window) {
     var style = global.gmui.style;
     var close_size = style.close_button_size;
@@ -7844,7 +7871,6 @@ function gmui_draw_title_bar_close_button(window) {
                  close_color, cross_thickness);
 }
 
-// Handle window dragging and resizing
 function gmui_handle_window_interaction(window) {
     var style = global.gmui.style;
     var flags = window.flags;
