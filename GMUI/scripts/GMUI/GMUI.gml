@@ -3051,7 +3051,7 @@ function gmui_color_button(color_rgba, size = -1) {
     gmui_draw_checkerboard_shader(button_x, button_y, button_size, button_size);
     
     // Draw color
-    gmui_add_rect_alpha(button_x, button_y, button_size, button_size, make_color_rgb(arr_rgba[0], arr_rgba[1], arr_rgba[2]), arr_rgba[3] / 255);
+    gmui_add_rect_alpha(button_x, button_y, button_size, button_size, make_color_rgb(arr_rgba[0], arr_rgba[1], arr_rgba[2]), arr_rgba[3]);
     
     // Draw border based on state
     var border_color = style.color_button_border_color;
