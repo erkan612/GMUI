@@ -9318,6 +9318,32 @@ function gmui_demo() { // Performance issues due to everything being dumped into
                     static sProgressGradientEndColor = gmui_color_rgb_to_color_rgba(global.gmui.style.progress_gradient_end_color);
                     sProgressGradientEndColor = gmui_color_button_4("Gradient End", sProgressGradientEndColor);
                     global.gmui.style.progress_gradient_end_color = gmui_color_rgba_to_color_rgb(sProgressGradientEndColor);
+					
+					static sPieLabelColor = gmui_color_rgb_to_color_rgba(global.gmui.style.plot_pie_label_color);
+					sPieLabelColor = gmui_color_button_4("Pie Label Color", sPieLabelColor);
+					global.gmui.style.plot_pie_label_color = gmui_color_rgba_to_color_rgb(sPieLabelColor);
+
+					static sPieLabelBgColor = global.gmui.style.plot_pie_label_bg_color;
+					sPieLabelBgColor = gmui_color_button_4("Pie Label BG Color", sPieLabelBgColor);
+					global.gmui.style.plot_pie_label_bg_color = sPieLabelBgColor;
+
+					gmui_text("Show Labels"); gmui_same_line();
+					global.gmui.style.plot_pie_show_labels = gmui_checkbox_box(global.gmui.style.plot_pie_show_labels);
+
+					gmui_text("Show Percentages"); gmui_same_line();
+					global.gmui.style.plot_pie_show_percentages = gmui_checkbox_box(global.gmui.style.plot_pie_show_percentages);
+
+					gmui_text("Start Angle"); gmui_same_line();
+					global.gmui.style.plot_pie_start_angle = gmui_input_int(global.gmui.style.plot_pie_start_angle, 5, -360, 360, 80);
+
+					gmui_text("Donut Ratio"); gmui_same_line();
+					global.gmui.style.plot_pie_donut_ratio = gmui_input_float(global.gmui.style.plot_pie_donut_ratio, 0.05, 0, 0.9, 80);
+
+					gmui_text("Explode Distance"); gmui_same_line();
+					global.gmui.style.plot_pie_explode_distance = gmui_input_int(global.gmui.style.plot_pie_explode_distance, 1, 0, 50, 80);
+
+					gmui_text("Min % to Show Label"); gmui_same_line();
+					global.gmui.style.plot_pie_min_percentage_to_show = gmui_input_float(global.gmui.style.plot_pie_min_percentage_to_show, 0.5, 0, 100, 80);
 
 		            gmui_end();
 		        }
