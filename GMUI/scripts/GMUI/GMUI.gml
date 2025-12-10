@@ -1510,7 +1510,7 @@ function gmui_render_surface(window) {
                 break;
 				
             case "rect_alpha":
-				draw_set_alpha(cmd.alpha);
+				draw_set_alpha(cmd.alpha / 255);
                 draw_set_color(cmd.color);
                 draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, false);
                 draw_set_alpha(1);
@@ -1521,7 +1521,7 @@ function gmui_render_surface(window) {
                 draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, true);
                 break;
             case "rect_outline_alpha":
-				draw_set_alpha(cmd.alpha);
+				draw_set_alpha(cmd.alpha / 255);
                 draw_set_color(cmd.color);
                 draw_rectangle(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, true);
                 draw_set_alpha(1);
@@ -1536,13 +1536,13 @@ function gmui_render_surface(window) {
 				draw_roundrect_ext(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.rounding, cmd.rounding, true);
 				break;
 			case "rect_round_alpha":
-				draw_set_alpha(cmd.alpha);
+				draw_set_alpha(cmd.alpha / 255);
 				draw_set_color(cmd.color);
 				draw_roundrect_ext(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.rounding, cmd.rounding, false);
 				draw_set_alpha(1);
 				break;
 			case "rect_round_outline_alpha":
-				draw_set_alpha(cmd.alpha);
+				draw_set_alpha(cmd.alpha / 255);
 				draw_set_color(cmd.color);
 				draw_roundrect_ext(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.rounding, cmd.rounding, true);
 				draw_set_alpha(1);
@@ -7250,12 +7250,20 @@ function gmui_plot_pie(label, values, labels, count, width = -1, height = -1, sh
             
             // Draw label background if enabled
             if (style.plot_pie_label_bg_color != -1) {
-                gmui_add_rect_round(label_x - text_size[0]/2 - style.plot_pie_label_padding[0],
+                //gmui_add_rect_round(label_x - text_size[0]/2 - style.plot_pie_label_padding[0],
+                //                  label_y - text_size[1]/2 - style.plot_pie_label_padding[1],
+                //                  text_size[0] + style.plot_pie_label_padding[0]*2,
+                //                  text_size[1] + style.plot_pie_label_padding[1]*2,
+                //                  style.plot_pie_label_bg_color,
+                //                  style.plot_pie_label_rounding);
+				var color = gmui_color_rgba_to_array(style.plot_pie_label_bg_color);
+                gmui_add_rect_round_alpha(label_x - text_size[0]/2 - style.plot_pie_label_padding[0],
                                   label_y - text_size[1]/2 - style.plot_pie_label_padding[1],
                                   text_size[0] + style.plot_pie_label_padding[0]*2,
                                   text_size[1] + style.plot_pie_label_padding[1]*2,
-                                  style.plot_pie_label_bg_color,
-                                  style.plot_pie_label_rounding);
+                                  make_color_rgb(color[0], color[1], color[2]),
+                                  style.plot_pie_label_rounding, 
+								  color[3]);
             }
             
             // Draw label text
