@@ -20,22 +20,22 @@
 * DEALINGS IN THE SOFTWARE.                                                                  *
 *********************************************************************************************/
 /*-------------------------------------------------------------------------------------------*
-***************************************                                                      *
-   ██████╗ ███╗   ███╗██╗   ██╗██╗		                                                     *
-  ██╔════╝ ████╗ ████║██║   ██║██║		                                                     *
-  ██║  ███╗██╔████╔██║██║   ██║██║		                                                     *
-  ██║   ██║██║╚██╔╝██║██║   ██║██║		                                                     *
-  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                                                     *
-   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                                                     *
- GameMaker Immediate Mode UI Library	                                                     *
-           Version 1.8.8				                                                     *
-										                                                     *
-           by erkan612					                                                     *
-=======================================	                                                     *
-A feature rich Immediate-Mode UI system	                                                     *
-             for GameMaker				                                                     *
-=======================================	                                                     *
-***************************************                                                      *
+							***************************************                          *
+							   ██████╗ ███╗   ███╗██╗   ██╗██╗		                         *
+							  ██╔════╝ ████╗ ████║██║   ██║██║		                         *
+							  ██║  ███╗██╔████╔██║██║   ██║██║		                         *
+							  ██║   ██║██║╚██╔╝██║██║   ██║██║		                         *
+							  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
+							   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
+							 GameMaker Immediate Mode UI Library	                         *
+							           Version 1.8.8				                         *
+																	                         *
+							           by erkan612					                         *
+							=======================================	                         *
+							A feature rich Immediate-Mode UI system	                         *
+							             for GameMaker				                         *
+							=======================================	                         *
+							***************************************                          *
 /*------------------------------------------------------------------------------------------*/
 
 /************************************
@@ -1532,6 +1532,15 @@ function gmui_render_surface(window) {
 				draw_roundrect_ext(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.rounding, cmd.rounding, true);
 				draw_set_alpha(1);
 				break;
+			
+            case "circle_fill":
+                draw_set_color(cmd.color);
+				draw_circle(cmd.x, cmd.y, cmd.radius, false);
+                break;
+            case "circle_outline":
+                draw_set_color(cmd.color);
+				draw_circle(cmd.x, cmd.y, cmd.radius, true);
+                break;
                 
             case "text":
 				if (string_copy(cmd.text, 1, 2) == "##") { break; }; // dont render texts those start with prefix '##'
@@ -1846,42 +1855,18 @@ function gmui_add_surface(x, y, surface) {
 
 function gmui_add_circle(x, y, radius, color) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
-    
-    // Draw circle using multiple line segments
-    var segments = 32;
-    var angle_step = 2 * pi / segments;
-    
-    for (var i = 0; i < segments; i++) {
-        var angle1 = i * angle_step;
-        var angle2 = (i + 1) * angle_step;
-        
-        var x1 = x + cos(angle1) * radius;
-        var y1 = y + sin(angle1) * radius;
-        var x2 = x + cos(angle2) * radius;
-        var y2 = y + sin(angle2) * radius;
-        
-        gmui_add_line(x1, y1, x2, y2, color, 1);
-    }
+    array_push(global.gmui.current_window.draw_list, {
+        type: "circle_fill",
+        x: x, y: y, radius: radius, color: color
+    });
 }
 
 function gmui_add_circle_outline(x, y, radius, color, thickness) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
-    
-    // Draw circle outline using multiple line segments
-    var segments = 32;
-    var angle_step = 2 * pi / segments;
-    
-    for (var i = 0; i < segments; i++) {
-        var angle1 = i * angle_step;
-        var angle2 = (i + 1) * angle_step;
-        
-        var x1 = x + cos(angle1) * radius;
-        var y1 = y + sin(angle1) * radius;
-        var x2 = x + cos(angle2) * radius;
-        var y2 = y + sin(angle2) * radius;
-        
-        gmui_add_line(x1, y1, x2, y2, color, thickness);
-    }
+    array_push(global.gmui.current_window.draw_list, {
+        type: "circle_outline",
+        x: x, y: y, radius: radius, color: color
+    });
 }
 
 function gmui_add_arc(x, y, radius, thickness, start_angle, end_angle, color) {
@@ -3511,6 +3496,343 @@ function gmui_draw_alpha_bar(x, y, width, height, rgb_color) {
 //////////////////////////////////////
 // CONTAINERS (Treeviews, collapsible headers, selectables)
 //////////////////////////////////////
+function gmui_selectable_radio(label, selected, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    var element_id = "id_selectable_radio_" + label + string(dc.cursor_x) + string(dc.cursor_y);
+    
+    // Calculate radio size
+    var text_size = gmui_calc_text_size(label);
+    var radio_size = max(16, min(style.checkbox_size, text_size[1] - 4));
+    var total_width = text_size[0] + style.checkbox_spacing + radio_size;
+    var total_height = max(radio_size, text_size[1]);
+    
+    // Use custom size if provided
+    if (width > 0) total_width = width;
+    if (height > 0) total_height = height;
+    
+    // Check if radio fits on current line
+    // if (dc.cursor_x + total_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //     gmui_new_line();
+    // }
+    
+    // Calculate radio bounds (circle on left, text on right)
+    var radio_x = dc.cursor_x;
+    var radio_y = dc.cursor_y + (total_height - radio_size) / 2;
+    var radio_bounds = [radio_x, radio_y, radio_x + radio_size, radio_y + radio_size];
+    
+    // Calculate total interactive bounds (radio + label)
+    var interactive_bounds = [
+        radio_x,
+        dc.cursor_y,
+        radio_x + total_width,
+        dc.cursor_y + total_height
+    ];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         interactive_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over && window.active && !global.gmui.is_hovering_element) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+    
+    // Draw based on state
+    var bg_color, border_color, text_color, dot_color;
+    var border_size = style.checkbox_border_size;
+    
+    if (!window.active) {
+        // Disabled state
+        bg_color = style.checkbox_disabled_bg_color;
+        border_color = style.checkbox_disabled_border_color;
+        text_color = style.checkbox_text_disabled_color;
+        dot_color = style.checkbox_text_disabled_color;
+    } else if (is_active) {
+        // Active/pressed state
+        bg_color = style.checkbox_active_bg_color;
+        border_color = style.checkbox_active_border_color;
+        text_color = style.checkbox_text_color;
+        dot_color = style.checkbox_check_color;
+    } else if (mouse_over) {
+        // Hover state
+        bg_color = style.checkbox_hover_bg_color;
+        border_color = style.checkbox_hover_border_color;
+        text_color = style.checkbox_text_color;
+        dot_color = style.checkbox_check_color;
+    } else {
+        // Normal state
+        bg_color = style.checkbox_bg_color;
+        border_color = style.checkbox_border_color;
+        text_color = window.active ? style.checkbox_text_color : style.checkbox_text_disabled_color;
+        dot_color = style.checkbox_check_color;
+    }
+    
+    // Draw radio circle background
+    gmui_add_circle(radio_x + radio_size/2, radio_y + radio_size/2, radio_size/2 - 1, bg_color);
+    
+    // Draw radio border
+    if (border_size > 0) {
+        gmui_add_circle_outline(radio_x + radio_size/2, radio_y + radio_size/2, 
+                               radio_size/2 - border_size/2, border_color, border_size);
+    }
+    
+    // Draw radio dot if selected
+    if (selected && window.active) {
+        var dot_size = radio_size / 3;
+        gmui_add_circle(radio_x + radio_size/2, radio_y + radio_size/2, dot_size, dot_color);
+    } else if (selected && !window.active) {
+        // Disabled selected state
+        var dot_size = radio_size / 3;
+        gmui_add_circle(radio_x + radio_size/2, radio_y + radio_size/2, dot_size, style.checkbox_text_disabled_color);
+    }
+    
+    // Draw label
+    var label_x = radio_x + radio_size + style.checkbox_spacing;
+    var label_y = dc.cursor_y + (total_height - text_size[1]) / 2;
+    gmui_add_text(label_x, label_y, label, text_color);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += total_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, total_height);
+    
+    gmui_new_line();
+    
+    return clicked && window.active;
+}
+
+function gmui_selectable_radio_disabled(label, selected, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate radio size
+    var text_size = gmui_calc_text_size(label);
+    var radio_size = max(16, min(style.checkbox_size, text_size[1] - 4));
+    var total_width = text_size[0] + style.checkbox_spacing + radio_size;
+    var total_height = max(radio_size, text_size[1]);
+    
+    if (width > 0) total_width = width;
+    if (height > 0) total_height = height;
+    
+    // Check if radio fits on current line
+    // if (dc.cursor_x + total_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //     gmui_new_line();
+    // }
+    
+    var radio_x = dc.cursor_x;
+    var radio_y = dc.cursor_y + (total_height - radio_size) / 2;
+    
+    // Draw disabled radio circle
+    gmui_add_circle(radio_x + radio_size/2, radio_y + radio_size/2, 
+                   radio_size/2 - 1, style.checkbox_disabled_bg_color);
+    
+    // Draw disabled border
+    if (style.checkbox_border_size > 0) {
+        gmui_add_circle_outline(radio_x + radio_size/2, radio_y + radio_size/2, 
+                               radio_size/2 - style.checkbox_border_size/2, 
+                               style.checkbox_disabled_border_color, 
+                               style.checkbox_border_size);
+    }
+    
+    // Draw disabled dot if selected
+    if (selected) {
+        var dot_size = radio_size / 3;
+        gmui_add_circle(radio_x + radio_size/2, radio_y + radio_size/2, 
+                       dot_size, style.checkbox_text_disabled_color);
+    }
+    
+    // Draw disabled label
+    var label_x = radio_x + radio_size + style.checkbox_spacing;
+    var label_y = dc.cursor_y + (total_height - text_size[1]) / 2;
+    gmui_add_text(label_x, label_y, label, style.checkbox_text_disabled_color);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += total_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, total_height);
+    
+    gmui_new_line();
+    
+    return false;
+}
+
+function gmui_selectable_radio_box(selected, size = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    var element_id = "id_selectable_radio_box_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    var radio_size = size > 0 ? size : style.checkbox_size;
+    
+    // Calculate radio bounds
+    var radio_x = dc.cursor_x;
+    var radio_y = dc.cursor_y;
+    var radio_bounds = [radio_x, radio_y, radio_x + radio_size, radio_y + radio_size];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         radio_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over && window.active && !global.gmui.is_hovering_element) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+    
+    // Draw based on state
+    var bg_color, border_color, dot_color;
+    var border_size = style.checkbox_border_size;
+    
+    if (!window.active) {
+        bg_color = style.checkbox_disabled_bg_color;
+        border_color = style.checkbox_disabled_border_color;
+        dot_color = style.checkbox_text_disabled_color;
+    } else if (is_active) {
+        bg_color = style.checkbox_active_bg_color;
+        border_color = style.checkbox_active_border_color;
+        dot_color = style.checkbox_check_color;
+    } else if (mouse_over) {
+        bg_color = style.checkbox_hover_bg_color;
+        border_color = style.checkbox_hover_border_color;
+        dot_color = style.checkbox_check_color;
+    } else {
+        bg_color = style.checkbox_bg_color;
+        border_color = style.checkbox_border_color;
+        dot_color = style.checkbox_check_color;
+    }
+    
+    // Draw radio circle
+    gmui_add_circle(radio_x + radio_size/2, radio_y + radio_size/2, radio_size/2 - 1, bg_color);
+    
+    // Draw border
+    if (border_size > 0) {
+        gmui_add_circle_outline(radio_x + radio_size/2, radio_y + radio_size/2, 
+                               radio_size/2 - border_size/2, border_color, border_size);
+    }
+    
+    // Draw dot if selected
+    if (selected && window.active) {
+        var dot_size = radio_size / 3;
+        gmui_add_circle(radio_x + radio_size/2, radio_y + radio_size/2, dot_size, dot_color);
+    } else if (selected && !window.active) {
+        var dot_size = radio_size / 3;
+        gmui_add_circle(radio_x + radio_size/2, radio_y + radio_size/2, dot_size, style.checkbox_text_disabled_color);
+    }
+	
+	if (clicked) {
+		selected = !selected;
+	}
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += radio_size + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, radio_size);
+    
+    gmui_new_line();
+    
+    return selected && window.active;
+}
+
+function gmui_selectable_radio_group(labels, selected_index, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return selected_index;
+    
+    var new_selected = selected_index;
+    
+    for (var i = 0; i < array_length(labels); i++) {
+        var is_selected = (i == selected_index);
+        if (gmui_selectable_radio(labels[i], is_selected, width, height)) {
+            new_selected = i;
+        }
+        
+        // Radio buttons should be mutually exclusive
+        if (i != selected_index && new_selected == i) {
+            selected_index = i; // Update for next iteration
+        }
+    }
+    
+    return new_selected;
+}
+
+function gmui_selectable_radio_group_vertical(labels, selected_index, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return selected_index;
+    
+    var new_selected = selected_index;
+    
+    for (var i = 0; i < array_length(labels); i++) {
+        var is_selected = (i == selected_index);
+        if (gmui_selectable_radio(labels[i], is_selected, width, height)) {
+            new_selected = i;
+        }
+        
+        // Radio buttons should be mutually exclusive
+        if (i != selected_index && new_selected == i) {
+            selected_index = i; // Update for next iteration
+        }
+    }
+    
+    return new_selected;
+}
+
+function gmui_selectable_radio_group_horizontal(labels, selected_index, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return selected_index;
+    
+    var new_selected = selected_index;
+    var start_cursor_x = global.gmui.current_window.dc.cursor_x;
+    
+    for (var i = 0; i < array_length(labels); i++) {
+        var is_selected = (i == selected_index);
+        if (gmui_selectable_radio(labels[i], is_selected, width, height)) {
+            new_selected = i;
+        }
+        
+        // Radio buttons should be mutually exclusive
+        if (i != selected_index && new_selected == i) {
+            selected_index = i; // Update for next iteration
+        }
+        
+        // Stay on same line for horizontal layout
+        if (i < array_length(labels) - 1) {
+            gmui_same_line();
+        }
+    }
+    
+    return new_selected;
+}
+
 function gmui_selectable(label, selected, width = -1, height = -1) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
     
@@ -4430,20 +4752,20 @@ function gmui_checkbox(label, value) {
     //}
     
     // Calculate label bounds (on the left)
-    var label_x = dc.cursor_x;
+    var label_x = dc.cursor_x + style.checkbox_size + style.checkbox_spacing;
     var label_y = dc.cursor_y + (total_height - text_size[1]) / 2;
     var label_bounds = [label_x, label_y, label_x + text_size[0], label_y + text_size[1]];
     
     // Calculate checkbox bounds (on the right)
-    var checkbox_x = dc.cursor_x + text_size[0] + style.checkbox_spacing;
+    var checkbox_x = dc.cursor_x;
     var checkbox_y = dc.cursor_y + (total_height - style.checkbox_size) / 2;
     var checkbox_bounds = [checkbox_x, checkbox_y, checkbox_x + style.checkbox_size, checkbox_y + style.checkbox_size];
     
     // Calculate total interactive bounds (label + checkbox)
     var interactive_bounds = [
-        label_x, 
+        dc.cursor_x, 
         dc.cursor_y, 
-        checkbox_x + style.checkbox_size, 
+        dc.cursor_x + style.checkbox_size + style.checkbox_spacing + text_size[0], 
         dc.cursor_y + total_height
     ];
     
@@ -7172,6 +7494,7 @@ function gmui_tab(idx) {
 };
 
 function gmui_calc_text_size(text) {
+	if (text == "") { return [ 0, 0 ]; };
     return [string_width(text), string_height(text)];
 }
 
@@ -7890,6 +8213,48 @@ function gmui_demo() { // Performance issues due to everything being dumped into
             gmui_text("Checkboxes");
             basic_check = gmui_checkbox("Checkbox", basic_check);
             
+            // Radio Buttons
+            gmui_text("Radio Buttons");
+            static radio_selected = 0;
+            if (gmui_selectable_radio("Radio A", radio_selected == 0)) {
+                radio_selected = 0;
+            }
+            gmui_same_line();
+            if (gmui_selectable_radio("Radio B", radio_selected == 1)) {
+                radio_selected = 1;
+            }
+            gmui_same_line();
+            if (gmui_selectable_radio("Radio C", radio_selected == 2)) {
+                radio_selected = 2;
+            }
+            gmui_same_line();
+            gmui_selectable_radio_disabled("Disabled", false);
+            
+            // Radio Group
+            gmui_text("Radio Button Group");
+            static radio_group_selected = 0;
+            static radio_options = ["Option 1", "Option 2", "Option 3", "Option 4"];
+            radio_group_selected = gmui_selectable_radio_group(radio_options, radio_group_selected);
+            gmui_label_text("Selected", radio_options[radio_group_selected]);
+            
+            // Horizontal Radio Group
+            gmui_text("Horizontal Radio Group");
+            static horizontal_radio_selected = 0;
+            static horizontal_options = ["H1", "H2", "H3"];
+            horizontal_radio_selected = gmui_selectable_radio_group_horizontal(horizontal_options, horizontal_radio_selected);
+            
+            // Radio Box Only
+            gmui_text("Radio Box Only (no label)");
+            static radio_box_selected1 = true;
+            static radio_box_selected2 = false;
+            static radio_box_selected3 = true;
+            gmui_same_line();
+            radio_box_selected1 = gmui_selectable_radio_box(radio_box_selected1, 20);
+            gmui_same_line();
+            radio_box_selected2 = gmui_selectable_radio_box(radio_box_selected2, 16);
+            gmui_same_line();
+            radio_box_selected3 = gmui_selectable_radio_box(radio_box_selected3, 24);
+            
             gmui_text("Selectables");
             if (gmui_selectable("Option A", basic_selectable == 0)) { basic_selectable = 0; } gmui_same_line();
             if (gmui_selectable("Option B", basic_selectable == 1)) { basic_selectable = 1; } gmui_same_line();
@@ -7901,10 +8266,10 @@ function gmui_demo() { // Performance issues due to everything being dumped into
             gmui_label_text("Text length", string(string_length(basic_text)));
             
             gmui_text("Numeric Input");
-			gmui_text("Integer"); gmui_same_line();
+            gmui_text("Integer"); gmui_same_line();
             basic_int = gmui_input_int(basic_int, undefined, -100, 100);
             gmui_same_line();
-			gmui_text("Float"); gmui_same_line();
+            gmui_text("Float"); gmui_same_line();
             basic_float = gmui_input_float(basic_float, undefined, -100, 100);
             
             gmui_collapsing_header_end();
