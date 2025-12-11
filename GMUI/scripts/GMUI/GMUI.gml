@@ -109,6 +109,8 @@ function gmui_init(font = undefined) {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
+            tooltip_width: 350,
+            tooltip_text: "",
 			last_pressed_clickable_id: undefined, // meant for release-action elements
 			context_menu_cache: ds_map_create(),
 			current_context_menu_last_available_sub_pos: [ 0, 0 ],
@@ -652,6 +654,16 @@ function gmui_init(font = undefined) {
 			    tab_scroll_button_size: 16, // Smaller compact buttons
 			    tab_scroll_track_color: c_dkgray, // Color for scroll track
 			    tab_scroll_thumb_color: c_gray, // Color for scroll thumb
+				
+				tooltip_border_size: 1,
+				tooltip_border_color: make_color_rgb(60, 60, 60),
+				tooltip_background_color: make_color_rgb(70, 70, 70),
+				tooltip_hover_background_color: make_color_rgb(90, 90, 90),
+				tooltip_text_color: make_color_rgb(220, 220, 220),
+				tooltip_radius: 8,
+				tooltip_message_background_color: make_color_rgb(100, 100, 60),
+				tooltip_message_border_color: make_color_rgb(10, 10, 10),
+				tooltip_message_text_color: make_color_rgb(220, 220, 220),
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -1497,6 +1509,10 @@ function gmui_update() {
 		};
 	});
 	gmui_array_clear(cache_surfaces_values);
+	
+	// Set tooltip values back to default
+	global.gmui.tooltip_text = "";
+	global.gmui.tooltip_width = 350;
 };
 
 function gmui_handle_modals() {
@@ -1776,6 +1792,45 @@ function gmui_render() {
     
     ds_priority_destroy(sorted_windows);
 	
+	// Render Tooltip
+	if (global.gmui.tooltip_text != "") {
+		var gap = 5; // a small gap added to the text position for convinience
+		var tx = global.gmui.mouse_pos[0];
+		var ty = global.gmui.mouse_pos[1];
+		var tw = global.gmui.tooltip_width;
+		var th = gmui_get_text_wrap_height(tw, global.gmui.tooltip_text);
+		
+		var convinience_gap = 15; // a gap added to prevent cursor blocking small portion of the canvas
+		
+		var screen_width = surface_get_width(application_surface);
+		var screen_height = surface_get_height(application_surface);
+		
+		// Possition correlation on screen
+		if (tx + convinience_gap + tw > screen_width) {
+			tx += -(convinience_gap + tw);
+		}
+		else {
+			tx += convinience_gap;
+		}
+		
+		if (ty + convinience_gap + th > screen_height) {
+			ty += -(convinience_gap + th);
+		}
+		else {
+			ty += convinience_gap;
+		}
+		
+		draw_set_alpha(1);
+		
+		draw_set_color(global.gmui.style.tooltip_message_background_color);
+		draw_rectangle(tx, ty, tx + tw + gap * 2,  ty + th + gap * 2, false);
+		draw_set_color(global.gmui.style.tooltip_message_border_color);
+		draw_rectangle(tx, ty, tx + tw + gap * 2, ty + th + gap * 2, true);
+		draw_set_color(global.gmui.style.tooltip_message_text_color);
+		
+		gmui_draw_text_wrap(tx + gap, ty + gap, tw, global.gmui.tooltip_text);
+	}
+	
 	if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id != undefined) {
 		global.gmui.last_pressed_clickable_id = undefined;
 	}
@@ -1824,6 +1879,62 @@ function gmui_render() {
     //        window.active = false;
     //    }
     //}
+}
+
+function gmui_draw_text_wrap(_x, _y, _width, _text) {
+    var words = string_split(_text, " ");
+    var line = "";
+    var line_y = _y;
+    var lh = string_height("A"); // line height
+
+    for (var i = 0; i < array_length(words); i++)
+    {
+        var w = words[i];
+        var test_line = line == "" ? w : line + " " + w;
+
+        // If adding this word exceeds width -> draw the current line
+        if (string_width(test_line) > _width)
+        {
+            draw_text(_x, line_y, line);
+            line_y += lh;
+            line = w; // New line starts with current word
+        }
+        else
+        {
+            line = test_line;
+        }
+    }
+
+    // Draw last line
+    if (line != "")
+        draw_text(_x, line_y, line);
+
+    // Return total height drawn
+    return line_y + lh - _y;
+}
+function gmui_get_text_wrap_height(_width, _text) {
+    var words = string_split(_text, " ");
+    var line = "";
+    var lines = 1; // At least one line
+    var lh = string_height("A");
+
+    for (var i = 0; i < array_length(words); i++)
+    {
+        var w = words[i];
+        var test_line = line == "" ? w : line + " " + w;
+
+        if (string_width(test_line) > _width)
+        {
+            lines++;
+            line = w;
+        }
+        else
+        {
+            line = test_line;
+        }
+    }
+
+    return lines * lh;
 }
 
 function gmui_add_sprite(x, y, w, h, sprite, subimg = 0, bounds = undefined) {
@@ -9074,6 +9185,66 @@ function gmui_tabs_content_end() {
     dc.line_height = 0;
     
     gmui_new_line();
+}
+
+function gmui_tooltip(text, width = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+
+	var txt = "?";
+	var txt_size = gmui_calc_text_size(txt);
+	
+	var tx = dc.cursor_x;
+	var ty = dc.cursor_y;
+	
+	var radius = style.tooltip_radius;
+	
+	var tw = radius;
+	var th = radius;
+	
+	var bounds = [tx, ty, tx + tw * 2, ty + th * 2];
+	
+	// Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         bounds) && !global.gmui.is_hovering_element;
+	
+	var bg_color = style.tooltip_background_color;
+	
+	if (mouse_over) {
+		global.gmui.is_hovering_element = true;
+		global.gmui.tooltip_text = text;
+		
+		bg_color = style.tooltip_hover_background_color;
+
+		if (width != -1) { global.gmui.tooltip_width = width; }
+	}
+	
+	// Draw background
+	gmui_add_circle(tx + radius, ty + radius, radius, bg_color);
+	
+	// Draw border (if any)
+	if (style.tooltip_border_size > 0) {
+		gmui_add_circle_outline(tx + radius, ty + radius, radius, style.tooltip_border_color, style.tooltip_border_size, bounds);
+	}
+	
+	// Draw the question mark
+	var text_x = tx + abs(radius * 2 - txt_size[0]) / 2;
+	var text_y = ty + abs(radius * 2 - txt_size[1]) / 2;
+    gmui_add_text(text_x + 1, text_y + 2, txt, style.tooltip_text_color, bounds);
+	
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += radius + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, radius);
+    
+    gmui_new_line();
+	
+	return mouse_over;
 }
 
 /************************************
