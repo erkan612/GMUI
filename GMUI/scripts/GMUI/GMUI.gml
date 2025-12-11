@@ -20,22 +20,22 @@
 * DEALINGS IN THE SOFTWARE.                                                                  *
 *********************************************************************************************/
 /*-------------------------------------------------------------------------------------------*
-							***************************************                          *
-							   ██████╗ ███╗   ███╗██╗   ██╗██╗		                         *
-							  ██╔════╝ ████╗ ████║██║   ██║██║		                         *
-							  ██║  ███╗██╔████╔██║██║   ██║██║		                         *
-							  ██║   ██║██║╚██╔╝██║██║   ██║██║		                         *
-							  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
-							   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
-							 GameMaker Immediate Mode UI Library	                         *
-							           Version 1.9.15				                         *
-																	                         *
-							           by erkan612					                         *
-							=======================================	                         *
-							A feature rich Immediate-Mode UI system	                         *
-							             for GameMaker				                         *
-							=======================================	                         *
-							***************************************                          *
+*   						***************************************                          *
+*   						   ██████╗ ███╗   ███╗██╗   ██╗██╗		                         *
+*   						  ██╔════╝ ████╗ ████║██║   ██║██║		                         *
+*   						  ██║  ███╗██╔████╔██║██║   ██║██║		                         *
+*   						  ██║   ██║██║╚██╔╝██║██║   ██║██║		                         *
+*   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
+*   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
+*   						 GameMaker Immediate Mode UI Library	                         *
+*   						           Version 1.9.15				                         *
+*   																                         *
+*   						           by erkan612					                         *
+*   						=======================================	                         *
+*   						A feature rich Immediate-Mode UI system	                         *
+*   						             for GameMaker				                         *
+*   						=======================================	                         *
+*   						***************************************                          *
 /*------------------------------------------------------------------------------------------*/
 
 /************************************
@@ -80,7 +80,7 @@ enum gmui_window_flags {
     AUTO_VSCROLL					= 1 << 29,
 	NO_MOVE_DEPTH					= 1 << 30,
 	NO_BORDER						= 1 << 31,
-}
+};
 
 enum gmui_pre_window_flags {
 	MODAL_DEFAULT					= gmui_window_flags.NO_CLOSE			| gmui_window_flags.NO_RESIZE			| gmui_window_flags.NO_COLLAPSE					| gmui_window_flags.POPUP, 
@@ -96,9 +96,16 @@ enum gmui_pre_window_flags {
 	WINS_SET_HORIZONTAL				= gmui_pre_window_flags.WINS			| gmui_window_flags.AUTO_HSCROLL		| gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL, 
 };
 
+enum gmui_arrow_direction {
+    UP = 0,
+    DOWN = 1,
+    LEFT = 2,
+    RIGHT = 3
+};
+
 function gmui_get() { return global.gmui; };
 
-function gmui_init() {
+function gmui_init(font = undefined) {
     if (global.gmui == undefined) {
         global.gmui = {
             initialized: true,
@@ -598,6 +605,53 @@ function gmui_init() {
 				plot_pie_min_percentage_to_show: 5, // Don't show labels for slices smaller than 5%
 				plot_pie_animation_duration: 0.5, // Animation duration in seconds
 				plot_pie_animation_easing: "easeOut",
+				
+				// Tab styles
+				tab_bar_height: 32,
+				tab_rounding: 4,
+				tab_border_size: 1,
+				tab_spacing: 2,
+				tab_padding: [12, 6],
+				tab_min_width: 80,
+				tab_max_width: 200,
+				tab_bg_color: make_color_rgb(50, 50, 50),
+				tab_hover_bg_color: make_color_rgb(70, 70, 70),
+				tab_active_bg_color: make_color_rgb(90, 90, 90),
+				tab_selected_bg_color: make_color_rgb(100, 150, 255),
+				tab_border_color: make_color_rgb(80, 80, 80),
+				tab_text_color: make_color_rgb(220, 220, 220),
+				tab_selected_text_color: make_color_rgb(255, 255, 255),
+				tab_disabled_text_color: make_color_rgb(128, 128, 128),
+
+				// Scroll buttons for tabs
+				tab_scroll_button_size: 24,
+				tab_scroll_button_color: make_color_rgb(100, 100, 100),
+				tab_scroll_button_hover_color: make_color_rgb(120, 120, 120),
+				tab_scroll_button_active_color: make_color_rgb(80, 80, 80),
+
+				// Close button in tabs
+				tab_close_button_size: 16,
+				tab_close_button_color: make_color_rgb(150, 150, 150),
+				tab_close_button_hover_color: make_color_rgb(220, 100, 100),
+				tab_close_button_active_color: make_color_rgb(180, 80, 80),
+
+				// Tab content area
+				tab_content_bg_color: make_color_rgb(40, 40, 40),
+				tab_content_border_color: make_color_rgb(70, 70, 70),
+				tab_content_border_size: 1,
+				tab_content_padding: [8, 8],
+
+				// Tab states
+				tab_allow_reorder: true,
+				tab_allow_close: false,
+				tab_show_scroll_buttons: true,
+				tab_fit_to_content: false,
+				tab_center_aligned: false,
+				
+				// Tab scrolls
+			    tab_scroll_button_size: 16, // Smaller compact buttons
+			    tab_scroll_track_color: c_dkgray, // Color for scroll track
+			    tab_scroll_thumb_color: c_gray, // Color for scroll thumb
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -611,7 +665,16 @@ function gmui_init() {
 		gmui_cache_set("array.cache_surfaces.values", array_create(0));
 		gmui_cache_set("array.mouse_pos", array_create(2));
 		gmui_cache_set("array.mb_array", [ mb_left, mb_right, mb_middle, mb_side1, mb_side2 ]);
+		
+		if (font != undefined) { gmui_set_font(font); }
     }
+}
+
+function gmui_set_font(font) {
+    if (!global.gmui.initialized) return undefined;
+	
+	global.gmui.font = font;
+	draw_set_font(font);
 }
 
 function gmui_window_state() {
@@ -1597,6 +1660,10 @@ function gmui_render_surface(window) {
 			case "sprite":
 			    draw_sprite_ext(cmd.spr, cmd.index, cmd.x, cmd.y, cmd.width / sprite_get_width(cmd.spr), cmd.height / sprite_get_height(cmd.spr), 0, #ffffff, 1);
 			    break;
+			    
+			case "sprite_tinted":
+			    draw_sprite_ext(cmd.spr, cmd.index, cmd.x, cmd.y, cmd.width / sprite_get_width(cmd.spr), cmd.height / sprite_get_height(cmd.spr), 0, cmd.tint_color, cmd.tint_alpha);
+			    break;
 			
 			case "shader_rect":
 			    shader_set(cmd.shader);
@@ -1764,6 +1831,14 @@ function gmui_add_sprite(x, y, w, h, sprite, subimg = 0, bounds = undefined) {
 	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
     array_push(global.gmui.current_window.draw_list, {
         type: "sprite", spr: sprite, x: x, y: y, width: w, height: h, index: subimg
+    });
+}
+
+function gmui_add_sprite_tinted(x, y, w, h, sprite, subimg, tint_color, tint_alpha = 1.0, bounds = undefined) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    array_push(global.gmui.current_window.draw_list, {
+        type: "sprite_tinted", spr: sprite, x: x, y: y, width: w, height: h, index: subimg, tint_color: tint_color, tint_alpha: tint_alpha
     });
 }
 
@@ -2709,6 +2784,717 @@ function gmui_menu_item(label, context_menu_name = undefined) {
 	//gmui_new_line();
 	
 	gmui_cache_set(item_id, check);
+    
+    return clicked && window.active;
+}
+
+function gmui_image_button(sprite, subimg = 0, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    var element_id = "id_image_button_" + string(sprite) + "_" + string(subimg) + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    // Calculate button size
+    var button_width = width > 0 ? width : sprite_get_width(sprite);
+    var button_height = height > 0 ? height : sprite_get_height(sprite);
+	
+	// Calculate image width
+	var image_width = button_width;
+	var image_height = button_width;
+    
+    // Add padding based on style
+    button_width += style.button_padding[0] * 2;
+    button_height += style.button_padding[1] * 2;
+    
+    // Ensure minimum size
+    button_width = max(button_width, style.button_min_size[0]);
+    button_height = max(button_height, style.button_min_size[1]);
+    
+    // Calculate button bounds
+    var button_x = dc.cursor_x;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + button_width, button_y + button_height];
+    
+    // Calculate sprite position (centered)
+    var sprite_x = button_x + (button_width - image_width) / 2;
+    var sprite_y = button_y + (button_height - image_height) / 2;
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over && window.active) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+    
+    // Draw button based on state
+    var bg_color, border_color;
+    
+    if (!window.active) {
+        // Window not active - disabled state
+        bg_color = style.button_disabled_bg_color;
+        border_color = style.button_disabled_border_color;
+    } else if (is_active) {
+        // Button being pressed
+        bg_color = style.button_active_bg_color;
+        border_color = style.button_active_border_color;
+    } else if (mouse_over) {
+        // Mouse hovering
+        bg_color = style.button_hover_bg_color;
+        border_color = style.button_hover_border_color;
+    } else {
+        // Normal state
+        bg_color = style.button_bg_color;
+        border_color = style.button_border_color;
+    }
+    
+    // Draw button background
+    gmui_add_rect_round(button_x, button_y, button_width, button_height, bg_color, style.button_rounding, button_bounds);
+    
+    // Draw border
+    if (style.button_border_size > 0) {
+        gmui_add_rect_round_outline(button_x, button_y, button_width, button_height, 
+                            border_color, style.button_rounding, style.button_border_size, button_bounds);
+    }
+    
+    // Draw sprite with optional tint based on state
+    var sprite_color = #FFFFFF; // White color (no tint)
+    var sprite_alpha = 1.0;
+    
+    if (!window.active) {
+        // Disabled state - grayscale effect
+        sprite_alpha = 0.5;
+    } else if (is_active) {
+        // Active state - slightly darker
+        //sprite_color = make_color_rgb(200, 200, 200);
+    } else if (mouse_over) {
+        // Hover state - slightly brighter
+        //sprite_color = make_color_rgb(240, 240, 240);
+    }
+    
+    // Draw the sprite
+    gmui_add_sprite(sprite_x, sprite_y, image_width, image_height, sprite, subimg, button_bounds);
+    
+    // Apply tint by drawing a colored rectangle with blending
+    if (sprite_color != #FFFFFF || sprite_alpha < 1.0) {
+        // This should do the trick for now
+        gmui_add_rect_alpha(sprite_x, sprite_y, image_width, image_height, sprite_color, sprite_alpha * 128, button_bounds);
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, button_height);
+    
+    gmui_new_line();
+    
+    return clicked && window.active;
+}
+
+function gmui_image_button_labeled(sprite, label, subimg = 0, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    var element_id = "id_image_button_labeled_" + label + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    // Get sprite dimensions
+    var _sprite_width = sprite_get_width(sprite);
+    var _sprite_height = sprite_get_height(sprite);
+    var text_size = gmui_calc_text_size(label);
+    
+    // Calculate total size
+    var total_width = _sprite_width + style.button_padding[0] * 3 + text_size[0];
+    var total_height = max(_sprite_height, text_size[1]) + style.button_padding[1] * 2;
+    
+    // Use custom size if provided
+    if (width > 0) total_width = width;
+    if (height > 0) total_height = height;
+    
+    // Ensure minimum size
+    total_width = max(total_width, style.button_min_size[0]);
+    total_height = max(total_height, style.button_min_size[1]);
+    
+    // Calculate button bounds
+    var button_x = dc.cursor_x;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + total_width, button_y + total_height];
+    
+    // Calculate sprite position (left side, centered vertically)
+    var sprite_x = button_x + style.button_padding[0];
+    var sprite_y = button_y + (total_height - _sprite_height) / 2;
+    
+    // Calculate text position (right of sprite)
+    var text_x = sprite_x + _sprite_width + style.button_padding[0];
+    var text_y = button_y + (total_height - text_size[1]) / 2;
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over && window.active) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+    
+    // Draw button based on state
+    var bg_color, border_color, text_color;
+    
+    if (!window.active) {
+        // Window not active - disabled state
+        bg_color = style.button_disabled_bg_color;
+        border_color = style.button_disabled_border_color;
+        text_color = style.button_disabled_text_color;
+    } else if (is_active) {
+        // Button being pressed
+        bg_color = style.button_active_bg_color;
+        border_color = style.button_active_border_color;
+        text_color = style.button_text_color;
+    } else if (mouse_over) {
+        // Mouse hovering
+        bg_color = style.button_hover_bg_color;
+        border_color = style.button_hover_border_color;
+        text_color = style.button_text_color;
+    } else {
+        // Normal state
+        bg_color = style.button_bg_color;
+        border_color = style.button_border_color;
+        text_color = style.button_text_color;
+    }
+    
+    // Draw button background
+    gmui_add_rect_round(button_x, button_y, total_width, total_height, bg_color, style.button_rounding, button_bounds);
+    
+    // Draw border
+    if (style.button_border_size > 0) {
+        gmui_add_rect_round_outline(button_x, button_y, total_width, total_height, 
+                            border_color, style.button_rounding, style.button_border_size, button_bounds);
+    }
+    
+    // Draw sprite
+    gmui_add_sprite(sprite_x, sprite_y, _sprite_width, _sprite_height, sprite, subimg, button_bounds);
+    
+    // Draw text
+    gmui_add_text(text_x, text_y, label, text_color, button_bounds);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += total_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, total_height);
+    
+    gmui_new_line();
+    
+    return clicked && window.active;
+}
+
+function gmui_image_button_tinted(sprite, subimg = 0, tint_color = #FFFFFF, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    var element_id = "id_image_button_tinted_" + string(sprite) + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    // Calculate button size
+    var button_width = width > 0 ? width : sprite_get_width(sprite);
+    var button_height = height > 0 ? height : sprite_get_height(sprite);
+	
+	// Calculate image width
+	var image_width = button_width;
+	var image_height = button_width;
+    
+    // Add padding
+    button_width += style.button_padding[0] * 2;
+    button_height += style.button_padding[1] * 2;
+    
+    // Ensure minimum size
+    button_width = max(button_width, style.button_min_size[0]);
+    button_height = max(button_height, style.button_min_size[1]);
+    
+    // Calculate button bounds
+    var button_x = dc.cursor_x;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + button_width, button_y + button_height];
+    
+    // Calculate sprite position
+    var sprite_x = button_x + (button_width - image_width) / 2;
+    var sprite_y = button_y + (button_height - image_height) / 2;
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over && window.active) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+    
+    // Draw button based on state
+    var bg_color, border_color;
+    
+    if (!window.active) {
+        bg_color = style.button_disabled_bg_color;
+        border_color = style.button_disabled_border_color;
+    } else if (is_active) {
+        bg_color = style.button_active_bg_color;
+        border_color = style.button_active_border_color;
+    } else if (mouse_over) {
+        bg_color = style.button_hover_bg_color;
+        border_color = style.button_hover_border_color;
+    } else {
+        bg_color = style.button_bg_color;
+        border_color = style.button_border_color;
+    }
+    
+    // Draw button background
+    gmui_add_rect_round(button_x, button_y, button_width, button_height, bg_color, style.button_rounding, button_bounds);
+    
+    // Draw border
+    if (style.button_border_size > 0) {
+        gmui_add_rect_round_outline(button_x, button_y, button_width, button_height, 
+                            border_color, style.button_rounding, style.button_border_size, button_bounds);
+    }
+    
+    // Draw sprite with tint
+    var final_tint = tint_color;
+    var tint_alpha = 1.0;
+    
+    if (!window.active) {
+        tint_alpha = 0.5;
+    } else if (is_active) {
+        // Darken tint when active
+        final_tint = gmui_darken_color(tint_color, 0.8);
+    } else if (mouse_over) {
+        // Lighten tint when hovering
+        final_tint = gmui_lighten_color(tint_color, 1.2);
+    }
+    
+    // Draw sprite with tint
+    gmui_add_sprite_tinted(sprite_x, sprite_y, image_width, image_height, sprite, subimg, final_tint, tint_alpha, button_bounds);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, button_height);
+    
+    gmui_new_line();
+    
+    return clicked && window.active;
+}
+
+function gmui_arrow_button(direction, width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    var element_id = "id_arrow_button_" + string(direction) + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    // Calculate button size
+    var arrow_size = 8; // Default arrow size
+    var button_width = width > 0 ? width : max(style.button_min_size[0], arrow_size * 2 + style.button_padding[0] * 2);
+    var button_height = height > 0 ? height : max(style.button_min_size[1], arrow_size * 2 + style.button_padding[1] * 2);
+    
+    // Check if button fits on current line
+    //if (dc.cursor_x + button_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+    //    gmui_new_line();
+    //}
+    
+    // Calculate button bounds
+    var button_x = dc.cursor_x;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + button_width, button_y + button_height];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+    
+    // Draw button based on state
+    var bg_color, border_color, arrow_color;
+    
+    if (!window.active) {
+        // Window not active - disabled state
+        bg_color = style.button_disabled_bg_color;
+        border_color = style.button_disabled_border_color;
+        arrow_color = style.button_disabled_text_color;
+    } else if (is_active) {
+        // Button being pressed
+        bg_color = style.button_active_bg_color;
+        border_color = style.button_active_border_color;
+        arrow_color = style.button_text_color;
+    } else if (mouse_over) {
+        // Mouse hovering
+        bg_color = style.button_hover_bg_color;
+        border_color = style.button_hover_border_color;
+        arrow_color = style.button_text_color;
+    } else {
+        // Normal state
+        bg_color = style.button_bg_color;
+        border_color = style.button_border_color;
+        arrow_color = style.button_text_color;
+    }
+    
+    // Draw button background
+    gmui_add_rect_round(button_x, button_y, button_width, button_height, bg_color, style.button_rounding, button_bounds);
+    
+    // Draw border
+    if (style.button_border_size > 0) {
+        gmui_add_rect_round_outline(button_x, button_y, button_width, button_height, 
+                            border_color, style.button_rounding, style.button_border_size, button_bounds);
+    }
+    
+    // Calculate arrow position (centered)
+    var arrow_center_x = button_x + button_width / 2;
+    var arrow_center_y = button_y + button_height / 2;
+    
+    // Draw arrow based on direction
+    switch (direction) {
+        case gmui_arrow_direction.UP:
+            // Up arrow (triangle pointing up)
+            var arrow_x1 = arrow_center_x;
+            var arrow_y1 = arrow_center_y - arrow_size / 2;
+            var arrow_x2 = arrow_center_x - arrow_size / 2;
+            var arrow_y2 = arrow_center_y + arrow_size / 2;
+            var arrow_x3 = arrow_center_x + arrow_size / 2;
+            var arrow_y3 = arrow_center_y + arrow_size / 2;
+            
+            gmui_add_triangle(arrow_x1, arrow_y1, arrow_x2, arrow_y2, arrow_x3, arrow_y3, 
+                            arrow_color, button_bounds);
+            break;
+            
+        case gmui_arrow_direction.DOWN:
+            // Down arrow (triangle pointing down)
+            var arrow_x1 = arrow_center_x;
+            var arrow_y1 = arrow_center_y + arrow_size / 2;
+            var arrow_x2 = arrow_center_x - arrow_size / 2;
+            var arrow_y2 = arrow_center_y - arrow_size / 2;
+            var arrow_x3 = arrow_center_x + arrow_size / 2;
+            var arrow_y3 = arrow_center_y - arrow_size / 2;
+            
+            gmui_add_triangle(arrow_x1, arrow_y1, arrow_x2, arrow_y2, arrow_x3, arrow_y3, 
+                            arrow_color, button_bounds);
+            break;
+            
+        case gmui_arrow_direction.LEFT:
+            // Left arrow (triangle pointing left)
+            var arrow_x1 = arrow_center_x - arrow_size / 2;
+            var arrow_y1 = arrow_center_y;
+            var arrow_x2 = arrow_center_x + arrow_size / 2;
+            var arrow_y2 = arrow_center_y - arrow_size / 2;
+            var arrow_x3 = arrow_center_x + arrow_size / 2;
+            var arrow_y3 = arrow_center_y + arrow_size / 2;
+            
+            gmui_add_triangle(arrow_x1, arrow_y1, arrow_x2, arrow_y2, arrow_x3, arrow_y3, 
+                            arrow_color, button_bounds);
+            break;
+            
+        case gmui_arrow_direction.RIGHT:
+            // Right arrow (triangle pointing right)
+            var arrow_x1 = arrow_center_x + arrow_size / 2;
+            var arrow_y1 = arrow_center_y;
+            var arrow_x2 = arrow_center_x - arrow_size / 2;
+            var arrow_y2 = arrow_center_y - arrow_size / 2;
+            var arrow_x3 = arrow_center_x - arrow_size / 2;
+            var arrow_y3 = arrow_center_y + arrow_size / 2;
+            
+            gmui_add_triangle(arrow_x1, arrow_y1, arrow_x2, arrow_y2, arrow_x3, arrow_y3, 
+                            arrow_color, button_bounds);
+            break;
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, button_height);
+    
+    gmui_new_line();
+    
+    return clicked && window.active;
+}
+
+// Convenience functions for specific arrow directions
+function gmui_arrow_button_up(width = -1, height = -1) {
+    return gmui_arrow_button(gmui_arrow_direction.UP, width, height);
+}
+
+function gmui_arrow_button_down(width = -1, height = -1) {
+    return gmui_arrow_button(gmui_arrow_direction.DOWN, width, height);
+}
+
+function gmui_arrow_button_left(width = -1, height = -1) {
+    return gmui_arrow_button(gmui_arrow_direction.LEFT, width, height);
+}
+
+function gmui_arrow_button_right(width = -1, height = -1) {
+    return gmui_arrow_button(gmui_arrow_direction.RIGHT, width, height);
+}
+
+// Double arrow buttons (for pagination, etc.)
+function gmui_arrow_button_double_horizontal(width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    var element_id = "id_arrow_double_horizontal_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    // Calculate button size
+    var arrow_size = 6; // Smaller for double arrows
+    var button_width = width > 0 ? width : max(style.button_min_size[0], arrow_size * 4 + style.button_padding[0] * 2);
+    var button_height = height > 0 ? height : max(style.button_min_size[1], arrow_size * 2 + style.button_padding[1] * 2);
+    
+    var button_x = dc.cursor_x;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + button_width, button_y + button_height];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+    
+    // Draw button based on state
+    var bg_color, border_color, arrow_color;
+    
+    if (!window.active) {
+        bg_color = style.button_disabled_bg_color;
+        border_color = style.button_disabled_border_color;
+        arrow_color = style.button_disabled_text_color;
+    } else if (is_active) {
+        bg_color = style.button_active_bg_color;
+        border_color = style.button_active_border_color;
+        arrow_color = style.button_text_color;
+    } else if (mouse_over) {
+        bg_color = style.button_hover_bg_color;
+        border_color = style.button_hover_border_color;
+        arrow_color = style.button_text_color;
+    } else {
+        bg_color = style.button_bg_color;
+        border_color = style.button_border_color;
+        arrow_color = style.button_text_color;
+    }
+    
+    // Draw button background
+    gmui_add_rect_round(button_x, button_y, button_width, button_height, bg_color, style.button_rounding, button_bounds);
+    
+    // Draw border
+    if (style.button_border_size > 0) {
+        gmui_add_rect_round_outline(button_x, button_y, button_width, button_height, 
+                            border_color, style.button_rounding, style.button_border_size, button_bounds);
+    }
+    
+    // Calculate positions for two arrows (left and right)
+    var center_x = button_x + button_width / 2;
+    var center_y = button_y + button_height / 2;
+    var spacing = arrow_size; // Space between arrows
+    
+    // Left arrow
+    var left_x1 = center_x - spacing - arrow_size / 2;
+    var left_y1 = center_y;
+    var left_x2 = center_x - spacing + arrow_size / 2;
+    var left_y2 = center_y - arrow_size / 2;
+    var left_x3 = center_x - spacing + arrow_size / 2;
+    var left_y3 = center_y + arrow_size / 2;
+    
+    // Right arrow
+    var right_x1 = center_x + spacing + arrow_size / 2;
+    var right_y1 = center_y;
+    var right_x2 = center_x + spacing - arrow_size / 2;
+    var right_y2 = center_y - arrow_size / 2;
+    var right_x3 = center_x + spacing - arrow_size / 2;
+    var right_y3 = center_y + arrow_size / 2;
+    
+    // Draw both arrows
+    gmui_add_triangle(left_x1, left_y1, left_x2, left_y2, left_x3, left_y3, arrow_color, button_bounds);
+    gmui_add_triangle(right_x1, right_y1, right_x2, right_y2, right_x3, right_y3, arrow_color, button_bounds);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, button_height);
+    
+    gmui_new_line();
+    
+    return clicked && window.active;
+}
+
+function gmui_arrow_button_double_vertical(width = -1, height = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    var element_id = "id_arrow_double_vertical_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
+    
+    // Calculate button size
+    var arrow_size = 6;
+    var button_width = width > 0 ? width : max(style.button_min_size[0], arrow_size * 2 + style.button_padding[0] * 2);
+    var button_height = height > 0 ? height : max(style.button_min_size[1], arrow_size * 4 + style.button_padding[1] * 2);
+    
+    var button_x = dc.cursor_x;
+    var button_y = dc.cursor_y;
+    var button_bounds = [button_x, button_y, button_x + button_width, button_y + button_height];
+    
+    // Check for mouse interaction
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         button_bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+    
+    // Draw button based on state
+    var bg_color, border_color, arrow_color;
+    
+    if (!window.active) {
+        bg_color = style.button_disabled_bg_color;
+        border_color = style.button_disabled_border_color;
+        arrow_color = style.button_disabled_text_color;
+    } else if (is_active) {
+        bg_color = style.button_active_bg_color;
+        border_color = style.button_active_border_color;
+        arrow_color = style.button_text_color;
+    } else if (mouse_over) {
+        bg_color = style.button_hover_bg_color;
+        border_color = style.button_hover_border_color;
+        arrow_color = style.button_text_color;
+    } else {
+        bg_color = style.button_bg_color;
+        border_color = style.button_border_color;
+        arrow_color = style.button_text_color;
+    }
+    
+    // Draw button background
+    gmui_add_rect_round(button_x, button_y, button_width, button_height, bg_color, style.button_rounding, button_bounds);
+    
+    // Draw border
+    if (style.button_border_size > 0) {
+        gmui_add_rect_round_outline(button_x, button_y, button_width, button_height, 
+                            border_color, style.button_rounding, style.button_border_size, button_bounds);
+    }
+    
+    // Calculate positions for two arrows (up and down)
+    var center_x = button_x + button_width / 2;
+    var center_y = button_y + button_height / 2;
+    var spacing = arrow_size;
+    
+    // Up arrow
+    var up_x1 = center_x;
+    var up_y1 = center_y - spacing - arrow_size / 2;
+    var up_x2 = center_x - arrow_size / 2;
+    var up_y2 = center_y - spacing + arrow_size / 2;
+    var up_x3 = center_x + arrow_size / 2;
+    var up_y3 = center_y - spacing + arrow_size / 2;
+    
+    // Down arrow
+    var down_x1 = center_x;
+    var down_y1 = center_y + spacing + arrow_size / 2;
+    var down_x2 = center_x - arrow_size / 2;
+    var down_y2 = center_y + spacing - arrow_size / 2;
+    var down_x3 = center_x + arrow_size / 2;
+    var down_y3 = center_y + spacing - arrow_size / 2;
+    
+    // Draw both arrows
+    gmui_add_triangle(up_x1, up_y1, up_x2, up_y2, up_x3, up_y3, arrow_color, button_bounds);
+    gmui_add_triangle(down_x1, down_y1, down_x2, down_y2, down_x3, down_y3, arrow_color, button_bounds);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += button_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, button_height);
+    
+    gmui_new_line();
     
     return clicked && window.active;
 }
@@ -7700,6 +8486,596 @@ function gmui_plot_stair(label, values, count, width = -1, height = 120, mode = 
     return true;
 }
 
+function gmui_tabs(tab_labels, selected_index, width = -1, allow_close = false) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return selected_index;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate tab bar size
+    var tab_count = array_length(tab_labels);
+    if (tab_count == 0) return selected_index;
+    
+    var tab_bar_width = (width > 0) ? width : window.width - style.window_padding[0] * 2;
+    var tab_bar_height = style.tab_bar_height;
+    
+    // Check if tab bar fits on current line
+    if (dc.cursor_x + tab_bar_width > window.width - style.window_padding[0] && dc.cursor_x > dc.cursor_start_x) {
+        gmui_new_line();
+    }
+    
+    // Calculate tab bar bounds
+    var tab_bar_x = dc.cursor_x;
+    var tab_bar_y = dc.cursor_y;
+    var tab_bar_bounds = [tab_bar_x, tab_bar_y, tab_bar_x + tab_bar_width, tab_bar_y + tab_bar_height];
+    
+    // Create a unique ID for this tab bar
+    var tab_bar_id = "tabs_" + string(dc.cursor_x) + "_" + string(dc.cursor_y) + "_" + string(tab_count);
+    
+    // Store tab state for this tab bar
+    var tab_state = gmui_cache_get(tab_bar_id);
+    if (tab_state == undefined) {
+        tab_state = {
+            scroll_offset: 0,
+            max_scroll_offset: 0,
+            reorder_start_index: -1,
+            reorder_target_index: -1,
+            is_dragging: false,
+            drag_start_x: 0,
+            drag_delta: 0,
+            last_mouse_pos: 0
+        };
+        gmui_cache_set(tab_bar_id, tab_state);
+    }
+    
+    // Calculate individual tab sizes
+    var tab_sizes = array_create(tab_count);
+    var total_tabs_width = 0;
+    
+    for (var i = 0; i < tab_count; i++) {
+        var text_size = gmui_calc_text_size(tab_labels[i]);
+        var tab_width = style.tab_min_width;
+        
+        if (style.tab_fit_to_content) {
+            tab_width = text_size[0] + style.tab_padding[0] * 2;
+            if (allow_close) {
+                tab_width += style.tab_close_button_size + 4;
+            }
+            tab_width = clamp(tab_width, style.tab_min_width, style.tab_max_width);
+        }
+        
+        tab_sizes[i] = tab_width;
+        total_tabs_width += tab_width + style.tab_spacing;
+    }
+    total_tabs_width -= style.tab_spacing; // Remove last spacing
+    
+    // Calculate if we need scroll buttons
+    var needs_scroll = (style.tab_show_scroll_buttons && total_tabs_width > tab_bar_width);
+    var scroll_button_area_height = 0;
+    
+    if (needs_scroll) {
+        scroll_button_area_height = style.tab_scroll_button_size + 4;
+        
+        // Adjust tab bar position to make room for scroll buttons
+        tab_bar_y += scroll_button_area_height;
+        tab_bar_bounds[1] += scroll_button_area_height;
+        tab_bar_bounds[3] += scroll_button_area_height;
+    }
+    
+    // Calculate scroll offset
+    if (needs_scroll) {
+        var max_scroll = total_tabs_width - tab_bar_width;
+        tab_state.max_scroll_offset = max_scroll;
+        
+        // Clamp scroll offset
+        tab_state.scroll_offset = clamp(tab_state.scroll_offset, 0, max_scroll);
+    } else {
+        tab_state.scroll_offset = 0;
+        tab_state.max_scroll_offset = 0;
+    }
+    
+    // Draw scroll buttons area if needed
+    if (needs_scroll) {
+        var scroll_area_y = tab_bar_y - scroll_button_area_height;
+        var scroll_area_bounds = [tab_bar_x, scroll_area_y, tab_bar_x + tab_bar_width, tab_bar_y];
+        
+        // Draw scroll buttons background
+        gmui_add_rect(tab_bar_x, scroll_area_y, tab_bar_width, scroll_button_area_height,
+                     style.tab_bg_color, scroll_area_bounds);
+        
+        // Draw scroll buttons
+        var scroll_button_size = style.tab_scroll_button_size;
+        var scroll_button_y = scroll_area_y + (scroll_button_area_height - scroll_button_size) / 2;
+        var button_spacing = 2;
+        
+        // Left scroll button
+        var left_button_x = tab_bar_x + button_spacing;
+        var left_button_bounds = [left_button_x, scroll_button_y,
+                                 left_button_x + scroll_button_size,
+                                 scroll_button_y + scroll_button_size];
+        
+        var left_button_hover = gmui_is_mouse_over_window(window) &&
+                               gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x,
+                                                   global.gmui.mouse_pos[1] - window.y,
+                                                   left_button_bounds);
+        
+        var left_button_color = style.tab_scroll_button_color;
+        if (left_button_hover) {
+            left_button_color = style.tab_scroll_button_hover_color;
+            if (global.gmui.mouse_down[0]) {
+                // Continuous scrolling while button is held
+                tab_state.scroll_offset = max(0, tab_state.scroll_offset - 10);
+            }
+        }
+        
+        // Draw left arrow
+        gmui_add_rect_round(left_button_x, scroll_button_y,
+                          scroll_button_size, scroll_button_size,
+                          left_button_color, style.tab_rounding, scroll_area_bounds);
+        
+        var arrow_padding = 3; // Smaller for compact buttons
+        var arrow_x1 = left_button_x + arrow_padding;
+        var arrow_y1 = scroll_button_y + scroll_button_size / 2;
+        var arrow_x2 = left_button_x + scroll_button_size - arrow_padding;
+        var arrow_y2 = scroll_button_y + arrow_padding;
+        var arrow_x3 = left_button_x + scroll_button_size - arrow_padding;
+        var arrow_y3 = scroll_button_y + scroll_button_size - arrow_padding;
+        
+        gmui_add_triangle(arrow_x1, arrow_y1, arrow_x2, arrow_y2, arrow_x3, arrow_y3,
+                         style.tab_text_color, left_button_bounds);
+        
+        // Right scroll button
+        var right_button_x = tab_bar_x + tab_bar_width - scroll_button_size - button_spacing;
+        var right_button_bounds = [right_button_x, scroll_button_y,
+                                  right_button_x + scroll_button_size,
+                                  scroll_button_y + scroll_button_size];
+        
+        var right_button_hover = gmui_is_mouse_over_window(window) &&
+                                gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x,
+                                                    global.gmui.mouse_pos[1] - window.y,
+                                                    right_button_bounds);
+        
+        var right_button_color = style.tab_scroll_button_color;
+        if (right_button_hover) {
+            right_button_color = style.tab_scroll_button_hover_color;
+            if (global.gmui.mouse_down[0]) {
+                tab_state.scroll_offset = min(tab_state.max_scroll_offset,
+                                             tab_state.scroll_offset + 10);
+            }
+        }
+        
+        // Draw right arrow
+        gmui_add_rect_round(right_button_x, scroll_button_y,
+                          scroll_button_size, scroll_button_size,
+                          right_button_color, style.tab_rounding, scroll_area_bounds);
+        
+        arrow_x1 = right_button_x + scroll_button_size - arrow_padding;
+        arrow_y1 = scroll_button_y + scroll_button_size / 2;
+        arrow_x2 = right_button_x + arrow_padding;
+        arrow_y2 = scroll_button_y + arrow_padding;
+        arrow_x3 = right_button_x + arrow_padding;
+        arrow_y3 = scroll_button_y + scroll_button_size - arrow_padding;
+        
+        gmui_add_triangle(arrow_x1, arrow_y1, arrow_x2, arrow_y2, arrow_x3, arrow_y3,
+                         style.tab_text_color, right_button_bounds);
+        
+        // Draw scroll indicator (progress bar)
+        if (tab_state.max_scroll_offset > 0) {
+            var indicator_width = tab_bar_width - (scroll_button_size * 2) - (button_spacing * 4);
+            var indicator_x = left_button_x + scroll_button_size + button_spacing;
+            var indicator_height = 3;
+            var indicator_y = scroll_area_y + scroll_button_area_height - indicator_height - 1;
+            
+            // Draw track
+            gmui_add_rect(indicator_x, indicator_y, indicator_width, indicator_height,
+                         style.tab_scroll_track_color, scroll_area_bounds);
+            
+            // Draw thumb
+            var scroll_ratio = tab_state.scroll_offset / tab_state.max_scroll_offset;
+            var thumb_width = max(20, indicator_width * (tab_bar_width / total_tabs_width));
+            var thumb_x = indicator_x + scroll_ratio * (indicator_width - thumb_width);
+            
+            gmui_add_rect(thumb_x, indicator_y, thumb_width, indicator_height,
+                         style.tab_scroll_thumb_color, scroll_area_bounds);
+        }
+    }
+    
+    // Draw tab bar background - looks better without it
+    //gmui_add_rect_round(tab_bar_x, tab_bar_y, tab_bar_width, tab_bar_height,
+    //                    style.tab_bg_color, style.tab_rounding, tab_bar_bounds);
+    
+    //if (style.tab_border_size > 0) {
+    //    gmui_add_rect_round_outline(tab_bar_x, tab_bar_y, tab_bar_width, tab_bar_height,
+    //                               style.tab_border_color, style.tab_rounding,
+    //                               style.tab_border_size, tab_bar_bounds);
+    //}
+    
+    // Calculate tabs area
+    var tabs_start_x = tab_bar_x + style.tab_spacing;
+    var tabs_area_width = tab_bar_width - style.tab_spacing * 2;
+    
+    // Calculate alignment offset
+    var alignment_offset = 0;
+    if (style.tab_center_aligned && total_tabs_width < tabs_area_width) {
+        alignment_offset = (tabs_area_width - total_tabs_width) / 2;
+    }
+    
+    // Track mouse position in tab area
+    var mouse_x_in_window = global.gmui.mouse_pos[0] - window.x;
+    var mouse_y_in_window = global.gmui.mouse_pos[1] - window.y;
+    
+    var mouse_in_tab_area = gmui_is_mouse_over_window(window) &&
+                           mouse_x_in_window >= tabs_start_x &&
+                           mouse_x_in_window <= tabs_start_x + tabs_area_width &&
+                           mouse_y_in_window >= tab_bar_y &&
+                           mouse_y_in_window <= tab_bar_y + tab_bar_height;
+    
+    // Handle drag start
+    if (style.tab_allow_reorder && mouse_in_tab_area && global.gmui.mouse_clicked[0]) {
+        // Find which tab was clicked
+        var current_x = tabs_start_x + alignment_offset - tab_state.scroll_offset;
+        for (var i = 0; i < tab_count; i++) {
+            var tab_width = tab_sizes[i];
+            var tab_x = current_x;
+            
+            if (mouse_x_in_window >= tab_x && mouse_x_in_window <= tab_x + tab_width) {
+                tab_state.reorder_start_index = i;
+                tab_state.is_dragging = true;
+                tab_state.drag_start_x = mouse_x_in_window;
+                tab_state.last_mouse_pos = mouse_x_in_window;
+                selected_index = i; // Select the tab being dragged
+                break;
+            }
+            current_x += tab_width + style.tab_spacing;
+        }
+    }
+    
+    // Handle drag updates
+    if (style.tab_allow_reorder && tab_state.is_dragging && global.gmui.mouse_down[0]) {
+        tab_state.drag_delta = mouse_x_in_window - tab_state.last_mouse_pos;
+        tab_state.last_mouse_pos = mouse_x_in_window;
+        
+        // Calculate target position based on cumulative drag
+        if (tab_state.reorder_start_index != -1) {
+            var drag_threshold = tab_sizes[tab_state.reorder_start_index] * 0.7; // 70% of tab width
+            
+            // Calculate the new target index
+            var cumulative_drag = mouse_x_in_window - tab_state.drag_start_x;
+            var tab_width_with_spacing = tab_sizes[tab_state.reorder_start_index] + style.tab_spacing;
+            
+            // Determine how many positions to move
+            var move_positions = round(cumulative_drag / tab_width_with_spacing);
+            var target_index = tab_state.reorder_start_index + move_positions;
+            target_index = clamp(target_index, 0, tab_count - 1);
+            
+            if (target_index != tab_state.reorder_start_index && target_index != tab_state.reorder_target_index) {
+                tab_state.reorder_target_index = target_index;
+            }
+        }
+    }
+    
+    // Draw tabs
+    var current_x = tabs_start_x + alignment_offset - tab_state.scroll_offset;
+    
+    for (var i = 0; i < tab_count; i++) {
+        var tab_width = tab_sizes[i];
+        var tab_x = current_x;
+        var tab_y = tab_bar_y + style.tab_spacing;
+        var tab_height = tab_bar_height - style.tab_spacing * 2;
+        
+        var tab_bounds = [tab_x, tab_y, tab_x + tab_width, tab_y + tab_height];
+        var tab_visible = (tab_x + tab_width > tabs_start_x) && (tab_x < tabs_start_x + tabs_area_width);
+        
+        // Skip drawing if not visible
+        if (!tab_visible) {
+            current_x += tab_width + style.tab_spacing;
+            continue;
+        }
+        
+        var mouse_over_tab = mouse_in_tab_area &&
+                            mouse_x_in_window >= tab_x &&
+                            mouse_x_in_window <= tab_x + tab_width &&
+                            mouse_y_in_window >= tab_y &&
+                            mouse_y_in_window <= tab_y + tab_height &&
+                            !global.gmui.is_hovering_element;
+        
+        var is_selected = (i == selected_index);
+        var is_being_dragged = (style.tab_allow_reorder && tab_state.is_dragging && tab_state.reorder_start_index == i);
+        var clicked = false;
+        
+        // Handle tab click (when not dragging)
+        if (mouse_over_tab && window.active && !is_being_dragged) {
+            global.gmui.is_hovering_element = true;
+            
+            if (global.gmui.mouse_clicked[0]) {
+                clicked = true;
+                selected_index = i;
+            }
+        }
+        
+        // Draw tab based on state
+        var bg_color, border_color, text_color;
+        
+        if (is_selected) {
+            bg_color = style.tab_selected_bg_color;
+            border_color = style.tab_border_color;
+            text_color = style.tab_selected_text_color;
+        } else if (is_being_dragged) {
+            bg_color = style.tab_active_bg_color;
+            border_color = style.tab_border_color;
+            text_color = style.tab_text_color;
+        } else if (mouse_over_tab) {
+            bg_color = style.tab_hover_bg_color;
+            border_color = style.tab_border_color;
+            text_color = style.tab_text_color;
+        } else {
+            bg_color = style.tab_bg_color;
+            border_color = style.tab_border_color;
+            text_color = style.tab_text_color;
+        }
+        
+        // Draw tab background
+        gmui_add_rect(tab_x, tab_y, tab_width, tab_height,
+                          bg_color, tab_bar_bounds);
+        
+        if (style.tab_border_size > 0) {
+            gmui_add_rect_outline(tab_x, tab_y, tab_width, tab_height,
+                                      border_color,
+                                      style.tab_border_size, tab_bar_bounds);
+        }
+        
+        // Draw tab text
+        var text_size = gmui_calc_text_size(tab_labels[i]);
+        var text_x = tab_x + style.tab_padding[0];
+        var text_y = tab_y + (tab_height - text_size[1]) / 2;
+        
+        // Adjust for close button
+        var text_max_width = tab_width - style.tab_padding[0] * 2;
+        if (allow_close) {
+            text_max_width -= style.tab_close_button_size + 4;
+        }
+        
+        // Trim text if too long
+        var display_text = tab_labels[i];
+        if (text_size[0] > text_max_width) {
+            for (var len = string_length(display_text); len > 0; len--) {
+                var test_text = string_copy(display_text, 1, len) + "...";
+                if (string_width(test_text) <= text_max_width) {
+                    display_text = test_text;
+                    break;
+                }
+            }
+        }
+        
+        gmui_add_text(text_x, text_y, display_text, text_color, tab_bar_bounds);
+        
+        // Draw close button if enabled
+        if (allow_close) {
+            var close_size = style.tab_close_button_size;
+            var close_x = tab_x + tab_width - close_size - style.tab_padding[0];
+            var close_y = tab_y + (tab_height - close_size) / 2;
+            var close_bounds = [close_x, close_y, close_x + close_size, close_y + close_size];
+            
+            var mouse_over_close = mouse_over_tab &&
+                                  gmui_is_point_in_rect(mouse_x_in_window,
+                                                      mouse_y_in_window,
+                                                      close_bounds);
+            
+            var close_color = style.tab_close_button_color;
+            if (mouse_over_close) {
+                close_color = style.tab_close_button_hover_color;
+                if (global.gmui.mouse_clicked[0]) {
+                    // Signal to remove this tab (return special value)
+                    selected_index = -i - 1; // Negative index -1, -2, etc. indicates close
+                }
+            }
+            
+            // Draw X symbol
+            var cross_thickness = 2;
+            var cross_padding = 3;
+            
+            gmui_add_line(close_x + cross_padding, close_y + cross_padding,
+                         close_x + close_size - cross_padding, close_y + close_size - cross_padding,
+                         close_color, cross_thickness, close_bounds);
+            gmui_add_line(close_x + close_size - cross_padding, close_y + cross_padding,
+                         close_x + cross_padding, close_y + close_size - cross_padding,
+                         close_color, cross_thickness, close_bounds);
+        }
+        
+        // Draw drag indicator for target position
+        if (style.tab_allow_reorder && tab_state.is_dragging &&
+            tab_state.reorder_target_index == i && tab_state.reorder_start_index != i) {
+            
+            // Draw indicator on the side where tab would be inserted
+            var indicator_x;
+            if (tab_state.reorder_target_index > tab_state.reorder_start_index) {
+                // Dragging right - indicator on right side
+                indicator_x = tab_x + tab_width;
+            } else {
+                // Dragging left - indicator on left side
+                indicator_x = tab_x;
+            }
+            
+            gmui_add_line(indicator_x, tab_y + 2, indicator_x, tab_y + tab_height - 2,
+                         style.tab_selected_bg_color, 3, tab_bar_bounds);
+        }
+        
+        current_x += tab_width + style.tab_spacing;
+    }
+    
+    // Handle drag completion
+    if (style.tab_allow_reorder && tab_state.is_dragging && global.gmui.mouse_released[0]) {
+        if (tab_state.reorder_start_index != -1 && tab_state.reorder_target_index != -1 &&
+            tab_state.reorder_start_index != tab_state.reorder_target_index) {
+            
+            // Reorder tab labels array
+            var temp_label = tab_labels[tab_state.reorder_start_index];
+            
+            // Remove from old position
+            for (var i = tab_state.reorder_start_index; i < tab_count - 1; i++) {
+                tab_labels[i] = tab_labels[i + 1];
+            }
+            
+            // Insert at new position
+            for (var i = tab_count - 1; i > tab_state.reorder_target_index; i--) {
+                tab_labels[i] = tab_labels[i - 1];
+            }
+            
+            tab_labels[tab_state.reorder_target_index] = temp_label;
+            
+            // Update selected index
+            selected_index = tab_state.reorder_target_index;
+        }
+        
+        // Reset drag state
+        tab_state.is_dragging = false;
+        tab_state.reorder_start_index = -1;
+        tab_state.reorder_target_index = -1;
+        tab_state.drag_delta = 0;
+    }
+    
+    // Update cache
+    gmui_cache_set(tab_bar_id, tab_state);
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += tab_bar_width + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, tab_bar_height + scroll_button_area_height);
+    
+    // Advance cursor for next element
+    gmui_new_line();
+    
+    // Return selected index (or negative for close)
+    return selected_index;
+}
+
+function gmui_tabs_with_close(tab_labels, selected_index, width = -1) {
+    return gmui_tabs(tab_labels, selected_index, width, true);
+}
+
+function gmui_tabs_fixed_width(tab_labels, selected_index, tab_width = 120, width = -1) {
+    if (!global.gmui.initialized) return selected_index;
+    
+    // Temporarily set fixed width style
+    var old_fit_to_content = global.gmui.style.tab_fit_to_content;
+    var old_min_width = global.gmui.style.tab_min_width;
+    var old_max_width = global.gmui.style.tab_max_width;
+    
+    global.gmui.style.tab_fit_to_content = false;
+    global.gmui.style.tab_min_width = tab_width;
+    global.gmui.style.tab_max_width = tab_width;
+    
+    var result = gmui_tabs(tab_labels, selected_index, width, false);
+    
+    // Restore original styles
+    global.gmui.style.tab_fit_to_content = old_fit_to_content;
+    global.gmui.style.tab_min_width = old_min_width;
+    global.gmui.style.tab_max_width = old_max_width;
+    
+    return result;
+}
+
+function gmui_tabs_no_scroll(tab_labels, selected_index, width = -1) {
+    if (!global.gmui.initialized) return selected_index;
+    
+    var old_show_scroll = global.gmui.style.tab_show_scroll_buttons;
+    global.gmui.style.tab_show_scroll_buttons = false;
+    
+    var result = gmui_tabs(tab_labels, selected_index, width, false);
+    
+    global.gmui.style.tab_show_scroll_buttons = old_show_scroll;
+    return result;
+}
+
+function gmui_tabs_centered(tab_labels, selected_index, width = -1) {
+    if (!global.gmui.initialized) return selected_index;
+    
+    var old_centered = global.gmui.style.tab_center_aligned;
+    global.gmui.style.tab_center_aligned = true;
+    
+    var result = gmui_tabs(tab_labels, selected_index, width, false);
+    
+    global.gmui.style.tab_center_aligned = old_centered;
+    return result;
+}
+
+function gmui_tabs_content_begin(label = "", padding = -1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Draw content area background
+    var content_padding = (padding == -1) ? style.tab_content_padding : [padding, padding];
+    var content_x = dc.cursor_start_x;
+    var content_y = dc.cursor_y;
+    var content_width = window.width - style.window_padding[0] * 2;
+    var content_height = 0; // Will be calculated in end function
+    
+    var content_bounds = [content_x, content_y, content_x + content_width, content_y + 1];
+    
+    gmui_add_rect(content_x, content_y, content_width, 1, style.tab_content_bg_color, content_bounds);
+    
+    if (style.tab_content_border_size > 0) {
+        gmui_add_rect_outline(content_x, content_y, content_width, 1, 
+                             style.tab_content_border_color, 
+                             style.tab_content_border_size, content_bounds);
+    }
+    
+    // Store content area state
+    var content_id = "tab_content_" + string(window.x) + "_" + string(window.y) + "_" + string(dc.cursor_x);
+    var content_state = {
+        start_x: content_x + content_padding[0],
+        start_y: content_y + content_padding[1],
+        width: content_width - content_padding[0] * 2,
+        max_height: 0
+    };
+    gmui_cache_set(content_id, content_state);
+    
+    // Update cursor to content area
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x = content_state.start_x;
+    dc.cursor_y = content_state.start_y;
+    dc.line_height = 0;
+    
+    return true;
+}
+
+function gmui_tabs_content_end() {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var style = global.gmui.style;
+    
+    // Calculate content height
+    var content_id = "tab_content_" + string(window.x) + "_" + string(window.y) + "_" + string(dc.cursor_x);
+    var content_state = gmui_cache_get(content_id);
+    
+    if (content_state != undefined) {
+        var content_height = dc.cursor_y - content_state.start_y + style.tab_content_padding[1];
+        
+        // Draw bottom border
+        var bottom_y = content_state.start_y - style.tab_content_padding[1] + content_height;
+        gmui_add_line(content_state.start_x - style.tab_content_padding[0], bottom_y,
+                     content_state.start_x + content_state.width + style.tab_content_padding[0], bottom_y,
+                     style.tab_content_border_color, style.tab_content_border_size);
+        
+        // Clean up
+        gmui_cache_delete(content_id);
+    }
+    
+    // Update cursor position
+    dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x = dc.cursor_start_x;
+    dc.cursor_y += style.item_spacing[1];
+    dc.line_height = 0;
+    
+    gmui_new_line();
+}
+
 /************************************
  * LAYOUT
  ***********************************/
@@ -8518,6 +9894,14 @@ function gmui_demo() { // Performance issues due to everything being dumped into
             if (gmui_button_large("large")) { basic_int++; }
             gmui_same_line();
             gmui_button_disabled("Disabled");
+			
+			// Arrow Buttons
+			gmui_arrow_button(gmui_arrow_direction.UP, 32, 32); gmui_same_line();
+			gmui_arrow_button(gmui_arrow_direction.RIGHT, 32, 32); gmui_same_line();
+			gmui_arrow_button(gmui_arrow_direction.DOWN, 32, 32); gmui_same_line();
+			gmui_arrow_button(gmui_arrow_direction.LEFT, 32, 32);
+			gmui_arrow_button_double_horizontal(48, 32); gmui_same_line();
+			gmui_arrow_button_double_vertical(32, 48);
             
             gmui_text("Checkboxes");
             basic_check = gmui_checkbox("Checkbox", basic_check);
@@ -8583,6 +9967,37 @@ function gmui_demo() { // Performance issues due to everything being dumped into
             
             gmui_collapsing_header_end();
         }
+		
+		static image_button_demo = false;
+		header = gmui_collapsing_header("Image Buttons", image_button_demo);
+		image_button_demo = header[1] ? !image_button_demo : image_button_demo;
+		if (image_button_demo) {
+		    gmui_text("Image Button Examples");
+    
+		    // Basic example
+		    gmui_text("Basic Image Button:");
+		    if (gmui_image_button(sIconHome)) {
+		        show_debug_message("Basic image button clicked");
+		    }
+    
+		    // Labeled example
+		    gmui_text("Labeled Image Button:");
+		    if (gmui_image_button_labeled(sIconFolder, "Open Folder", 0, 350, 32)) {
+		        show_debug_message("Folder button clicked");
+		    }
+    
+		    // Tinted example
+		    gmui_text("Tinted Image Buttons:");
+		    if (gmui_image_button_tinted(sIconCross, 0, c_red)) {
+		        show_debug_message("Red close button clicked");
+		    }
+		    gmui_same_line();
+		    if (gmui_image_button_tinted(sIconTick, 0, c_green)) {
+		        show_debug_message("Green check button clicked");
+		    }
+    
+		    gmui_collapsing_header_end();
+		}
         
         // Sliders
 		static cho2 = false;
@@ -8857,6 +10272,77 @@ function gmui_demo() { // Performance issues due to everything being dumped into
             gmui_collapsing_header_end();
         }
 		
+		// Tabs Demo
+		static cho_tabs = false;
+		header = gmui_collapsing_header("Tabs", cho_tabs);
+		cho_tabs = header[1] ? !cho_tabs : cho_tabs;
+		if (cho_tabs) {
+		    static tab_labels = ["General", "Appearance", "Advanced", "Plugins", "About", "Style", "Notes", "World", "Edit", "File", "New", "Load"];
+		    static selected_tab = 0;
+    
+		    gmui_text("Basic Tabs");
+		    selected_tab = gmui_tabs(tab_labels, selected_tab);
+    
+		    gmui_text("Current Tab: " + tab_labels[selected_tab]);
+    
+		    gmui_separator();
+    
+		    gmui_text("Tabs with Close Buttons");
+		    static temp_labels = ["File", "Edit", "View", "Window"];
+		    static selected_tab2 = 0;
+		    selected_tab2 = gmui_tabs_with_close(temp_labels, selected_tab2);
+    
+		    // Handle close (returns negative index)
+		    if (selected_tab2 < 0) {
+		        var close_index = -selected_tab2 - 1;
+		        if (close_index >= 0 && close_index < array_length(temp_labels)) {
+		            // Remove tab
+		            array_delete(temp_labels, close_index, 1);
+		            selected_tab2 = max(0, min(selected_tab2, array_length(temp_labels) - 1));
+		        }
+		    }
+    
+		    gmui_separator();
+    
+		    gmui_text("Fixed Width Tabs");
+		    static selected_tab3 = 0;
+		    static temp_labels1 = ["Tab 1", "Tab 2", "Tab 3"];
+		    selected_tab3 = gmui_tabs_fixed_width(temp_labels1, selected_tab3, 100);
+    
+		    gmui_separator();
+    
+		    gmui_text("Tab with Content Area");
+		    static selected_tab4 = 0;
+		    static content_tabs = ["Info", "Settings", "Help"];
+		    selected_tab4 = gmui_tabs(content_tabs, selected_tab4);
+    
+		    gmui_tabs_content_begin();
+		    switch (selected_tab4) {
+		        case 0:
+		            gmui_text("Information Tab");
+		            gmui_text_wrap("This is the information tab content. You can put any UI elements here.");
+		            gmui_button("Info Button");
+		            break;
+		        case 1:
+		            gmui_text("Settings Tab");
+		            static setting1 = false;
+		            static setting2 = 0.5;
+		            setting1 = gmui_checkbox("Enable Feature", setting1);
+		            setting2 = gmui_slider("Volume", setting2, 0, 1);
+		            break;
+		        case 2:
+		            gmui_text("Help Tab");
+		            gmui_text_wrap("This is the help content. Add help information here.");
+		            if (gmui_button("Open Help")) {
+		                // Handle button click
+		            }
+		            break;
+		    }
+		    gmui_tabs_content_end();
+    
+		    gmui_collapsing_header_end();
+		}
+		
 		// Data Tables
 		static cho_table = false;
 		header = gmui_collapsing_header("Data Tables", cho_table);
@@ -9001,7 +10487,7 @@ function gmui_demo() { // Performance issues due to everything being dumped into
 		        style_editor_visible = !style_editor_visible;
 		    }
     
-		    if (style_editor_visible) {
+		    if (style_editor_visible) { // this was made to be temporary, for now it will not get an update and later will be remade properly as a seperate function
 		        if (gmui_begin("Style Editor", 650, 20, 400, 500, gmui_window_flags.NO_CLOSE | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 		            var style = global.gmui.style;
             
@@ -9455,6 +10941,30 @@ function gmui_array_clear(array) {
 		i--;
 		length--;
 	}
+}
+
+function gmui_darken_color(color, factor) {
+    var r = color_get_red(color);
+    var g = color_get_green(color);
+    var b = color_get_blue(color);
+    
+    r = clamp(r * factor, 0, 255);
+    g = clamp(g * factor, 0, 255);
+    b = clamp(b * factor, 0, 255);
+    
+    return make_color_rgb(r, g, b);
+}
+
+function gmui_lighten_color(color, factor) {
+    var r = color_get_red(color);
+    var g = color_get_green(color);
+    var b = color_get_blue(color);
+    
+    r = clamp(r * factor, 0, 255);
+    g = clamp(g * factor, 0, 255);
+    b = clamp(b * factor, 0, 255);
+    
+    return make_color_rgb(r, g, b);
 }
 
 function gmui_lerp_color(color1, color2, t) {

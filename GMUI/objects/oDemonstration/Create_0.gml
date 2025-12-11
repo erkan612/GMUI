@@ -4,9 +4,9 @@
 * the invisible label prefix('##') is not being applied to some elements
 */
 
-gmui_init();
+gmui_init(fnCascadiaCode);
 
-tabIdx = 1;
+tabIdx = 0;
 treeIdx = undefined;
 
 txD1 = "";
@@ -18,8 +18,6 @@ c3 = false;
 v2 = [ 0, 0 ];
 v3 = [ 0, 0, 0 ];
 v4 = [ 0, 0, 0, 0 ];
-
-gmui_get().font = fnCascadiaCode;
 
 editc4 = gmui_make_color_rgba(0, 0, 255, 255);
 buttonc4 = gmui_make_color_rgba(255, 0, 255, 255);
