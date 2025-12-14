@@ -30,14 +30,9 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 - **Lite Search** - An integrated search engine
 
 ## Screenshots
-<img width="1305" height="724" alt="gmui_demo" src="https://github.com/user-attachments/assets/3a83e442-f2e9-4c36-839f-d92476e8c15d" />
-<img width="2183" height="937" alt="simplistic_editor_tab_details" src="https://github.com/user-attachments/assets/2416ec1e-aa29-4944-b937-282e6977c79a" />
-<img width="2192" height="937" alt="simplistic_editor" src="https://github.com/user-attachments/assets/adf5c0d1-5e8a-4988-90f3-4e04d6e23224" />
-<img width="1300" height="716" alt="demo_tab_example5" src="https://github.com/user-attachments/assets/cbd5fcc8-d950-4393-8d7b-10e6b21e8aff" />
-<img width="1301" height="723" alt="demo_tab_example4" src="https://github.com/user-attachments/assets/ae3bb123-acc1-45aa-8656-5d32888afea7" />
-<img width="1297" height="721" alt="demo_tab_example3" src="https://github.com/user-attachments/assets/db3664c2-6df5-4967-bdaf-417ac7844a93" />
-<img width="1299" height="721" alt="demo_tab_example2" src="https://github.com/user-attachments/assets/b5a47dce-34a9-41fb-8683-eb2df979b493" />
-<img width="1301" height="720" alt="demo_tab_example1" src="https://github.com/user-attachments/assets/9566c393-069c-464d-b801-c8fc8177c153" />
+<img width="1295" height="721" alt="ss1" src="https://github.com/user-attachments/assets/45669680-95c2-42ba-88d7-3a89bce53668" />
+<img width="1299" height="722" alt="ss2" src="https://github.com/user-attachments/assets/41c73ea3-ce72-4fd0-92ba-ed42536647bd" />
+<img width="1298" height="718" alt="ss3" src="https://github.com/user-attachments/assets/a3d707bc-d73d-4c93-8356-2f8c7a3e1cd0" />
 
 ## Quick Start
 
