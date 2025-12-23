@@ -97,10 +97,25 @@ enum gmui_pre_window_flags {
 };
 
 enum gmui_arrow_direction {
-    UP = 0,
-    DOWN = 1,
-    LEFT = 2,
-    RIGHT = 3
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
+};
+
+enum gmui_corner_direction {
+	TOP_LEFT						= 1 << 1,
+	TOP_RIGHT						= 1 << 2,
+	
+	BOTTOM_LEFT						= 1 << 3,
+	BOTTOM_RIGHT					= 1 << 4,
+	
+	UP								= gmui_corner_direction.TOP_LEFT		| gmui_corner_direction.TOP_RIGHT,
+	DOWN							= gmui_corner_direction.BOTTOM_LEFT		| gmui_corner_direction.BOTTOM_RIGHT,
+	RIGHT							= gmui_corner_direction.TOP_RIGHT		| gmui_corner_direction.BOTTOM_RIGHT,
+	LEFT							= gmui_corner_direction.TOP_LEFT		| gmui_corner_direction.BOTTOM_LEFT,
+	ALL								= gmui_corner_direction.TOP_LEFT		| gmui_corner_direction.TOP_RIGHT		| gmui_corner_direction.BOTTOM_LEFT				| gmui_corner_direction.BOTTOM_RIGHT,
+	NONE							= 0,
 };
 
 function gmui_get() { return global.gmui; };
@@ -1627,6 +1642,12 @@ function gmui_render_surface(window) {
 				draw_set_alpha(1);
 				break;
 			
+			
+            case "rect_expensive":
+                draw_set_color(cmd.color);
+                gmui_draw_rounded_rectangle_directional(cmd.x, cmd.y, cmd.x + cmd.width, cmd.y + cmd.height, cmd.radius, cmd.direction, cmd.filled, cmd.segments);
+                break;
+			
             case "circle_fill":
                 draw_set_color(cmd.color);
 				draw_circle(cmd.x, cmd.y, cmd.radius, false);
@@ -1960,6 +1981,14 @@ function gmui_add_sprite_tinted(x, y, w, h, sprite, subimg, tint_color, tint_alp
     
     array_push(global.gmui.current_window.draw_list, {
         type: "sprite_tinted", spr: sprite, x: x, y: y, width: w, height: h, index: subimg, tint_color: tint_color, tint_alpha: tint_alpha
+    });
+}
+
+function gmui_add_rect_expensive(x, y, w, h, col, dir, rad, fill = true, segs = -1, bounds = undefined) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return;
+	if (bounds != undefined && !gmui_is_bound_in_current_window(bounds)) { return; }
+    array_push(global.gmui.current_window.draw_list, {
+        type: "rect_expensive", x: x, y: y, width: w, height: h, color: col, direction: dir, radius: rad, filled: fill, segments: segs
     });
 }
 
@@ -8735,7 +8764,7 @@ function gmui_tabs(tab_labels, selected_index, width = -1, allow_close = false) 
     var window = global.gmui.current_window;
     var dc = window.dc;
     var style = global.gmui.style;
-    
+	
     // Calculate tab bar size
     var tab_count = array_length(tab_labels);
     if (tab_count == 0) return selected_index;
@@ -9699,6 +9728,152 @@ function gmui_scroll_to_top(window_name) {
 //////////////////////////////////////
 // HELPERS (Utility functions, state management)
 //////////////////////////////////////
+function _gmui_arc(cx, cy, r, a0, a1, seg) {
+    var step = (a1 - a0) / seg;
+    for (var i = 0; i <= seg; i++) {
+        var a = degtorad(a0 + step * i);
+        draw_vertex(cx + cos(a) * r, cy + sin(a) * r);
+    }
+}
+
+function gmui_draw_rounded_rectangle_directional(
+    _x1, _y1, _x2, _y2,
+    _radius, _direction,
+    _filled = true,
+    _segments = -1
+) {
+    var x1 = min(_x1, _x2);
+    var y1 = min(_y1, _y2);
+    var x2 = max(_x1, _x2);
+    var y2 = max(_y1, _y2);
+
+    var w = x2 - x1;
+    var h = y2 - y1;
+
+    var r = min(_radius, w * 0.5);
+    r = min(r, h * 0.5);
+
+    var tl = (_direction & gmui_corner_direction.TOP_LEFT) != 0;
+    var tr = (_direction & gmui_corner_direction.TOP_RIGHT) != 0;
+    var br = (_direction & gmui_corner_direction.BOTTOM_RIGHT) != 0;
+    var bl = (_direction & gmui_corner_direction.BOTTOM_LEFT) != 0;
+
+    var seg = _segments;
+    if (seg <= 0) seg = max(8, ceil(r / 2));
+
+    /* ====================================================== */
+    /* FILLED */
+    /* ====================================================== */
+    if (_filled) {
+
+        // Center
+        draw_rectangle(
+            x1 + (tl || bl ? r : 0),
+            y1 + (tl || tr ? r : 0),
+            x2 - (tr || br ? r : 0),
+            y2 - (bl || br ? r : 0),
+            false
+        );
+
+        // Sides
+        draw_rectangle(x1 + (tl ? r : 0), y1, x2 - (tr ? r : 0), y1 + r, false); // top
+        draw_rectangle(x1 + (bl ? r : 0), y2 - r, x2 - (br ? r : 0), y2, false); // bottom
+        draw_rectangle(x1, y1 + (tl ? r : 0), x1 + r, y2 - (bl ? r : 0), false); // left
+        draw_rectangle(x2 - r, y1 + (tr ? r : 0), x2, y2 - (br ? r : 0), false); // right
+
+        // Corners
+        var step = 90 / seg;
+
+        if (tl) {
+            draw_primitive_begin(pr_trianglefan);
+            draw_vertex(x1 + r, y1 + r);
+            for (var a = 180; a <= 270; a += step) {
+                var rad = degtorad(a);
+                draw_vertex(x1 + r + cos(rad) * r, y1 + r + sin(rad) * r);
+            }
+            draw_primitive_end();
+        }
+
+        if (tr) {
+            draw_primitive_begin(pr_trianglefan);
+            draw_vertex(x2 - r, y1 + r);
+            for (var a = 270; a <= 360; a += step) {
+                var rad = degtorad(a);
+                draw_vertex(x2 - r + cos(rad) * r, y1 + r + sin(rad) * r);
+            }
+            draw_primitive_end();
+        }
+
+        if (br) {
+            draw_primitive_begin(pr_trianglefan);
+            draw_vertex(x2 - r, y2 - r);
+            for (var a = 0; a <= 90; a += step) {
+                var rad = degtorad(a);
+                draw_vertex(x2 - r + cos(rad) * r, y2 - r + sin(rad) * r);
+            }
+            draw_primitive_end();
+        }
+
+        if (bl) {
+            draw_primitive_begin(pr_trianglefan);
+            draw_vertex(x1 + r, y2 - r);
+            for (var a = 90; a <= 180; a += step) {
+                var rad = degtorad(a);
+                draw_vertex(x1 + r + cos(rad) * r, y2 - r + sin(rad) * r);
+            }
+            draw_primitive_end();
+        }
+
+        return;
+    }
+
+    /* ====================================================== */
+    /* OUTLINE (CONTINUOUS PATH, NO GAPS) */
+    /* ====================================================== */
+    draw_primitive_begin(pr_linestrip);
+
+    // Start top-left, move clockwise
+    if (tl) {
+        draw_vertex(x1 + r, y1);
+    } else {
+        draw_vertex(x1, y1);
+    }
+
+    // Top edge
+    if (tr) {
+        draw_vertex(x2 - r, y1);
+        _gmui_arc(x2 - r, y1 + r, r, 270, 360, seg);
+    } else {
+        draw_vertex(x2, y1);
+    }
+
+    // Right edge
+    if (br) {
+        draw_vertex(x2, y2 - r);
+        _gmui_arc(x2 - r, y2 - r, r,   0,  90, seg);
+    } else {
+        draw_vertex(x2, y2);
+    }
+
+    // Bottom edge
+    if (bl) {
+        draw_vertex(x1 + r, y2);
+        _gmui_arc(x1 + r, y2 - r, r,  90, 180, seg);
+    } else {
+        draw_vertex(x1, y2);
+    }
+
+    // Left edge
+    if (tl) {
+        draw_vertex(x1, y1 + r);
+        _gmui_arc(x1 + r, y1 + r, r, 180, 270, seg);
+    } else {
+        draw_vertex(x1, y1);
+    }
+
+    draw_primitive_end();
+}
+
 function gmui_is_bound_in_current_window(bounds) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
 	

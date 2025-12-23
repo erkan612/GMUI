@@ -6,6 +6,8 @@
 
 gmui_init(fnCascadiaCode);
 
+gmui_apply_theme_earth_bronze();
+
 tabIdx = 0;
 treeIdx = undefined;
 
