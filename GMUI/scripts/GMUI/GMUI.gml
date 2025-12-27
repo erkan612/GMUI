@@ -10766,9 +10766,307 @@ function gmui_style_editor() {
         }
         
         gmui_tabs_content_end();
+		
+		if (gmui_button("Copy as GML Script")) {
+			var scr = gmui_generate_style_script();
+			clipboard_set_text(scr);
+		}
         
         gmui_end();
     }
+}
+
+function gmui_generate_style_script() {
+    var style = global.gmui.style;
+    var script = "";
+    var r, g, b;
+    
+    // General settings
+    script += "// General Settings\n";
+    script += "global.gmui.style.window_padding = [" + string(style.window_padding[0]) + ", " + string(style.window_padding[1]) + "];\n";
+    script += "global.gmui.style.window_rounding = " + string(style.window_rounding) + ";\n";
+    script += "global.gmui.style.window_min_size = [" + string(style.window_min_size[0]) + ", " + string(style.window_min_size[1]) + "];\n";
+    script += "global.gmui.style.item_spacing = [" + string(style.item_spacing[0]) + ", " + string(style.item_spacing[1]) + "];\n";
+    script += "global.gmui.style.item_inner_spacing = [" + string(style.item_inner_spacing[0]) + ", " + string(style.item_inner_spacing[1]) + "];\n";
+    
+    // Colors
+    script += "\n// Colors\n";
+    r = color_get_red(style.background_color);
+    g = color_get_green(style.background_color);
+    b = color_get_blue(style.background_color);
+    script += "global.gmui.style.background_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.border_color);
+    g = color_get_green(style.border_color);
+    b = color_get_blue(style.border_color);
+    script += "global.gmui.style.border_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.text_color);
+    g = color_get_green(style.text_color);
+    b = color_get_blue(style.text_color);
+    script += "global.gmui.style.text_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.text_disabled_color);
+    g = color_get_green(style.text_disabled_color);
+    b = color_get_blue(style.text_disabled_color);
+    script += "global.gmui.style.text_disabled_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    // Window settings
+    script += "\n// Window Settings\n";
+    r = color_get_red(style.title_bar_color);
+    g = color_get_green(style.title_bar_color);
+    b = color_get_blue(style.title_bar_color);
+    script += "global.gmui.style.title_bar_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.title_bar_hover_color);
+    g = color_get_green(style.title_bar_hover_color);
+    b = color_get_blue(style.title_bar_hover_color);
+    script += "global.gmui.style.title_bar_hover_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.title_text_color);
+    g = color_get_green(style.title_text_color);
+    b = color_get_blue(style.title_text_color);
+    script += "global.gmui.style.title_text_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.title_bar_height = " + string(style.title_bar_height) + ";\n";
+    script += "global.gmui.style.title_padding = [" + string(style.title_padding[0]) + ", " + string(style.title_padding[1]) + "];\n";
+    script += "global.gmui.style.scrollbar_width = " + string(style.scrollbar_width) + ";\n";
+    
+    r = color_get_red(style.scrollbar_background_color);
+    g = color_get_green(style.scrollbar_background_color);
+    b = color_get_blue(style.scrollbar_background_color);
+    script += "global.gmui.style.scrollbar_background_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.scrollbar_anchor_color);
+    g = color_get_green(style.scrollbar_anchor_color);
+    b = color_get_blue(style.scrollbar_anchor_color);
+    script += "global.gmui.style.scrollbar_anchor_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.scroll_wheel_speed = " + string(style.scroll_wheel_speed) + ";\n";
+    
+    // Button settings
+    script += "\n// Button Settings\n";
+    r = color_get_red(style.button_bg_color);
+    g = color_get_green(style.button_bg_color);
+    b = color_get_blue(style.button_bg_color);
+    script += "global.gmui.style.button_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.button_hover_bg_color);
+    g = color_get_green(style.button_hover_bg_color);
+    b = color_get_blue(style.button_hover_bg_color);
+    script += "global.gmui.style.button_hover_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.button_border_color);
+    g = color_get_green(style.button_border_color);
+    b = color_get_blue(style.button_border_color);
+    script += "global.gmui.style.button_border_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.button_text_color);
+    g = color_get_green(style.button_text_color);
+    b = color_get_blue(style.button_text_color);
+    script += "global.gmui.style.button_text_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.button_rounding = " + string(style.button_rounding) + ";\n";
+    script += "global.gmui.style.button_border_size = " + string(style.button_border_size) + ";\n";
+    script += "global.gmui.style.button_min_size = [" + string(style.button_min_size[0]) + ", " + string(style.button_min_size[1]) + "];\n";
+    script += "global.gmui.style.button_padding = [" + string(style.button_padding[0]) + ", " + string(style.button_padding[1]) + "];\n";
+    
+    // Checkbox settings
+    script += "\n// Checkbox Settings\n";
+    r = color_get_red(style.checkbox_bg_color);
+    g = color_get_green(style.checkbox_bg_color);
+    b = color_get_blue(style.checkbox_bg_color);
+    script += "global.gmui.style.checkbox_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.checkbox_check_color);
+    g = color_get_green(style.checkbox_check_color);
+    b = color_get_blue(style.checkbox_check_color);
+    script += "global.gmui.style.checkbox_check_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.checkbox_size = " + string(style.checkbox_size) + ";\n";
+    script += "global.gmui.style.checkbox_rounding = " + string(style.checkbox_rounding) + ";\n";
+    
+    // Input settings
+    script += "\n// Input Settings\n";
+    r = color_get_red(style.textbox_bg_color);
+    g = color_get_green(style.textbox_bg_color);
+    b = color_get_blue(style.textbox_bg_color);
+    script += "global.gmui.style.textbox_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.textbox_border_color);
+    g = color_get_green(style.textbox_border_color);
+    b = color_get_blue(style.textbox_border_color);
+    script += "global.gmui.style.textbox_border_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.textbox_text_color);
+    g = color_get_green(style.textbox_text_color);
+    b = color_get_blue(style.textbox_text_color);
+    script += "global.gmui.style.textbox_text_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.textbox_rounding = " + string(style.textbox_rounding) + ";\n";
+    
+    // Slider settings
+    r = color_get_red(style.slider_track_bg_color);
+    g = color_get_green(style.slider_track_bg_color);
+    b = color_get_blue(style.slider_track_bg_color);
+    script += "global.gmui.style.slider_track_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.slider_track_fill_color);
+    g = color_get_green(style.slider_track_fill_color);
+    b = color_get_blue(style.slider_track_fill_color);
+    script += "global.gmui.style.slider_track_fill_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.slider_handle_bg_color);
+    g = color_get_green(style.slider_handle_bg_color);
+    b = color_get_blue(style.slider_handle_bg_color);
+    script += "global.gmui.style.slider_handle_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.slider_track_height = " + string(style.slider_track_height) + ";\n";
+    script += "global.gmui.style.slider_handle_width = " + string(style.slider_handle_width) + ";\n";
+    
+    // Color picker settings
+    r = color_get_red(style.color_button_border_color);
+    g = color_get_green(style.color_button_border_color);
+    b = color_get_blue(style.color_button_border_color);
+    script += "global.gmui.style.color_button_border_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.color_button_size = " + string(style.color_button_size) + ";\n";
+    
+    // Selectable settings
+    r = color_get_red(style.selectable_selected_bg_color);
+    g = color_get_green(style.selectable_selected_bg_color);
+    b = color_get_blue(style.selectable_selected_bg_color);
+    script += "global.gmui.style.selectable_selected_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.selectable_height = " + string(style.selectable_height) + ";\n";
+    
+    // Table settings
+    script += "\n// Table Settings\n";
+    r = color_get_red(style.table_header_bg_color);
+    g = color_get_green(style.table_header_bg_color);
+    b = color_get_blue(style.table_header_bg_color);
+    script += "global.gmui.style.table_header_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.table_header_text_color);
+    g = color_get_green(style.table_header_text_color);
+    b = color_get_blue(style.table_header_text_color);
+    script += "global.gmui.style.table_header_text_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.table_row_bg_color);
+    g = color_get_green(style.table_row_bg_color);
+    b = color_get_blue(style.table_row_bg_color);
+    script += "global.gmui.style.table_row_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.table_row_hover_bg_color);
+    g = color_get_green(style.table_row_hover_bg_color);
+    b = color_get_blue(style.table_row_hover_bg_color);
+    script += "global.gmui.style.table_row_hover_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.table_row_selected_bg_color);
+    g = color_get_green(style.table_row_selected_bg_color);
+    b = color_get_blue(style.table_row_selected_bg_color);
+    script += "global.gmui.style.table_row_selected_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.table_alternate_row_bg_color);
+    g = color_get_green(style.table_alternate_row_bg_color);
+    b = color_get_blue(style.table_alternate_row_bg_color);
+    script += "global.gmui.style.table_alternate_row_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.table_row_height = " + string(style.table_row_height) + ";\n";
+    script += "global.gmui.style.table_header_height = " + string(style.table_header_height) + ";\n";
+    script += "global.gmui.style.table_cell_padding = [" + string(style.table_cell_padding[0]) + ", " + string(style.table_cell_padding[1]) + "];\n";
+    
+    // Plot settings
+    script += "\n// Plot Settings\n";
+    r = color_get_red(style.plot_bg_color);
+    g = color_get_green(style.plot_bg_color);
+    b = color_get_blue(style.plot_bg_color);
+    script += "global.gmui.style.plot_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.plot_grid_color);
+    g = color_get_green(style.plot_grid_color);
+    b = color_get_blue(style.plot_grid_color);
+    script += "global.gmui.style.plot_grid_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.plot_line_color);
+    g = color_get_green(style.plot_line_color);
+    b = color_get_blue(style.plot_line_color);
+    script += "global.gmui.style.plot_line_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.plot_bar_color);
+    g = color_get_green(style.plot_bar_color);
+    b = color_get_blue(style.plot_bar_color);
+    script += "global.gmui.style.plot_bar_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.plot_scatter_color);
+    g = color_get_green(style.plot_scatter_color);
+    b = color_get_blue(style.plot_scatter_color);
+    script += "global.gmui.style.plot_scatter_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.plot_line_thickness = " + string(style.plot_line_thickness) + ";\n";
+    script += "global.gmui.style.plot_point_size = " + string(style.plot_point_size) + ";\n";
+    script += "global.gmui.style.plot_scatter_size = " + string(style.plot_scatter_size) + ";\n";
+    script += "global.gmui.style.plot_grid_steps = " + string(style.plot_grid_steps) + ";\n";
+    
+    r = color_get_red(style.plot_pie_label_color);
+    g = color_get_green(style.plot_pie_label_color);
+    b = color_get_blue(style.plot_pie_label_color);
+    script += "global.gmui.style.plot_pie_label_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.plot_pie_show_labels = " + string(style.plot_pie_show_labels) + ";\n";
+    script += "global.gmui.style.plot_pie_show_percentages = " + string(style.plot_pie_show_percentages) + ";\n";
+    script += "global.gmui.style.plot_pie_donut_ratio = " + string(style.plot_pie_donut_ratio) + ";\n";
+    
+    // Progress settings
+    script += "\n// Progress Settings\n";
+    r = color_get_red(style.progress_bar_bg_color);
+    g = color_get_green(style.progress_bar_bg_color);
+    b = color_get_blue(style.progress_bar_bg_color);
+    script += "global.gmui.style.progress_bar_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.progress_bar_fill_color);
+    g = color_get_green(style.progress_bar_fill_color);
+    b = color_get_blue(style.progress_bar_fill_color);
+    script += "global.gmui.style.progress_bar_fill_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.progress_bar_border_color);
+    g = color_get_green(style.progress_bar_border_color);
+    b = color_get_blue(style.progress_bar_border_color);
+    script += "global.gmui.style.progress_bar_border_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.progress_bar_height = " + string(style.progress_bar_height) + ";\n";
+    script += "global.gmui.style.progress_bar_rounding = " + string(style.progress_bar_rounding) + ";\n";
+    
+    // Circular progress settings
+    r = color_get_red(style.progress_circular_bg_color);
+    g = color_get_green(style.progress_circular_bg_color);
+    b = color_get_blue(style.progress_circular_bg_color);
+    script += "global.gmui.style.progress_circular_bg_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.progress_circular_fill_color);
+    g = color_get_green(style.progress_circular_fill_color);
+    b = color_get_blue(style.progress_circular_fill_color);
+    script += "global.gmui.style.progress_circular_fill_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    script += "global.gmui.style.progress_circular_size = " + string(style.progress_circular_size) + ";\n";
+    script += "global.gmui.style.progress_circular_thickness = " + string(style.progress_circular_thickness) + ";\n";
+    script += "global.gmui.style.progress_circular_show_text = " + string(style.progress_circular_show_text) + ";\n";
+    script += "global.gmui.style.progress_circular_animation_speed = " + string(style.progress_circular_animation_speed) + ";\n";
+    
+    // Gradient progress settings
+    script += "global.gmui.style.progress_gradient_enabled = " + string(style.progress_gradient_enabled) + ";\n";
+    
+    r = color_get_red(style.progress_gradient_start_color);
+    g = color_get_green(style.progress_gradient_start_color);
+    b = color_get_blue(style.progress_gradient_start_color);
+    script += "global.gmui.style.progress_gradient_start_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.progress_gradient_end_color);
+    g = color_get_green(style.progress_gradient_end_color);
+    b = color_get_blue(style.progress_gradient_end_color);
+    script += "global.gmui.style.progress_gradient_end_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    return script;
 }
 
 function gmui_demo() {

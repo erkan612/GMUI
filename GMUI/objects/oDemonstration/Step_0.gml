@@ -78,16 +78,17 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 	//global.gmui.style.item_spacing[0] = oldSpacingX;
 	//global.gmui.style.selectable_rounding = oldRounding;
 	
-	tabIdx = gmui_tabs([ "Test 1", "Test 2", "Test 3", "Test 4", "Test 5", "Test 6" ], tabIdx);
+	tabIdx = gmui_tabs(demonstrationTabs, tabIdx);
+	var selectedTab = demonstrationTabs[tabIdx];
 	gmui_separator();
 	
-	switch (tabIdx) {
-	case 0: {
+	switch (selectedTab) {
+	case "Test 1": {
 		if (gmui_button("Click Me!")) { gmui_open_modal("Message"); };
 		if (gmui_button("Show/Hide Demo Window")) { demoWindow.open = !demoWindow.open; gmui_bring_window_to_front(demoWindow); }; gmui_same_line(); gmui_tooltip("A Demo Window that demonstrates every GMUI component!");
 	} break;
 	
-	case 1: {
+	case "Test 2": {
 		gmui_text("Hello! I'm GMUI! and you?");
 		txD1 = gmui_textbox(txD1, "Enter your name");
 		if ((gmui_button("Enter") || (gmui_textbox_id() == gmui_get_focused_textbox_id() && keyboard_check_pressed(vk_enter))) && txD1 != "") {
@@ -96,7 +97,7 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 		};
 	} break;
 	
-	case 2: {
+	case "Test 3": {
 		var ac1 = gmui_collapsing_header("Vector 2", c1);
 		c1 = ac1[0];
 		if (c1) {
@@ -134,12 +135,12 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 		};
 	} break;
 	
-	case 3: {
+	case "Test 4": {
 		buttonc4 = gmui_color_button_4("Button Color 4", buttonc4);
 		editc4 = gmui_color_edit_4("Edit 4", editc4);
 	} break;
 	
-	case 4: {
+	case "Test 5": {
 		gmui_tree_node_reset();
 		var nodeBegin1 = gmui_tree_node_begin("Begin 1", treeIdx == "Begin 1");
 		treeIdx = nodeBegin1[1] ? "Begin 1" : treeIdx;
@@ -167,7 +168,7 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 		combo_index = gmui_combo("Simple Combo", combo_index, demo_items);
 	} break;
 	
-	case 5: {
+	case "Test 6": {
 		gmui_text("Lite Search Demonstration");
 		searchText = gmui_textbox(searchText, "Search...", global.gmui.current_window.width - global.gmui.style.window_padding[0] * 2);
 		if (gmui_textbox_id() == gmui_get_focused_textbox_id() && string_length(gmui_get_focused_textbox_text()) > 2 && keyboard_check(vk_anykey)) {
