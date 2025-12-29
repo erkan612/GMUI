@@ -85,7 +85,12 @@ if (gmui_begin("Demo Window", 100, 100, 768, 256, gmui_window_flags.AUTO_VSCROLL
 	switch (selectedTab) {
 	case "Test 1": {
 		if (gmui_button("Click Me!")) { gmui_open_modal("Message"); };
-		if (gmui_button("Show/Hide Demo Window")) { demoWindow.open = !demoWindow.open; gmui_bring_window_to_front(demoWindow); }; gmui_same_line(); gmui_tooltip("A Demo Window that demonstrates every GMUI component!");
+		if (global.gmui.is_hovering_element) {
+			gmui_tooltip_set("Click to see what it does!");
+		}
+		if (gmui_button("Show/Hide Demo Window")) { demoWindow.open = !demoWindow.open; gmui_bring_window_to_front(demoWindow); };
+		gmui_same_line();
+		gmui_tooltip("A Demo Window that demonstrates every GMUI component!");
 	} break;
 	
 	case "Test 2": {

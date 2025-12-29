@@ -1838,7 +1838,7 @@ function gmui_render() {
 		var gap = 5; // a small gap added to the text position for convinience
 		var tx = global.gmui.mouse_pos[0];
 		var ty = global.gmui.mouse_pos[1];
-		var tw = global.gmui.tooltip_width;
+		var tw = string_width(global.gmui.tooltip_text) < global.gmui.tooltip_width ? string_width(global.gmui.tooltip_text) : global.gmui.tooltip_width;
 		var th = gmui_get_text_wrap_height(tw, global.gmui.tooltip_text);
 		
 		var convinience_gap = 15; // a gap added to prevent cursor blocking small portion of the canvas
@@ -9358,6 +9358,11 @@ function gmui_tabs_content_end() {
     gmui_new_line();
 }
 
+function gmui_tooltip_set(text, width = -1) {
+	global.gmui.tooltip_text = text;
+	if (width != -1) { global.gmui.tooltip_width = width; }
+}
+
 function gmui_tooltip(text, width = -1) {
     if (!global.gmui.initialized || !global.gmui.current_window) return;
     
@@ -9388,11 +9393,10 @@ function gmui_tooltip(text, width = -1) {
 	
 	if (mouse_over) {
 		global.gmui.is_hovering_element = true;
-		global.gmui.tooltip_text = text;
 		
 		bg_color = style.tooltip_hover_background_color;
 
-		if (width != -1) { global.gmui.tooltip_width = width; }
+		gmui_tooltip_set(text, width);
 	}
 	
 	// Draw background
