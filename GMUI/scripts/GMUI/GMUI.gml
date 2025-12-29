@@ -44,7 +44,6 @@
 //////////////////////////////////////
 // CORE (Initialization, main loop, window management)
 //////////////////////////////////////
-global.gmui = undefined;
 
 enum gmui_window_flags {
     NONE							= 0,
@@ -121,7 +120,7 @@ enum gmui_corner_direction {
 function gmui_get() { return global.gmui; };
 
 function gmui_init(font = undefined) {
-    if (global.gmui == undefined) {
+    if (!variable_global_exists("gmui")) {
         global.gmui = {
             initialized: true,
             tooltip_width: 350,
@@ -1016,8 +1015,19 @@ function gmui_open_context_menu(name, x = -1, y = -1) {
 	if (x == -1) { x = global.gmui.mouse_pos[0]; };
 	if (y == -1) { y = global.gmui.mouse_pos[1]; };
 	
+	var window = gmui_get_window(name);
+	
+	var w = window.width;
+	var h = window.height;
+	var screen_width = surface_get_width(application_surface);
+	var screen_height = surface_get_height(application_surface);
+	var _x = x + w <= screen_width ? x : x - w;
+	var _y = y + h <= screen_height ? y : y - h;
+	
+	window.x = _x;
+	window.y = _y;
+	
 	gmui_open_modal(name);
-	gmui_set_window_position(name, x, y);
 	
 	array_foreach(ds_map_keys_to_array(global.gmui.context_menu_cache), function(e, i) {
 		global.gmui.context_menu_cache[? e] = false;
@@ -10327,11 +10337,12 @@ function gmui_style_editor() {
         static selected_tab = 0;
         static tabs = ["General", "Windows", "Buttons", "Inputs", "Tables", "Plots", "Progress"];
         selected_tab = gmui_tabs(tabs, selected_tab);
+		var selected_tab_name = tabs[selected_tab];
         
         gmui_tabs_content_begin();
         
-        switch (selected_tab) {
-            case 0: // General
+        switch (selected_tab_name) {
+            case "General": // General
                 gmui_text("General Settings");
                 gmui_text_disabled("Basic UI configuration");
                 gmui_separator();
@@ -10389,7 +10400,7 @@ function gmui_style_editor() {
                 global.gmui.style.text_disabled_color = gmui_color_rgba_to_color_rgb(sTextDisabledColor);
                 break;
                 
-            case 1: // Windows
+            case "Windows": // Windows
                 gmui_text("Window Settings");
                 gmui_text_disabled("Title bar and window appearance");
                 gmui_separator();
@@ -10440,7 +10451,7 @@ function gmui_style_editor() {
                 global.gmui.style.scroll_wheel_speed = gmui_input_int(global.gmui.style.scroll_wheel_speed, 1, 10, 100, 80);
                 break;
                 
-            case 2: // Buttons
+            case "Buttons": // Buttons
                 gmui_text("Button Settings");
                 gmui_text_disabled("All button-related styles");
                 gmui_separator();
@@ -10505,7 +10516,7 @@ function gmui_style_editor() {
                 global.gmui.style.checkbox_rounding = gmui_input_int(global.gmui.style.checkbox_rounding, 1, 0, 16, 80);
                 break;
                 
-            case 3: // Inputs
+            case "Inputs": // Inputs
                 gmui_text("Input Settings");
                 gmui_text_disabled("Textboxes, sliders, and other inputs");
                 gmui_separator();
@@ -10582,7 +10593,7 @@ function gmui_style_editor() {
                 global.gmui.style.selectable_height = gmui_input_int(global.gmui.style.selectable_height, 1, 16, 48, 80);
                 break;
                 
-            case 4: // Tables
+            case "Tables": // Tables
                 gmui_text("Table Settings");
                 gmui_text_disabled("Data table appearance");
                 gmui_separator();
@@ -10630,7 +10641,7 @@ function gmui_style_editor() {
                 global.gmui.style.table_cell_padding[1] = gmui_input_int(global.gmui.style.table_cell_padding[1], 1, 0, 20, 80);
                 break;
                 
-            case 5: // Plots
+            case "Plots": // Plots
                 gmui_text("Plot Settings");
                 gmui_text_disabled("Chart and graph appearance");
                 gmui_separator();
@@ -10692,7 +10703,7 @@ function gmui_style_editor() {
                 global.gmui.style.plot_pie_donut_ratio = gmui_input_float(global.gmui.style.plot_pie_donut_ratio, 0.05, 0, 0.9, 80);
                 break;
                 
-            case 6: // Progress
+            case "Progress": // Progress
                 gmui_text("Progress Bar Settings");
                 gmui_text_disabled("Linear and circular progress bars");
                 gmui_separator();
