@@ -18,8 +18,8 @@
 * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR       *
 * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER     *
 * DEALINGS IN THE SOFTWARE.                                                                  *
-*********************************************************************************************/
-/*-------------------------------------------------------------------------------------------*
+**********************************************************************************************
+*--------------------------------------------------------------------------------------------*
 *   						***************************************                          *
 *   						   ██████╗ ███╗   ███╗██╗   ██╗██╗		                         *
 *   						  ██╔════╝ ████╗ ████║██║   ██║██║		                         *
@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						          Version 1.10.44				                         *
+*   						          Version 1.11.5				                         *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -36,7 +36,7 @@
 *   						             for GameMaker				                         *
 *   						=======================================	                         *
 *   						***************************************                          *
-/*------------------------------------------------------------------------------------------*/
+*********************************************************************************************/
 
 /************************************
  * CORE
@@ -678,6 +678,10 @@ function gmui_init(font = undefined) {
 				tooltip_message_background_color: make_color_rgb(50, 50, 50),
 				tooltip_message_border_color: make_color_rgb(100, 100, 100),
 				tooltip_message_text_color: make_color_rgb(220, 220, 220),
+				
+				text_clickable_color: make_color_rgb(100, 100, 255),
+				text_clickable_hover_color: make_color_rgb(128, 128, 255),
+				text_clickable_active_color: make_color_rgb(30, 30, 255),
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -2509,6 +2513,58 @@ function gmui_text(text) {
 	gmui_new_line();
 	
     return false;
+}
+
+function gmui_text_clickable(text) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+	var style = global.gmui.style;
+    var size = gmui_calc_text_size(text);
+	var bounds = [dc.cursor_x, dc.cursor_y, dc.cursor_x + size[0], dc.cursor_y + size[1]];
+	var element_id = "text_clickable_" + window.name + "_element_id_" + string(dc.cursor_x) + "+" + string(dc.cursor_y) + "_";
+    
+    var mouse_over = gmui_is_mouse_over_window(window) && 
+                     gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
+                                         global.gmui.mouse_pos[1] - window.y, 
+                                         bounds) && !global.gmui.is_hovering_element;
+    
+    var clicked = false;
+    var is_active = false;
+    
+    if (mouse_over && window.active) {
+        global.gmui.is_hovering_element = true;
+        if (global.gmui.mouse_clicked[0]) {
+            global.gmui.last_pressed_clickable_id = element_id;
+        }
+        if (global.gmui.mouse_down[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            is_active = true;
+        }
+        if (global.gmui.mouse_released[0] && global.gmui.last_pressed_clickable_id == element_id) {
+            clicked = true;
+        }
+    }
+	
+	var color = style.text_clickable_color;
+	
+	if (is_active) {
+		color = style.text_clickable_active_color;
+	}
+	else if (mouse_over) {
+		color = style.text_clickable_hover_color;
+	}
+	
+    gmui_add_text(dc.cursor_x, dc.cursor_y, text, color, bounds);
+	gmui_add_line(dc.cursor_x, dc.cursor_y + size[1], dc.cursor_x + size[0], dc.cursor_y + size[1], color, 1, bounds);
+    
+	dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += size[0] + global.gmui.style.item_spacing[0];
+    dc.line_height = max(dc.line_height, size[1]);
+	
+	gmui_new_line();
+	
+    return clicked && window.active;
 }
 
 function gmui_text_bullet(text) {
@@ -9415,7 +9471,7 @@ function gmui_tooltip(text, width = -1) {
     // Update cursor position
     dc.cursor_previous_x = dc.cursor_x;
     dc.cursor_x += radius + style.item_spacing[0];
-    dc.line_height = max(dc.line_height, radius * 2);
+    dc.line_height = max(dc.line_height, radius * 3);
     
     gmui_new_line();
 	
@@ -11686,7 +11742,7 @@ function gmui_demo() {
         
         // ---------------------------
         // 5. DISPLAY WIDGETS
-        //  - Text, Wrapping, Labels
+        //  - Text, Clickable Text, Wrapping, Labels
         // ---------------------------
         static dsp_open = false;
         header = gmui_collapsing_header("5. Display Widgets", dsp_open);
@@ -11698,6 +11754,7 @@ function gmui_demo() {
             if (d1) {
                 gmui_text("This is normal text");
                 gmui_text_disabled("This is disabled text");
+                if (gmui_text_clickable("This is clickable text")) { show_debug_message("Clicked on the clickable text!"); };
                 
                 gmui_label_text("Label", "Value");
                 gmui_label_text("FPS", string(room_speed));
