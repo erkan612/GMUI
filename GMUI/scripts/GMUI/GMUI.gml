@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						          Version 1.11.9				                         *
+*   						          Version 1.11.14				                         *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -1138,7 +1138,7 @@ function gmui_end(_no_repeat = false) {
             dropdown_y = window.y + window.combo_y - dropdown_height;
         }
 		
-		if (gmui_begin(_id, dropdown_x, dropdown_y, dropdown_width, dropdown_height, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+		if (gmui_begin(_id, dropdown_x, dropdown_y, dropdown_width, dropdown_height, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE | gmui_window_flags.AUTO_VSCROLL | gmui_window_flags.SCROLL_WITH_MOUSE_WHEEL)) {
 			var w = global.gmui.current_window;
 			
 			w.active_combo				= window.active_combo;
@@ -7490,6 +7490,7 @@ function gmui_combo_dropdown() {
 	var cx = 0;
 	var cy = 0;
 	var width = window.combo_width;
+	var dc = window.dc;
 	
     var style = global.gmui.style;
     var items = window.combo_items;
@@ -7501,20 +7502,20 @@ function gmui_combo_dropdown() {
     var dropdown_height = min(max_height, items_count * item_height);
     
     // Adjust position if dropdown would go off screen
-    var screen_height = window_get_height();
-    if (cy + dropdown_height > screen_height) {
-        cy = max(0, cy - dropdown_height - style.combo_height);
-    }
+    //var screen_height = window_get_height();
+    //if (cy + dropdown_height > screen_height) {
+    //    cy = max(0, cy - dropdown_height - style.combo_height);
+    //}
     
     var dropdown_bounds = [cx, cy, cx + width, cy + dropdown_height];
     
     // Draw dropdown background
-    gmui_add_rect_round(cx, cy, width - 1, dropdown_height - 1, style.combo_dropdown_bg_color, style.combo_dropdown_rounding, dropdown_bounds);
+    //gmui_add_rect_round(cx, cy, width - 1, dropdown_height - 1, style.combo_dropdown_bg_color, style.combo_dropdown_rounding, dropdown_bounds);
     
     // Draw border
-    if (style.combo_border_size > 0) {
-        gmui_add_rect_round_outline(cx, cy, width - 2, dropdown_height - 2, style.combo_dropdown_border_color, style.combo_dropdown_rounding, style.combo_border_size, dropdown_bounds);
-    }
+    //if (style.combo_border_size > 0) {
+    //    gmui_add_rect_round_outline(cx, cy, width - 2, dropdown_height - 2, style.combo_dropdown_border_color, style.combo_dropdown_rounding, style.combo_border_size, dropdown_bounds);
+    //}
     
     // Draw items
     var mouse_over_dropdown = gmui_is_mouse_over_window(window) && 
@@ -7528,13 +7529,13 @@ function gmui_combo_dropdown() {
 	}
 	
     for (var i = 0; i < items_count; i++) {
-        var item_y = cy + i * item_height;
+        var item_y = dc.cursor_y - style.window_padding[1];
         var item_bounds = [cx, item_y, cx + width, item_y + item_height];
         
         var item_mouse_over = mouse_over_dropdown && 
                               gmui_is_point_in_rect(global.gmui.mouse_pos[0] - window.x, 
                                                   global.gmui.mouse_pos[1] - window.y, 
-                                                  item_bounds);
+                                                  item_bounds) && !global.gmui.is_hovering_element;
         
         var bg_color = style.combo_item_bg_color;
         var text_color = style.combo_item_text_color;
@@ -7575,7 +7576,11 @@ function gmui_combo_dropdown() {
             window.active_combo = undefined; // Close dropdown
 			global.gmui.to_delete_combo = true;
         }
+		
+		dc.cursor_y += item_height;
     }
+	
+	dc.cursor_y -= item_height + style.window_padding[1];
 }
 
 function gmui_combo_simple(label, current_index, items, width = -1) {
