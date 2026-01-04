@@ -5,8 +5,7 @@
 */
 
 gmui_init(fnCascadiaCode);
-
-//gmui_apply_theme_earth_bronze();
+//gmui_apply_theme("cosmic_dusk");
 
 tabIdx = 0;
 demonstrationTabs = [ "Test 1", "Test 2", "Test 3", "Test 4", "Test 5", "Test 6" ];

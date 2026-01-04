@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						          Version 1.11.5				                         *
+*   						          Version 1.11.9				                         *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -1090,7 +1090,11 @@ function gmui_end(_no_repeat = false) {
 		var picker_width = style.color_picker_width;
 		var picker_height = style.color_picker_height + style.color_picker_hue_height + style.color_picker_alpha_height + style.color_picker_padding * 4;
 		var _id = "###" + window.name + "_color_picker";
-		if (gmui_begin(_id, global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], picker_width, picker_height, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
+		var screen_width = surface_get_width(application_surface);
+		var screen_height = surface_get_height(application_surface);
+		var _x = global.gmui.mouse_pos[0] + picker_width > screen_width ? global.gmui.mouse_pos[0] - picker_width : global.gmui.mouse_pos[0];
+		var _y = global.gmui.mouse_pos[1] + picker_height > screen_height ? global.gmui.mouse_pos[1] - picker_height : global.gmui.mouse_pos[1];
+		if (gmui_begin(_id, _x, _y, picker_width, picker_height, gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_RESIZE)) {
 			var w = global.gmui.current_window;
 			
 			w.active_color_picker			= window.active_color_picker;
@@ -4065,7 +4069,7 @@ function gmui_color_button(color_rgba, size = -1) {
     }
     
     // Draw checkerboard background for transparency
-    gmui_draw_checkerboard_shader(button_x, button_y, button_size, button_size);
+    gmui_draw_checkerboard_shader(button_x, button_y, button_size + 1, button_size + 1);
     
     // Draw color
     gmui_add_rect_alpha(button_x, button_y, button_size, button_size, make_color_rgb(arr_rgba[0], arr_rgba[1], arr_rgba[2]), arr_rgba[3], button_bounds);
@@ -4273,7 +4277,7 @@ function gmui_color_picker() {
     var picker_y = 0;
     
     // Draw color picker background
-    gmui_add_rect(picker_x, picker_y, picker_width, picker_height, style.background_color);
+    //gmui_add_rect(picker_x, picker_y, picker_width, picker_height, style.background_color);
     
     // Draw border
     if (style.color_picker_border_size > 0) {
@@ -10458,6 +10462,22 @@ function gmui_style_editor() {
                 gmui_text("Text Disabled"); gmui_same_line(); gmui_tab(tab_index);
                 sTextDisabledColor = gmui_color_button_4("##text_disabled_color", sTextDisabledColor);
                 global.gmui.style.text_disabled_color = gmui_color_rgba_to_color_rgb(sTextDisabledColor);
+				
+				gmui_separator();
+				static sTextClickableColor =  gmui_color_rgb_to_color_rgba(global.gmui.style.text_clickable_color);
+				gmui_text("Text Clickable"); gmui_same_line(); gmui_tab(tab_index);
+				sTextClickableColor = gmui_color_button_4("##text_clickable_color", sTextClickableColor);
+				global.gmui.style.text_clickable_color = gmui_color_rgba_to_color_rgb(sTextClickableColor);
+				
+				static sTextClickableHoverColor =  gmui_color_rgb_to_color_rgba(global.gmui.style.text_clickable_hover_color);
+				gmui_text("Text Clickable Hover"); gmui_same_line(); gmui_tab(tab_index);
+				sTextClickableHoverColor = gmui_color_button_4("##text_clickable_hover_color", sTextClickableHoverColor);
+				global.gmui.style.text_clickable_hover_color = gmui_color_rgba_to_color_rgb(sTextClickableHoverColor);
+				
+				static sTextClickableActiveColor =  gmui_color_rgb_to_color_rgba(global.gmui.style.text_clickable_active_color);
+				gmui_text("Text Clickable Active"); gmui_same_line(); gmui_tab(tab_index);
+				sTextClickableActiveColor = gmui_color_button_4("##text_clickable_active_color", sTextClickableActiveColor);
+				global.gmui.style.text_clickable_active_color = gmui_color_rgba_to_color_rgb(sTextClickableActiveColor);
                 break;
                 
             case "Windows": // Windows
@@ -10881,6 +10901,21 @@ function gmui_generate_style_script() {
     g = color_get_green(style.text_disabled_color);
     b = color_get_blue(style.text_disabled_color);
     script += "global.gmui.style.text_disabled_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.text_clickable_color);
+    g = color_get_green(style.text_clickable_color);
+    b = color_get_blue(style.text_clickable_color);
+    script += "global.gmui.style.text_clickable_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.text_clickable_hover_color);
+    g = color_get_green(style.text_clickable_hover_color);
+    b = color_get_blue(style.text_clickable_hover_color);
+    script += "global.gmui.style.text_clickable_hover_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
+    
+    r = color_get_red(style.text_clickable_active_color);
+    g = color_get_green(style.text_clickable_active_color);
+    b = color_get_blue(style.text_clickable_active_color);
+    script += "global.gmui.style.text_clickable_active_color = make_color_rgb(" + string(r) + ", " + string(g) + ", " + string(b) + ");\n";
     
     // Window settings
     script += "\n// Window Settings\n";
