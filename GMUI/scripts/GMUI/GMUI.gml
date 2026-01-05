@@ -11824,59 +11824,75 @@ function gmui_demo() {
             static scatter_y = [2, 4, 5, 4, 5, 7, 8, 7, 9, 8];
             static pie_values = [25, 20, 15, 30, 10];
             static pie_labels = ["Red", "Blue", "Green", "Yellow", "Purple"];
-            
-            gmui_text("Data Visualization Examples");
-            gmui_text_disabled("Various chart types with customizable styling");
-            gmui_separator();
-            
-            // Line plot example
-            gmui_text("Line Plot - Time Series Data");
-            gmui_plot_lines("Frame Times (ms)", frame_times, array_length(frame_times), -1, 150);
 			
-            gmui_separator();
-            
-            // Bar chart example
-            gmui_text("Bar Chart - Performance Metrics");
-            gmui_plot_bars("Sensor Readings", plot_data, array_length(plot_data), -1, 150);
+			static d1 = false;
+			var dh = gmui_collapsing_header_ex("Line Plot", d1);
+            d1 = dh[1] ? !d1 : d1;
+			if (dh[0]) {
+				gmui_plot_lines("Line Plot - Time Series Data", frame_times, array_length(frame_times), -1, 150);
+				gmui_collapsing_header_end();
+			}
 			
-            gmui_separator();
-            
-            // Histogram example
-            gmui_text("Histogram - Value Distribution");
-            gmui_plot_histogram("Data Distribution", plot_data, array_length(plot_data), -1, 150, 6);
+			static d2 = false;
+			dh = gmui_collapsing_header_ex("Bar Plot", d2);
+            d2 = dh[1] ? !d2 : d2;
+			if (dh[0]) {
+				gmui_plot_bars("Bar Chart - Performance Metrics", plot_data, array_length(plot_data), -1, 150);
+				gmui_collapsing_header_end();
+			}
 			
-            gmui_separator();
-            
-            // Scatter plot example
-            gmui_text("Scatter Plot - Correlation");
-            gmui_plot_scatter("X vs Y Correlation", scatter_x, scatter_y, array_length(scatter_x), -1, 150);
+			static d3 = false;
+			dh = gmui_collapsing_header_ex("Histogram Plot", d3);
+            d3 = dh[1] ? !d3 : d3;
+			if (dh[0]) {
+				gmui_plot_histogram("Histogram - Value Distribution", plot_data, array_length(plot_data), -1, 150, 6);
+				gmui_collapsing_header_end();
+			}
 			
-            gmui_separator();
-            
-            // Pie plot example
-            gmui_text("Pie Plot - Proportional Data");
-            gmui_plot_pie("Sales Distribution", pie_values, pie_labels, array_length(pie_values), 300, 200);
-            gmui_plot_donut("Donut Chart Example", pie_values, pie_labels, array_length(pie_values), 300, 200, 0.4);
-            gmui_plot_pie_exploded("Exploded View", pie_values, pie_labels, array_length(pie_values), 300, 200, false);
-            
-            gmui_text("Controls");
-            for (var i = 0; i < array_length(pie_values); i++) {
-                gmui_text(pie_labels[i]); gmui_same_line();
-                pie_values[i] = gmui_input_int(pie_values[i], 1, 0, 100, 80);
-            }
+			static d4 = false;
+			dh = gmui_collapsing_header_ex("Scatter Plot", d4);
+            d4 = dh[1] ? !d4 : d4;
+			if (dh[0]) {
+				gmui_plot_scatter("Scatter Plot - X and Y Correlation", scatter_x, scatter_y, array_length(scatter_x), -1, 150);
+				gmui_collapsing_header_end();
+			}
 			
-            gmui_separator();
-            
-            // Stem plot example
-            gmui_text("Stem Plot - Discrete Signal");
-            gmui_plot_stem("Stem Data", plot_data, ["A","B","C","D","E","F","G","H","I","J"], array_length(plot_data), -1, 150, 3, c_lime);
+			static d5 = false;
+			dh = gmui_collapsing_header_ex("Stem Plot", d5);
+            d5 = dh[1] ? !d5 : d5;
+			if (dh[0]) {
+				gmui_plot_stem("Stem Plot - Discrete Signal", plot_data, ["A","B","C","D","E","F","G","H","I","J"], array_length(plot_data), -1, 150, 3, c_lime);
+				gmui_collapsing_header_end();
+			}
 			
-            gmui_separator();
-            
-            // Stair plot example
-            gmui_text("Stair Plot - Step Function");
-            gmui_plot_stair("Step Data", plot_data, array_length(plot_data), -1, 150, "post");
-            
+			static d6 = false;
+			dh = gmui_collapsing_header_ex("Stair Plot", d6);
+            d6 = dh[1] ? !d6 : d6;
+			if (dh[0]) {
+				gmui_plot_stair("Stair Plot - Step Function", plot_data, array_length(plot_data), -1, 150, "post");
+				gmui_collapsing_header_end();
+			}
+			
+			static d7 = false;
+			dh = gmui_collapsing_header_ex("Pie Plots", d7);
+            d7 = dh[1] ? !d7 : d7;
+			if (dh[0]) {
+				gmui_text("Pie Plot - Proportional Data");
+	            gmui_plot_pie("Pie Plot - Proportional Data", pie_values, pie_labels, array_length(pie_values), 300, 200);
+	            gmui_plot_donut("Pie Plot (Donut) - Proportional Data", pie_values, pie_labels, array_length(pie_values), 300, 200, 0.4);
+	            gmui_plot_pie_exploded("Pie Plot (Exploded) - Proportional Data", pie_values, pie_labels, array_length(pie_values), 300, 200, false);
+				
+				gmui_tab_width(32);
+	            gmui_text("Controls");
+	            for (var i = 0; i < array_length(pie_values); i++) {
+	                gmui_text(pie_labels[i]); gmui_same_line();
+	                gmui_tab(5);
+					pie_values[i] = gmui_input_int(pie_values[i], 1, 0, 100, 80);
+	            }
+				
+				gmui_collapsing_header_end();
+			}
+			
             gmui_collapsing_header_end();
         }
         
