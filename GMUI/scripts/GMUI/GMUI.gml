@@ -2538,6 +2538,8 @@ function gmui_text_clickable(text) {
     var is_active = false;
     
     if (mouse_over && window.active) {
+		window_set_cursor(cr_drag);
+		
         global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_clicked[0]) {
             global.gmui.last_pressed_clickable_id = element_id;
