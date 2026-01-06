@@ -9295,7 +9295,14 @@ function gmui_tabs(tab_labels, selected_index, width = -1, allow_close = false) 
     // Advance cursor for next element
     gmui_new_line();
     
-    // Return selected index (or negative for close)
+	// Handle Close
+	if (selected_index < 0) {
+		selected_index = -selected_index - 1;
+		array_delete(tab_labels, selected_index, 1);
+		selected_index = max(0, selected_index - 1); // Make sure it doesnt go out of bounds
+	}
+	
+    // Return selected index
     return selected_index;
 }
 
@@ -11617,16 +11624,6 @@ function gmui_demo() {
                 static temp_labels = ["File", "Edit", "View", "Window"];
                 static selected_tab2 = 0;
                 selected_tab2 = gmui_tabs_with_close(temp_labels, selected_tab2);
-                
-                // Handle close (returns negative index)
-                if (selected_tab2 < 0) {
-                    var close_index = -selected_tab2 - 1;
-                    if (close_index >= 0 && close_index < array_length(temp_labels)) {
-                        // Remove tab
-                        array_delete(temp_labels, close_index, 1);
-                        selected_tab2 = max(0, min(selected_tab2, array_length(temp_labels) - 1));
-                    }
-                }
                 
                 gmui_separator();
                 
