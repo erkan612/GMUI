@@ -11,7 +11,8 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 |-----------------|------------|-----------------|
 | 2024.14        | ⚠️ | Memory Issues |
 | 2024.13        | ❌ | Memory Issues, Build Issues |
-| 2023.11        | ✔️ | No Issue Detected |
+| 2024.11        | ✔️ | No Issue Detected |
+| 2024.8        | ✔️ | No Issue Detected |
 
 ## Main Features
 
@@ -114,6 +115,7 @@ if (gmui_begin("Scrollable Window", 100, 100, 300, 200, flags)) {
 - Disabled Text
 - Bulleted Text
 - Wrapped Text
+- Clickable Text
 - Label with Value
 
 ## Buttons
@@ -124,11 +126,22 @@ if (gmui_begin("Scrollable Window", 100, 100, 300, 200, flags)) {
 - Large Button
 - Fixed Width Button
 - Disabled Button
+- Image Button
+- Image Button Labeled
+- Image Button Tinted
+- Arrow Button
 
 ## Checkboxes
 - Checkbox with Label
 - Disabled Checkbox
 - Standalone Checkbox
+- Checkbox Group
+
+## Radioboxes
+- Radiobox with Label
+- Disabled Radiobox
+- Standalone Radiobox
+- Radiobox Group
 
 ## Sliders
 - Slider
@@ -172,16 +185,18 @@ if (gmui_begin("Scrollable Window", 100, 100, 300, 200, flags)) {
 - Collapsing Header End
 
 ## Data Tables
-- Table (Begin)
-- Table Row
-- Table (End)
-- Table Controls
+- Basic Data Table
 
 ## Plotting & Charts
 - Line Plot
 - Bar Chart
 - Histogram
 - Scatter Plot
+- Stem Plot
+- Stair Plot
+- Pie Plot
+- Pie Plot (Donut)
+- Pie Plot (Exploded)
 
 ## Window Splitting System - WINS
 - Window Split Node
@@ -190,9 +205,14 @@ if (gmui_begin("Scrollable Window", 100, 100, 300, 200, flags)) {
 - Splitter Visuals
 
 ## Modal System
-- Modal Management
-- Modal Open
-- Modal Close
+- Basic Modal Management
+
+## Window Menu
+- Basic Menu Item
+
+# Context Menu
+- Context Menu Item
+- Context Menu Sub Item
 
 ## Image Display
 - Sprite Display
@@ -202,6 +222,7 @@ if (gmui_begin("Scrollable Window", 100, 100, 300, 200, flags)) {
 - Rectangle
 - Rectangle with Alpha
 - Rectangle Outline
+- Rectangle Expensive
 - Rounded Rectangle
 - Rounded Rectangle Outline
 - Line
@@ -231,7 +252,8 @@ if (gmui_begin("Scrollable Window", 100, 100, 300, 200, flags)) {
 - All Windows Sorted
 
 ## Cache System
-- Surface Cache
+- Surface Caching with Sleep Timer
+- Basic Variable Cahcing
 
 ## Demo & Debug
 - Demo Window
