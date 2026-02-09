@@ -65,17 +65,29 @@ if (gmui_begin("Usage Demonstration Window", undefined, undefined, undefined, un
 	switch (tab_name) {
 	case "Buttons": {
 		gmui_separator_text1("Basic");
-		gmui_button("Classic"); gmui_same_line();
+		gmui_button("Normal"); gmui_same_line();
 		gmui_button_width("Fixed", 170); gmui_same_line();
 		gmui_button_small("Small"); gmui_same_line();
 		gmui_button_large("Large");
 		gmui_button_width_fill("Fill");
 		
+		gmui_separator_text1("Arrow");
+		gmui_arrow_button(gmui_arrow_direction.UP, 32, 32); gmui_same_line();
+        gmui_arrow_button(gmui_arrow_direction.RIGHT, 32, 32); gmui_same_line();
+        gmui_arrow_button(gmui_arrow_direction.DOWN, 32, 32); gmui_same_line();
+        gmui_arrow_button(gmui_arrow_direction.LEFT, 32, 32);
+        gmui_arrow_button_double_horizontal(48, 32); gmui_same_line();
+        gmui_arrow_button_double_vertical(32, 48);
+		
 		gmui_separator_text1("Image");
-		gmui_image_button(sIconHome);
+		gmui_image_button(sIconHome); gmui_same_line();
+		gmui_image_button1(sIconHome, 0, 32, 32);
 		gmui_image_button_labeled(sIconFolder, "Labeled");
 		gmui_image_button_tinted(sIconTick, 0, c_green); gmui_same_line();
 		gmui_image_button_tinted(sIconCross, 0, c_red);
+	} break;
+	
+	case "Checkboxes": {
 	} break;
 	};
 	

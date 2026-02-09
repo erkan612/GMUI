@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						          Version 1.11.14				                         *
+*   						          Version 1.11.16				                         *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -3023,8 +3023,8 @@ function gmui_image_button1(sprite, subimg = 0, width = -1, height = -1, scale_s
     var element_id = "id_image_button_" + string(sprite) + "_" + string(subimg) + "_" + string(dc.cursor_x) + "_" + string(dc.cursor_y);
     
     // Calculate button size
-    var button_width = width;
-    var button_height = height;
+    var button_width = width != -1 ? width : sprite_get_width(sprite);
+    var button_height = height != -1 ? height : sprite_get_height(sprite);
 	
 	// Calculate image width
 	var image_width = scale_spr ? button_width : sprite_get_width(sprite);
@@ -4104,8 +4104,8 @@ function gmui_sprite(sprite, subimg = 0) {
     
     // Update cursor position
     dc.cursor_previous_x = dc.cursor_x;
-    dc.cursor_x += surface_get_width(surface) + style.item_spacing[0];
-    dc.line_height = max(dc.line_height, surface_get_height(surface));
+    dc.cursor_x += sprite_get_width(sprite) + style.item_spacing[0];
+    dc.line_height = max(dc.line_height, sprite_get_height(sprite));
 	
 	gmui_new_line();
 };
