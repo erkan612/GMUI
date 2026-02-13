@@ -2523,6 +2523,36 @@ function gmui_text(text) {
     return false;
 }
 
+function gmui_text_color(text, color, letter_spacing = 1) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return false;
+    
+    var window = global.gmui.current_window;
+    var dc = window.dc;
+    var size = gmui_calc_text_size(text);
+	var bounds = [dc.cursor_x, dc.cursor_y, dc.cursor_x + size[0], dc.cursor_y + size[1]];
+	var is_color_array = is_array(color);
+	if (is_color_array && array_length(color) != string_length(text)) { return; }
+	var letter_width = gmui_calc_text_size("W")[0];
+	
+	if (is_color_array) {
+		for (var i = 0; i < array_length(color); i++) {
+			gmui_add_text(dc.cursor_x, dc.cursor_y, string_char_at(text, i + 1), color[i], bounds);
+			if (i != array_length(color) - 1) { dc.cursor_x += letter_width + letter_spacing; }
+		};
+	}
+	else{
+		gmui_add_text(dc.cursor_x, dc.cursor_y, text, color, bounds);
+	}
+	
+	dc.cursor_previous_x = dc.cursor_x;
+    dc.cursor_x += size[0] + global.gmui.style.item_spacing[0];
+    dc.line_height = max(dc.line_height, size[1]);
+	
+	gmui_new_line();
+	
+    return false;
+} function gmui_text_colour(text, colour) { gmui_text_color(text, colour); };
+
 function gmui_text_clickable(text) {
     if (!global.gmui.initialized || !global.gmui.current_window) return false;
     
