@@ -843,7 +843,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     var window = gmui_get_window(name);
     if (!window) return false;
     
-    var no_move = (flags & gmui_window_flags.NO_MOVE) == 0;
+    var no_move = (flags & gmui_window_flags.NO_MOVE) != 0;
 	var no_border = (flags & gmui_window_flags.NO_BORDER) != 0;
 	var is_popup = (flags & gmui_window_flags.POPUP) != 0;
     
