@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						          Version 1.11.16				                         *
+*   						          Version 1.12.29				                         *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -842,6 +842,8 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     
     var window = gmui_get_window(name);
     if (!window) return false;
+	
+	if (flags == -1) { flags = window.flags; };
     
     var no_move = (flags & gmui_window_flags.NO_MOVE) == 0;
 	var no_border = (flags & gmui_window_flags.NO_BORDER) != 0;
@@ -859,11 +861,11 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     } else if (!no_move) {
         if (x != -1) window.x = x;
         if (y != -1) window.y = y;
-        if (w != -1) window.width = w;
-        if (h != -1) window.height = h;
+        //if (w != -1) window.width = w;
+        //if (h != -1) window.height = h;
     }
     
-    window.flags = flags;
+	if (flags != -1) { window.flags = flags };
     window.active = true;
     gmui_array_clear(window.treeview_stack);
 	
@@ -897,7 +899,7 @@ function gmui_begin(name, x = 0, y = 0, w = 512, h = 256, flags = 0) {
     
     // Recreate surface if size changed
     var size_changed = window.width != w || window.height != h;
-    if ((size_changed && !no_move) || !surface_exists(window.surface)) {
+    if (size_changed || !surface_exists(window.surface)) {
 		surface_free(window.surface);
         gmui_create_surface(window);
     } else {

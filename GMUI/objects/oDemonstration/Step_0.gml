@@ -32,11 +32,10 @@ if (gmui_begin_menu("Menu")) {
 }
 
 //
-if (gmui_begin("test bug", 100, 100, 256, 256)) {
+if (gmui_begin("test bug", 100, 100, 256, 256, -1)) {
 	//global.gmui.current_window.x = 100 + sin(current_time / 100) * 50;
 	if (keyboard_check_pressed(vk_space)) {
 		global.gmui.current_window.flags ^= gmui_window_flags.NO_MOVE;
-		show_debug_message("done")
 	}
 	gmui_end();
 }
