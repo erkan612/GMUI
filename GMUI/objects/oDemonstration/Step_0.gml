@@ -31,6 +31,13 @@ if (gmui_begin_menu("Menu")) {
 	gmui_end_menu();
 }
 
+if (gmui_begin("test bug", 100, 100, 256, 256, -1)) {
+	if (keyboard_check_pressed(vk_space)) {
+		global.gmui.current_window.flags ^= gmui_window_flags.NO_MOVE;
+	}
+	gmui_end();
+}
+
 if (gmui_begin("Toolbox Window", 0, global.gmui.style.menu_height, screen_width, 32, gmui_pre_window_flags.TOOLBOX)) {
 	var old_spacing = global.gmui.style.item_spacing[0];
 	global.gmui.style.item_spacing[0] = 0;
@@ -145,10 +152,6 @@ if (gmui_begin("Usage Demonstration Window", undefined, undefined, undefined, un
 	
 	gmui_end();
 }
-
-
-
-
 
 
 
