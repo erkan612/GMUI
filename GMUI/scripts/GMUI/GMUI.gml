@@ -736,6 +736,7 @@ function gmui_window_state() {
         combo_items: undefined,
         combo_items_count: 0,
         combo_current_index: -1,
+        combo_selected_index: -1,
         combo_width: 0,
 		
 		// Scroll state
@@ -1151,6 +1152,7 @@ function gmui_end(_no_repeat = false) {
 			w.combo_items				= window.combo_items;
 			w.combo_items_count			= window.combo_items_count;
 			w.combo_current_index		= window.combo_current_index;
+			w.combo_selected_index		= window.combo_selected_index;
 			w.combo_width				= window.combo_width;
 			w.combo_x					= window.combo_x;
 			w.combo_y					= window.combo_y;
@@ -1162,6 +1164,7 @@ function gmui_end(_no_repeat = false) {
 			window.combo_items			= w.combo_items;
 			window.combo_items_count	= w.combo_items_count;
 			window.combo_current_index  = w.combo_current_index;
+			window.combo_selected_index = w.combo_selected_index;
 			window.combo_width			= w.combo_width;
 			window.combo_x				= w.combo_x;
 			window.combo_y				= w.combo_y;
@@ -7554,6 +7557,7 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
                 window.combo_items = items;
                 window.combo_items_count = items_count;
                 window.combo_current_index = current_index;
+                window.combo_selected_index = -1;
                 window.combo_width = combo_width;
 				window.combo_x = combo_x;
 				window.combo_y = combo_y;
@@ -7669,9 +7673,12 @@ function gmui_combo(label, current_index, items, items_count = -1, width = -1, p
     //    }
     //}
 	
-	if (window.combo_current_index != -1) {
-		current_index = window.combo_current_index;
+	if (window.combo_selected_index != -1 && window.active_combo == combo_id) {
+		current_index = window.combo_selected_index;
+		window.combo_selected_index = -1;
 		window.combo_current_index = -1;
+		window.active_combo = undefined; // Close dropdown
+		global.gmui.to_delete_combo = true;
 	};
     
     // Update cursor position
@@ -7777,8 +7784,9 @@ function gmui_combo_dropdown() {
         // Handle item selection
         if (item_mouse_over && global.gmui.mouse_clicked[0]) {
             window.combo_current_index = i;
-            window.active_combo = undefined; // Close dropdown
-			global.gmui.to_delete_combo = true;
+			window.combo_selected_index = i;
+            //window.active_combo = undefined; // Close dropdown
+			//global.gmui.to_delete_combo = true;
         }
 		
 		dc.cursor_y += item_height;

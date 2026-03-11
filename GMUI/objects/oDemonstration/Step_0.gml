@@ -31,15 +31,6 @@ if (gmui_begin_menu("Menu")) {
 	gmui_end_menu();
 }
 
-//
-if (gmui_begin("test bug", 100, 100, 600, 256)) {
-	gmui_text("Max Vel X");
-	mvx = gmui_input_int(mvx);
-	mvx = gmui_slider("##Max Vel X", mvx, 0, 10);
-	gmui_end();
-}
-//
-
 if (gmui_begin("Toolbox Window", 0, global.gmui.style.menu_height, screen_width, 32, gmui_pre_window_flags.TOOLBOX)) {
 	var old_spacing = global.gmui.style.item_spacing[0];
 	global.gmui.style.item_spacing[0] = 0;

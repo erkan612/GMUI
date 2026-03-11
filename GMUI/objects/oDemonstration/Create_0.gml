@@ -25,5 +25,3 @@ radio_box_selected3 = true;
 text_input = "";
 integer_input = 10;
 float_input = 20.45;
-
-mvx = 2;
