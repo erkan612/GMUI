@@ -6330,6 +6330,69 @@ function gmui_checkbox_box(value, size = -1) {
     return value;
 }
 
+function gmui_checkbox_group(labels, selected_index) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return selected_index;
+    
+    var new_selected = selected_index;
+    
+    for (var i = 0; i < array_length(labels); i++) {
+        var is_selected = (i == selected_index);
+        if (gmui_checkbox(labels[i], is_selected)) {
+            new_selected = i;
+        }
+        
+        if (i != selected_index && new_selected == i) {
+            selected_index = i; // Update for next iteration
+        }
+    }
+    
+    return new_selected;
+}
+
+function gmui_checkbox_group_vertical(labels, selected_index) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return selected_index;
+    
+    var new_selected = selected_index;
+    
+    for (var i = 0; i < array_length(labels); i++) {
+        var is_selected = (i == selected_index);
+        if (gmui_checkbox(labels[i], is_selected)) {
+            new_selected = i;
+        }
+        
+        if (i != selected_index && new_selected == i) {
+            selected_index = i; // Update for next iteration
+        }
+    }
+    
+    return new_selected;
+}
+
+function gmui_checkbox_group_horizontal(labels, selected_index) {
+    if (!global.gmui.initialized || !global.gmui.current_window) return selected_index;
+    
+    var new_selected = selected_index;
+    var start_cursor_x = global.gmui.current_window.dc.cursor_x;
+    
+    for (var i = 0; i < array_length(labels); i++) {
+        var is_selected = (i == selected_index);
+        if (gmui_checkbox(labels[i], is_selected)) {
+            new_selected = i;
+        }
+        
+        if (i != selected_index && new_selected == i) {
+            selected_index = i; // Update for next iteration
+        }
+        
+        // Stay on same line for horizontal layout
+        if (i < array_length(labels) - 1) {
+            gmui_same_line();
+        }
+    }
+    
+    return new_selected;
+}
+
 function gmui_slider(label, value, min_value, max_value, width = -1) {
     if (!global.gmui.initialized || !global.gmui.current_window) return value;
     

@@ -17,11 +17,30 @@ if (global.gmui.frame_count == 1) {
 gmui_wins_node_update(wins_frame);
 gmui_wins_handle_splitters(wins_frame);
 
+gmui_add_context_menu("File", function(window) {
+	gmui_context_menu_item("Exit", "Esc");
+});
+
+gmui_add_context_menu("About", function(window) {
+	gmui_context_menu_item("Help");
+});
+
 if (gmui_begin_menu("Menu")) {
-	gmui_menu_item("File");
-	gmui_menu_item("About");
+	gmui_menu_item("File", "File");
+	gmui_menu_item("About", "About");
 	gmui_end_menu();
 }
+
+//
+if (gmui_begin("test bug", 100, 100, 256, 256)) {
+	//global.gmui.current_window.x = 100 + sin(current_time / 100) * 50;
+	if (keyboard_check_pressed(vk_space)) {
+		global.gmui.current_window.flags ^= gmui_window_flags.NO_MOVE;
+		show_debug_message("done")
+	}
+	gmui_end();
+}
+//
 
 if (gmui_begin("Toolbox Window", 0, global.gmui.style.menu_height, screen_width, 32, gmui_pre_window_flags.TOOLBOX)) {
 	var old_spacing = global.gmui.style.item_spacing[0];
@@ -88,15 +107,55 @@ if (gmui_begin("Usage Demonstration Window", undefined, undefined, undefined, un
 	} break;
 	
 	case "Checkboxes": {
+		gmui_separator_text1("Basic");
+		checkA = gmui_checkbox("Checkbox A", checkA);
+		checkB = gmui_checkbox("Checkbox A", checkB);
+		checkC = gmui_checkbox("Checkbox A", checkC);
+	} break;
+	
+	case "Radioboxes": {
+		gmui_separator_text1("Basic");
+        if (gmui_selectable_radio("Radio A", radio_selected == 0)) {
+            radio_selected = 0;
+        }
+        gmui_same_line();
+        if (gmui_selectable_radio("Radio B", radio_selected == 1)) {
+            radio_selected = 1;
+        }
+        gmui_same_line();
+        if (gmui_selectable_radio("Radio C", radio_selected == 2)) {
+            radio_selected = 2;
+        }
+        gmui_same_line();
+        gmui_selectable_radio_disabled("Disabled", false);
+        
+		gmui_separator_text1("Radio Button Group");
+        radio_group_selected = gmui_selectable_radio_group(radio_options, radio_group_selected);
+        gmui_label_text("Selected", radio_options[radio_group_selected]);
+        
+		gmui_separator_text1("Horizontal Radio Group");
+        horizontal_radio_selected = gmui_selectable_radio_group_horizontal(horizontal_options, horizontal_radio_selected);
+        
+		gmui_separator_text1("Radio Box Only (no label)");
+        radio_box_selected1 = gmui_selectable_radio_box(radio_box_selected1, 20);
+        gmui_same_line();
+        radio_box_selected2 = gmui_selectable_radio_box(radio_box_selected2, 16);
+        gmui_same_line();
+        radio_box_selected3 = gmui_selectable_radio_box(radio_box_selected3, 24);
+	} break;
+	
+	case "Text Inputs": {
+		gmui_separator_text1("Basic");
+		text_input = gmui_textbox(text_input, "Type something...");
+		
+		gmui_separator_text1("Drag");
+		integer_input = gmui_input_int(integer_input, 1, -100, 100);
+		float_input = gmui_input_float(float_input, 0.1, -100, 100);
 	} break;
 	};
 	
 	gmui_end();
 }
-
-gmui_demo();
-
-// I'm too lazy to bring it further
 
 
 
