@@ -6407,6 +6407,9 @@ function gmui_slider(label, value, min_value, max_value, width = -1) {
     var slider_width = (width > 0) ? width : 100; // Default width if not specified
     var slider_height = max(style.slider_track_height, style.slider_handle_height);
     
+	// Recognize the ## pattern
+	if (string_copy(label, 1, 2) == "##") { text_size = [ 0, 0 ]; }
+	
     // Total width needed (text + spacing + slider)
     var total_width = text_size[0] + style.slider_spacing + slider_width;
     var total_height = max(text_size[1], slider_height);
