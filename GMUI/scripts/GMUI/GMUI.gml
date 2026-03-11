@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						          Version 1.12.29				                         *
+*   						          Version 1.12.34				                         *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -1296,6 +1296,14 @@ function gmui_reset_window(name) {
 //////////////////////////////////////
 // INPUT
 //////////////////////////////////////
+function gmui_window_set_cursor(cr) {
+	if (window_has_focus()) {
+		if (window_get_cursor() != cr) {
+			window_set_cursor(cr);
+		}
+	}
+}
+
 function gmui_update_input() {
     if (!global.gmui.initialized) return;
     
@@ -1314,7 +1322,7 @@ function gmui_update_input() {
     
     global.gmui.frame_count++;
 	
-	window_set_cursor(cr_arrow);
+	gmui_window_set_cursor(cr_arrow);
 	
 	// Handle textbox input if one is active
 	if (global.gmui.active_textbox != undefined) {
@@ -2577,7 +2585,7 @@ function gmui_text_clickable(text) {
     var is_active = false;
     
     if (mouse_over && window.active) {
-		window_set_cursor(cr_drag);
+		gmui_window_set_cursor(cr_drag);
 		
         global.gmui.is_hovering_element = true;
         if (global.gmui.mouse_clicked[0]) {
@@ -7066,7 +7074,7 @@ function gmui_input_float(value, step = 1, min_value = -1000000, max_value = 100
         }
         
         // Update cursor to show dragging
-        window_set_cursor(cr_size_we);
+        gmui_window_set_cursor(cr_size_we);
     } else if (is_dragging && global.gmui.mouse_released[0]) {
         // Stop dragging
         global.gmui.active_drag_textbox = undefined;
@@ -7342,7 +7350,7 @@ function gmui_input_int(value, step = 1, min_value = -1000000, max_value = 10000
             value_changed = true;
         }
         
-        window_set_cursor(cr_size_we);
+        gmui_window_set_cursor(cr_size_we);
     } else if (is_dragging && global.gmui.mouse_released[0]) {
         global.gmui.active_drag_textbox = undefined;
         is_dragging = false;
@@ -10451,7 +10459,7 @@ function gmui_handle_window_interaction(window) {
 		
 		if (near_right && near_bottom && !global.gmui.is_hovering_element) {
 			global.gmui.is_hovering_element = true;
-			window_set_cursor(cr_size_nwse);
+			gmui_window_set_cursor(cr_size_nwse);
 		}
     }
     
@@ -10466,7 +10474,7 @@ function gmui_handle_window_interaction(window) {
             gmui_create_surface(window); // Recreate surface with new size
         }
 		
-		window_set_cursor(cr_size_nwse);
+		gmui_window_set_cursor(cr_size_nwse);
     } else {
         window.is_resizing = false;
     }
@@ -12834,7 +12842,7 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         // Set cursor if hovering
         if (mouse_over_splitter || node.is_dragging) {
-            window_set_cursor(cr_size_we);
+            gmui_window_set_cursor(cr_size_we);
         }
         
     } else if (node.cut_axis == gmui_wins_cut_axis.HORIZONTAL) {
@@ -12888,7 +12896,7 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         // Set cursor if hovering
         if (mouse_over_splitter || node.is_dragging) {
-            window_set_cursor(cr_size_ns);
+            gmui_window_set_cursor(cr_size_ns);
         }
     }
     
