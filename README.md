@@ -9,8 +9,8 @@ A feature-rich, immediate mode UI system for GameMaker. GMUI provides a comprehe
 
 | **IDE Version** | **Status** | **Description** |
 |-----------------|------------|-----------------|
-| 2024.14        | ⚠️ | Memory Issues |
-| 2024.13        | ❌ | Memory Issues, Build Issues |
+| 2024.14        | ✔️ | No Issue Detected |
+| 2024.13        | ⚠️ | Memory Issues |
 | 2024.11        | ✔️ | No Issue Detected |
 | 2024.8        | ✔️ | No Issue Detected |
 
