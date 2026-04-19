@@ -7106,7 +7106,7 @@ function gmui_input_float(value, step = 1, min_value = -1000000, max_value = 100
             global.gmui.active_textbox.changed = false;
             
             // Convert back to number if not empty
-            if (filtered_text != "" && filtered_text != "-" && filtered_text != ".") {
+            if (filtered_text != "" && filtered_text != "-" && filtered_text != "." && filtered_text != "-.") {
                 var new_num = real(filtered_text);
                 if (new_num != value) {
                     value = clamp(new_num, min_value, max_value);
