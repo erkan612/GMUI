@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"GMUI_Calls",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"GMUI_Calls",
+  "parent":{
+    "name":"GMUI",
+    "path":"folders/GMUI.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

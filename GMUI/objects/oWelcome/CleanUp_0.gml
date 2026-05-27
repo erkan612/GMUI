@@ -1,1 +1,0 @@
-gmui_cleanup();

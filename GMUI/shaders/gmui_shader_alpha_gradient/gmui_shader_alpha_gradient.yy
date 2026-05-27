@@ -1,7 +1,7 @@
 {
   "$GMShader":"",
-  "%Name":"gmui_shader_alpha_gradient",
-  "name":"gmui_shader_alpha_gradient",
+  "%Name":"GMUI_SHADER_ALPHA_GRADIENT",
+  "name":"GMUI_SHADER_ALPHA_GRADIENT",
   "parent":{
     "name":"Shaders",
     "path":"folders/GMUI/Shaders.yy",

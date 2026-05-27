@@ -1,7 +1,7 @@
 {
   "$GMShader":"",
-  "%Name":"gmui_shader_checkerboard",
-  "name":"gmui_shader_checkerboard",
+  "%Name":"GMUI_SHADER_CHECKERBOARD",
+  "name":"GMUI_SHADER_CHECKERBOARD",
   "parent":{
     "name":"Shaders",
     "path":"folders/GMUI/Shaders.yy",

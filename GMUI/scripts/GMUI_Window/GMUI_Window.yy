@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"GMUI_Window",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"GMUI_Window",
+  "parent":{
+    "name":"GMUI",
+    "path":"folders/GMUI.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

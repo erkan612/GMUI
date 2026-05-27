@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"GMUI_PlotWidgets",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"GMUI_PlotWidgets",
+  "parent":{
+    "name":"Widgets",
+    "path":"folders/GMUI/Widgets.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

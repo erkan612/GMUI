@@ -1,0 +1,175 @@
+
+
+// CORE
+function gmui_init() {
+	global.gmui = {
+		containers: ds_map_create(),
+		containers_sorted: [ ],
+		current_container: undefined,
+		container_stack: ds_stack_create(),
+		scissor_stack: ds_stack_create(),
+		last_widget: undefined,
+		calls: [ ],
+		cache: ds_map_create(),
+		highest_z_index: 1,
+		
+		input: {
+			// mouse
+			m_x: 0,
+			m_y: 0,
+			m_pressed: false,
+			m_released: false,
+			m_held: false,
+			m_wheel: 0,
+			hovered_widget_id: undefined,
+			focused_widget_id: undefined,
+			active_widget_id: undefined, // for pressed state tracking
+			hovered_container: undefined,
+			hovered_container_array: [ ],
+			hovered_window: undefined,
+			any_element_hovered: false,
+			
+			// keyboard
+			k_pressed: false,
+			k_key: 0,
+			k_lastchar: "",
+			k_lastkey: 0,
+			k_control: false,
+			k_shift: false,
+			k_alt: false,
+		},
+	};
+	
+	gmui_style_init();
+};
+
+function gmui_update() {
+	var gmui = global.gmui;
+	var input = gmui.input;
+	
+	gmui_render_toast();
+	
+	//gmui.containers_sorted = ds_map_values_to_array(gmui.containers);
+	//array_sort(gmui.containers_sorted, function(a, b) { return a.z_index - b.z_index; });
+	//for (var i = 0; i < array_length(gmui.containers_sorted); i++) {
+	//	var container = gmui.containers_sorted[i];
+	//	if (!container.is_enabled) { continue; };
+	//	gmui_container_calculate_mouse_hovering(container);
+	//	gmui_container_sort_z_index(container);
+	//};
+	
+	input.hovered_container = undefined;
+	input.hovered_container_array = [ ];
+	
+	{
+		var current_size = ds_map_size(gmui.containers);
+	    if (array_length(gmui.containers_sorted) != current_size) {
+	        gmui.containers_sorted = ds_map_values_to_array(gmui.containers);
+	        array_sort(gmui.containers_sorted, function(a, b) { return a.z_index - b.z_index; });
+	    }
+    
+	    for (var i = 0; i < array_length(gmui.containers_sorted); i++) {
+	        var container = gmui.containers_sorted[i];
+	        if (!container.is_enabled || !container.is_active) { continue; };
+	        gmui_container_sort_z_index(container);
+	        gmui_container_calculate_mouse_hovering(container);
+			container.is_active = false;
+	    };
+	}
+	
+	gmui_update_input();
+	
+	input.any_element_hovered = (gmui.input.hovered_widget_id != undefined);
+};
+
+function gmui_draw_gui() {
+	var gmui = global.gmui;
+	var input = gmui.input;
+	
+	gmui_begin_scissor(0, 0, surface_get_width(application_surface), surface_get_height(application_surface));
+	
+	var old_blend_mode = gpu_get_blendmode();
+	gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
+	
+	for (var i = 0; i < array_length(gmui.containers_sorted); i++) {
+		var container = gmui.containers_sorted[i];
+		if (!container.is_active || !container.is_enabled) { continue; };
+		gmui.highest_z_index = max(container.z_index, gmui.highest_z_index);
+		gmui_draw_container(container);
+	};
+	
+	for (var i = 0; i < array_length(gmui.calls); i++) {
+		var call = gmui.calls[i];
+		gmui_handle_call(call);
+	};
+	
+	gpu_set_blendmode(old_blend_mode);
+	
+	gmui_end_scissor();
+	
+	ds_stack_clear(gmui.container_stack);
+	ds_stack_clear(gmui.scissor_stack);
+	gmui.containers_sorted = [ ];
+	gmui.last_widget = undefined;
+	gmui.calls = [ ];
+	
+	if (input.m_pressed && input.hovered_widget_id == undefined) {
+		input.active_widget_id = undefined;
+	}
+	
+	if (input.m_released) {
+		input.active_widget_id = undefined;
+	}
+};
+
+function gmui_get_font() {
+    return global.gmui.font;
+};
+
+function gmui_set_font(font) {
+    global.gmui.font = font;
+};
+
+function gmui_begin(name, x = -1, y = -1, width = -1, height = -1, flags = 0) {
+	gmui_begin_window(name, x, y, width, height, flags);
+};
+
+function gmui_end() {
+	gmui_end_window();
+};
+
+function gmui_cleanup() {
+	var gmui = global.gmui;
+	
+	ds_map_destroy(gmui.containers);
+	ds_stack_destroy(gmui.container_stack);
+	ds_stack_destroy(gmui.scissor_stack);
+	ds_map_destroy(gmui.cache);
+	
+	global.gmui = { };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

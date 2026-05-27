@@ -1,7 +1,7 @@
 {
   "$GMShader":"",
-  "%Name":"gmui_shader_hue",
-  "name":"gmui_shader_hue",
+  "%Name":"GMUI_SHADER_HUE",
+  "name":"GMUI_SHADER_HUE",
   "parent":{
     "name":"Shaders",
     "path":"folders/GMUI/Shaders.yy",

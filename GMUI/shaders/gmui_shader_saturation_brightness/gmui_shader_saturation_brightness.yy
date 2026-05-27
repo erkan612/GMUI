@@ -1,7 +1,7 @@
 {
   "$GMShader":"",
-  "%Name":"gmui_shader_saturation_brightness",
-  "name":"gmui_shader_saturation_brightness",
+  "%Name":"GMUI_SHADER_SATURATION_BRIGHTNESS",
+  "name":"GMUI_SHADER_SATURATION_BRIGHTNESS",
   "parent":{
     "name":"Shaders",
     "path":"folders/GMUI/Shaders.yy",

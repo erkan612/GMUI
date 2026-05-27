@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"GMUI_Widget",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"GMUI_Widget",
+  "parent":{
+    "name":"Widgets",
+    "path":"folders/GMUI/Widgets.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
