@@ -11,7 +11,6 @@
   "defaultScriptType":1,
   "Folders":[
     {"$GMFolder":"","%Name":"Animation Curves","folderPath":"folders/Animation Curves.yy","name":"Animation Curves","resourceType":"GMFolder","resourceVersion":"2.0",},
-    {"$GMFolder":"","%Name":"Extensions","folderPath":"folders/Extensions.yy","name":"Extensions","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Fonts","folderPath":"folders/Fonts.yy","name":"Fonts","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"GMUI","folderPath":"folders/GMUI.yy","name":"GMUI","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Shaders","folderPath":"folders/GMUI/Shaders.yy","name":"Shaders","resourceType":"GMFolder","resourceVersion":"2.0",},
@@ -29,11 +28,14 @@
     {"$GMFolder":"","%Name":"Timelines","folderPath":"folders/Timelines.yy","name":"Timelines","resourceType":"GMFolder","resourceVersion":"2.0",},
   ],
   "ForcedPrefabProjectReferences":[],
-  "IncludedFiles":[],
+  "IncludedFiles":[
+    {"$GMIncludedFile":"","%Name":"www.txt","CopyToMask":-1,"filePath":"datafiles/teere","name":"www.txt","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+    {"$GMIncludedFile":"","%Name":"tes.txt","CopyToMask":-1,"filePath":"datafiles","name":"tes.txt","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+  ],
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.14.2.213",
+    "IDEVersion":"2024.14.4.222",
   },
   "name":"GMUI",
   "resources":[
@@ -51,6 +53,8 @@
     {"id":{"name":"gmui_shader_hue","path":"shaders/gmui_shader_hue/gmui_shader_hue.yy",},},
     {"id":{"name":"gmui_shader_roundrect","path":"shaders/gmui_shader_roundrect/gmui_shader_roundrect.yy",},},
     {"id":{"name":"gmui_shader_saturation_brightness","path":"shaders/gmui_shader_saturation_brightness/gmui_shader_saturation_brightness.yy",},},
+    {"id":{"name":"GMUI_ICON_FILE","path":"sprites/GMUI_ICON_FILE/GMUI_ICON_FILE.yy",},},
+    {"id":{"name":"GMUI_ICON_FOLDER","path":"sprites/GMUI_ICON_FOLDER/GMUI_ICON_FOLDER.yy",},},
     {"id":{"name":"sIconCross","path":"sprites/sIconCross/sIconCross.yy",},},
     {"id":{"name":"sIconFolder","path":"sprites/sIconFolder/sIconFolder.yy",},},
     {"id":{"name":"sIconHome","path":"sprites/sIconHome/sIconHome.yy",},},

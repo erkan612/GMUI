@@ -1,10 +1,14 @@
 gmui_update();
 
+gmui_demo();
+/*
+
 var screen_width = surface_get_width(application_surface);
 var screen_height = surface_get_height(application_surface);
 
 if (global.gmui.frame_count == 1) {
-	wins_frame = gmui_wins_node_create(0, global.gmui.style.menu_height + 32, screen_width, screen_height - (global.gmui.style.menu_height + 32));
+	//wins_frame = gmui_wins_node_create(0, global.gmui.style.menu_height + 32, screen_width, screen_height - (global.gmui.style.menu_height + 32));
+	wins_frame = gmui_wins_node_create(100, 100, 500, 500);
 	
 	var split = gmui_wins_node_split(wins_frame, gmui_wins_split_dir.RIGHT, 0.7);
 	var usageDemonstrationWindow = split[0];
@@ -12,10 +16,33 @@ if (global.gmui.frame_count == 1) {
 	
 	gmui_wins_node_set(usageDemonstrationWindow, "Usage Demonstration Window");
 	gmui_wins_node_set(inspectionWindow, "Inspection Window");
+	
+	wins_frame1 = gmui_wins_node_create(700, 100, 300, 500);
+	
+	split = gmui_wins_node_split(wins_frame1, gmui_wins_split_dir.UP, 0.3);
+	var winA = split[0];
+	var winB = split[1];
+	
+	gmui_wins_node_set(winA, "winA");
+	gmui_wins_node_set(winB, "winB");
 }
 
-gmui_wins_node_update(wins_frame);
-gmui_wins_handle_splitters(wins_frame);
+gmui_wins_handle_frame("WINS Test", wins_frame, gmui_window_flags.NONE, true);
+gmui_wins_handle_frame("WINS Test1", wins_frame1, gmui_window_flags.NONE, true);
+
+if (gmui_begin("winA", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS_SET_VERTICAL)) {
+	gmui_text_bullet(global.gmui.current_window.name);
+	gmui_end();
+}
+
+if (gmui_begin("winB", undefined, undefined, undefined, undefined, gmui_pre_window_flags.WINS_SET_VERTICAL)) {
+	gmui_text_bullet(global.gmui.current_window.name);
+	gmui_end();
+}
+
+if (keyboard_check_pressed(vk_space)) {
+	gmui_wins_node_resize(wins_frame, 0, 0, 1000, 400);
+}
 
 gmui_add_context_menu("File", function(window) {
 	gmui_context_menu_item("Exit", "Esc");
@@ -29,13 +56,6 @@ if (gmui_begin_menu("Menu")) {
 	gmui_menu_item("File", "File");
 	gmui_menu_item("About", "About");
 	gmui_end_menu();
-}
-
-if (gmui_begin("test bug", 100, 100, 256, 256, -1)) {
-	if (keyboard_check_pressed(vk_space)) {
-		global.gmui.current_window.flags ^= gmui_window_flags.NO_MOVE;
-	}
-	gmui_end();
 }
 
 if (gmui_begin("Toolbox Window", 0, global.gmui.style.menu_height, screen_width, 32, gmui_pre_window_flags.TOOLBOX)) {

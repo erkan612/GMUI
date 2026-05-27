@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						          Version 1.12.34				                         *
+*   						          Version 1.13.39				                         *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -125,6 +125,7 @@ function gmui_init(font = undefined) {
     if (!variable_global_exists("gmui")) {
         global.gmui = {
             initialized: true,
+			current_updating_wins_frame: "",
             tooltip_width: 350,
             tooltip_text: "",
 			last_pressed_clickable_id: undefined, // meant for release-action elements
@@ -684,6 +685,10 @@ function gmui_init(font = undefined) {
 				text_clickable_color: make_color_rgb(100, 100, 255),
 				text_clickable_hover_color: make_color_rgb(128, 128, 255),
 				text_clickable_active_color: make_color_rgb(30, 30, 255),
+				
+				// Icons
+				icon_folder: GMUI_ICON_FOLDER, 
+				icon_file: GMUI_ICON_FILE, 
             },
             font: draw_get_font(),
 			styler: { // TODO: do this...
@@ -10071,6 +10076,53 @@ function gmui_scroll_to_top(window_name) {
 //////////////////////////////////////
 // HELPERS (Utility functions, state management)
 //////////////////////////////////////
+function gmui_get_directory_contents(_path, _filter = "") {
+    var folders = [];
+    var files = [];
+	
+	_path = string_replace_all(_path, "\\", "/");
+	
+	if (_path != "" && string_last_pos("/", _path) == string_length(_path)) {
+		string_delete(_path, string_length(_path), 1);
+	}
+
+    // Get folders
+    var item = file_find_first(_path + "/", fa_directory);
+
+    while (item != "") {
+        if (item != "." && item != "..")
+        {
+            if (directory_exists(_path + "/" + item))
+            {
+                array_push(folders, item);
+            }
+        }
+
+        item = file_find_next();
+    }
+
+    file_find_close();
+
+    // Get files with filter
+    item = file_find_first(_path + "/" + _filter, fa_readonly);
+
+    while (item != "") {
+        if (!directory_exists(_path + "/" + item))
+        {
+            array_push(files, item);
+        }
+
+        item = file_find_next();
+    }
+
+    file_find_close();
+
+    return {
+        folders : folders,
+        files : files
+    };
+}
+
 function _gmui_arc(cx, cy, r, a0, a1, seg) {
     var step = (a1 - a0) / seg;
     for (var i = 0; i <= seg; i++) {
@@ -12437,6 +12489,8 @@ function gmui_wins_node_create(x, y, width, height, parent = undefined) {
         visual_y: y, 
         visual_width: width, 
         visual_height: height, 
+        group_id: undefined, 
+        container_window_name: undefined, 
 	};
 	
 	return node;
@@ -12510,6 +12564,10 @@ function gmui_wins_node_split(node, dir, ratio = 0.5) {
 function gmui_wins_node_set(node, window_name) {
 	var window = gmui_get_window(window_name);
 	node.target_window = window;
+    
+    if (node.group_id != undefined) {
+        gmui_wins_register_window(node.group_id, window_name);
+    }
 }
 
 function gmui_wins_node_update(node) {
@@ -12661,8 +12719,8 @@ function gmui_wins_handle_splitter_drag(parent_node) { // had to go trough from 
         
         // Check if mouse is over splitter (use screen coordinates)
         var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && 
-                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
-        
+                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == global.gmui.current_updating_wins_frame);
+		
         // Handle dragging
         if (mouse_over_splitter && global.gmui.mouse_clicked[0]) {
             parent_node.is_dragging = true;
@@ -12715,7 +12773,7 @@ function gmui_wins_handle_splitter_drag(parent_node) { // had to go trough from 
         
         // Check if mouse is over splitter (use screen coordinates)
         var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && 
-                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
+                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == global.gmui.current_updating_wins_frame);
         
         // Handle dragging
         if (mouse_over_splitter && global.gmui.mouse_clicked[0]) {
@@ -12752,27 +12810,115 @@ function gmui_wins_handle_splitter_drag(parent_node) { // had to go trough from 
     }
 }
 
-function gmui_wins_handle_splitters(node) {
-    if (gmui_begin("##splitters_window", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface), 
-                   gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_MOVE | gmui_window_flags.NO_MOVE_DEPTH | gmui_window_flags.NO_RESIZE | gmui_window_flags.NO_SCROLLBAR)) {
-        
-		global.gmui.current_window.rounding = false;
-		global.gmui.current_window.x = 0;
-		global.gmui.current_window.y = 0;
-		global.gmui.current_window.width = surface_get_width(application_surface);
-		global.gmui.current_window.height = surface_get_height(application_surface);
-		// might need to recreate surface in case of application window resize
-		// but its just a placeholder, shouldnt be a need for it?
+function gmui_wins_handle_splitters(name, node, flags = 0, window_rounding = false) {
+    if (gmui_begin(name, node.x, node.y, node.width, node.height, flags)) {
+		global.gmui.current_window.rounding = window_rounding;
 		
         gmui_wins_handle_splitters_recursive(node);
 		
-		if (global.gmui.current_window.z_index != 0) {
-			gmui_send_window_to_back(global.gmui.current_window);
-		};
+		//if (global.gmui.current_window.z_index > 0) {
+		//	gmui_send_window_to_back(global.gmui.current_window);
+		//};
         
         gmui_end();
     }
 }
+
+function gmui_wins_handle_frame(name, wins_frame, flags = 0, window_rounding = false) {
+    global.gmui.current_updating_wins_frame = name;
+    
+    if (wins_frame.group_id == undefined) {
+        wins_frame.group_id = gmui_wins_create_group(name);
+        wins_frame.container_window_name = name;
+        
+        _gmui_wins_register_all_windows(wins_frame, wins_frame.group_id);
+    }
+    
+    var has_title_bar = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
+    var container_window = gmui_get_window(name);
+    
+    if (container_window != undefined && !container_window.open) {
+        gmui_wins_close_group(wins_frame.group_id);
+        global.gmui.current_updating_wins_frame = "";
+        return;
+    }
+    
+    if (container_window != undefined && container_window.open) {
+        var mouse_over_container = gmui_is_mouse_over_window(container_window);
+        if (mouse_over_container && global.gmui.mouse_clicked[0]) {
+            gmui_wins_bring_group_to_front(wins_frame.group_id);
+        }
+    }
+    
+    if (has_title_bar) {
+        var bar_height = global.gmui.style.title_bar_height;
+        
+        wins_frame.y += bar_height; wins_frame.visual_y += bar_height;
+        wins_frame.height -= bar_height; wins_frame.visual_height -= bar_height;
+        gmui_wins_node_update(wins_frame);
+        wins_frame.y -= bar_height; wins_frame.visual_y -= bar_height;
+        wins_frame.height += bar_height; wins_frame.visual_height += bar_height;
+        gmui_wins_handle_splitters(name, wins_frame, flags, window_rounding);
+        
+        var win = gmui_get_window(name);
+        if (win != undefined) {
+            gmui_wins_node_resize(wins_frame, win.x, win.y + bar_height, win.width, win.height - bar_height);
+        }
+    }
+    else {
+        gmui_wins_node_update(wins_frame);
+        gmui_wins_handle_splitters(name, wins_frame, flags, window_rounding);
+        
+        var win = gmui_get_window(name);
+        if (win != undefined) {
+            gmui_wins_node_resize(wins_frame, win.x, win.y, win.width, win.height);
+        }
+    }
+    
+    gmui_wins_sync_z_order(wins_frame.group_id);
+    
+    global.gmui.current_updating_wins_frame = "";
+}
+
+function _gmui_wins_register_all_windows(_node, _group_id) {
+    if (_node == undefined) return;
+    
+    if (_node.target_window != undefined) {
+        gmui_wins_register_window(_group_id, _node.target_window.name);
+    }
+    
+    if (_node.children != undefined) {
+        _gmui_wins_register_all_windows(_node.children[0], _group_id);
+        _gmui_wins_register_all_windows(_node.children[1], _group_id);
+    }
+}
+
+//function gmui_wins_handle_splitters(node, window_rounding = false, container_flags = gmui_window_flags.NONE) {
+//	var has_title_bar = (container_flags & gmui_window_flags.NO_TITLE_BAR) == 0;
+//    var title_bar_offset = has_title_bar ? global.gmui.style.title_bar_height : 0;
+//	
+//	var wx = node.x;
+//	var wy = node.y;
+//	var ww = node.width;
+//	var wh = node.height;
+//	
+//	gmui_wins_node_resize(node, node.x, node.y + title_bar_offset, node.width, node.height - title_bar_offset);
+//	
+//    if (gmui_begin("splitters_window", wx, wy, ww, wh, container_flags)) {
+//        
+//		global.gmui.current_window.rounding = window_rounding;
+//		
+//		if (global.gmui.current_window.z_index > 0) {
+//			gmui_send_window_to_back(global.gmui.current_window);
+//		};
+//		
+//        gmui_wins_handle_splitters_recursive(node);
+//        
+//        gmui_end();
+//    }
+//	
+//	gmui_wins_node_resize(node, node.x, node.y - title_bar_offset, node.width, node.height + title_bar_offset);
+//}
 
 function gmui_wins_handle_splitters_recursive(node) {
     if (node.children == undefined || array_length(node.children) != 2) return;
@@ -12787,6 +12933,11 @@ function gmui_wins_handle_splitters_recursive(node) {
     var splitter_color = style.wins_splitter_color;
     var splitter_hover_color = style.wins_splitter_hover_color;
     var splitter_active_color = style.wins_splitter_active_color;
+    
+    // Get the splitters window's position for offset calculation
+    var win = global.gmui.current_window;
+    var offset_x = win.x;
+    var offset_y = win.y;
     
     if (node.cut_axis == gmui_wins_cut_axis.VERTICAL) {
         // Determine which child is actually on the left
@@ -12811,7 +12962,7 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         // Check if mouse is over this splitter
         var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && 
-                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
+                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == global.gmui.current_updating_wins_frame);
         
         var is_active = node.is_dragging;
         
@@ -12825,7 +12976,8 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         // Draw visible splitter line
         // Main line
-        gmui_add_line(splitter_x, splitter_bounds[1], splitter_x, splitter_bounds[3], draw_color, 2);
+        gmui_add_line(splitter_x - offset_x, splitter_bounds[1] - offset_y, 
+                     splitter_x - offset_x, splitter_bounds[3] - offset_y, draw_color, 2);
         
         // Handle dots
         var dot_spacing = 6;
@@ -12835,7 +12987,7 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         for (var i = 0; i < dot_count; i++) {
             var dot_y = start_y + i * dot_spacing;
-            gmui_add_rect(splitter_x - 2, dot_y, 4, 4, draw_color);
+			gmui_add_rect(splitter_x - offset_x - 2, dot_y - offset_y, 4, 4, draw_color);
         }
         
         // Set cursor if hovering
@@ -12865,7 +13017,7 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         // Check if mouse is over this splitter
         var mouse_over_splitter = gmui_is_point_in_rect(global.gmui.mouse_pos[0], global.gmui.mouse_pos[1], splitter_bounds) && 
-                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == "##splitters_window");
+                                 (global.gmui.hovering_window != undefined && global.gmui.hovering_window.name == global.gmui.current_updating_wins_frame);
         
         var is_active = node.is_dragging;
         
@@ -12879,7 +13031,8 @@ function gmui_wins_handle_splitters_recursive(node) {
         
         // Draw visible splitter line
         // Main line
-        gmui_add_line(splitter_bounds[0], splitter_y, splitter_bounds[2], splitter_y, draw_color, 2);
+		gmui_add_line(splitter_bounds[0] - offset_x, splitter_y - offset_y, 
+		              splitter_bounds[2] - offset_x, splitter_y - offset_y, draw_color, 2);
         
         // Handle dots
         var dot_spacing = 6;
@@ -12888,8 +13041,8 @@ function gmui_wins_handle_splitters_recursive(node) {
         var start_x = splitter_bounds[0] + (splitter_bounds[2] - splitter_bounds[0] - total_dot_width) / 2;
         
         for (var i = 0; i < dot_count; i++) {
-            var dot_x = start_x + i * dot_spacing;
-            gmui_add_rect(dot_x, splitter_y - 2, 4, 4, draw_color);
+		    var dot_x = start_x + i * dot_spacing;
+		    gmui_add_rect(dot_x - offset_x, splitter_y - offset_y - 2, 4, 4, draw_color);
         }
         
         // Set cursor if hovering
@@ -12901,6 +13054,181 @@ function gmui_wins_handle_splitters_recursive(node) {
     // Recursively handle splitters for children
     gmui_wins_handle_splitters_recursive(child_a);
     gmui_wins_handle_splitters_recursive(child_b);
+}
+
+function gmui_wins_node_resize(node, x, y, width, height) {
+    if (node == undefined) return false;
+    
+    // Update the root node's base dimensions
+    node.x = x;
+    node.y = y;
+    node.width = width;
+    node.height = height;
+    
+    // Update visual dimensions with gap compensation
+    node.visual_x = x + global.gmui.wins_gap / 2;
+    node.visual_y = y + global.gmui.wins_gap / 2;
+    node.visual_width = width - global.gmui.wins_gap;
+    node.visual_height = height - global.gmui.wins_gap;
+    
+    // Recursively recalculate all children
+    if (node.children != undefined) {
+        gmui_wins_recalculate_children(node);
+        
+        // Update each child recursively
+        gmui_wins_node_update_dimensions_recursive(node.children[0]);
+        gmui_wins_node_update_dimensions_recursive(node.children[1]);
+    }
+    
+    return true;
+}
+
+function gmui_wins_node_update_dimensions_recursive(node) {
+    if (node == undefined) return;
+    
+    // Update this node's base dimensions to match visual
+    node.x = node.visual_x;
+    node.y = node.visual_y;
+    node.width = node.visual_width;
+    node.height = node.visual_height;
+    
+    // Update target window if exists
+    if (node.target_window != undefined) {
+        var window = node.target_window;
+        var resize_surface = window.width != node.visual_width || window.height != node.visual_height;
+        
+        window.x = node.visual_x;
+        window.y = node.visual_y;
+        window.width = node.visual_width;
+        window.height = node.visual_height;
+        
+        if (resize_surface) { 
+            gmui_create_surface(window); 
+        }
+    }
+    
+    // Recursively update children
+    if (node.children != undefined) {
+        gmui_wins_node_update_dimensions_recursive(node.children[0]);
+        gmui_wins_node_update_dimensions_recursive(node.children[1]);
+    }
+}
+
+function gmui_wins_create_group(_container_name) {
+    var _group_id = "wins_group_" + _container_name + "_" + string(current_time);
+    
+    if (!ds_map_exists(global.gmui.cache, "wins_groups")) {
+        global.gmui.cache[? "wins_groups"] = ds_map_create();
+    }
+    
+    var _groups = global.gmui.cache[? "wins_groups"];
+    ds_map_add(_groups, _group_id, {
+        container_name: _container_name,
+        docked_windows: ds_list_create(),
+        base_z_index: 0
+    });
+    
+    return _group_id;
+}
+
+function gmui_wins_register_window(_group_id, _window_name) {
+    var _groups = global.gmui.cache[? "wins_groups"];
+    if (!ds_map_exists(_groups, _group_id)) return false;
+    
+    var _group = _groups[? _group_id];
+    ds_list_add(_group.docked_windows, _window_name);
+    return true;
+}
+
+function gmui_wins_unregister_window(_group_id, _window_name) {
+    var _groups = global.gmui.cache[? "wins_groups"];
+    if (!ds_map_exists(_groups, _group_id)) return false;
+    
+    var _group = _groups[? _group_id];
+    var _idx = ds_list_find_index(_group.docked_windows, _window_name);
+    if (_idx != -1) {
+        ds_list_delete(_group.docked_windows, _idx);
+    }
+    return true;
+}
+
+function gmui_wins_sync_z_order(_group_id) {
+    var _groups = global.gmui.cache[? "wins_groups"];
+    if (!ds_map_exists(_groups, _group_id)) return;
+    
+    var _group = _groups[? _group_id];
+    var _container = gmui_get_window(_group.container_name);
+    
+    if (_container == undefined || !_container.open) return;
+    
+    var _base_z = _container.z_index;
+    
+    for (var i = 0; i < ds_list_size(_group.docked_windows); i++) {
+        var _win_name = _group.docked_windows[| i];
+        var _win = gmui_get_window(_win_name);
+        if (_win != undefined && _win.open) {
+            _win.z_index = _base_z + 100 + i;
+            
+            if (ds_priority_find_priority(global.gmui.window_z_order, _win) != undefined) {
+                ds_priority_change_priority(global.gmui.window_z_order, _win, _win.z_index);
+            } else {
+                ds_priority_add(global.gmui.window_z_order, _win, _win.z_index);
+            }
+        }
+    }
+}
+
+function gmui_wins_bring_group_to_front(_group_id) {
+    var _groups = global.gmui.cache[? "wins_groups"];
+    if (!ds_map_exists(_groups, _group_id)) return;
+    
+    var _group = _groups[? _group_id];
+    var _container = gmui_get_window(_group.container_name);
+    
+    if (_container == undefined) return;
+    
+    gmui_bring_window_to_front(_container);
+    
+    gmui_wins_sync_z_order(_group_id);
+}
+
+function gmui_wins_close_group(_group_id) {
+    var _groups = global.gmui.cache[? "wins_groups"];
+    if (!ds_map_exists(_groups, _group_id)) return;
+    
+    var _group = _groups[? _group_id];
+    
+    var _container = gmui_get_window(_group.container_name);
+    if (_container != undefined) {
+        _container.open = false;
+    }
+    
+    for (var i = 0; i < ds_list_size(_group.docked_windows); i++) {
+        var _win_name = _group.docked_windows[| i];
+        var _win = gmui_get_window(_win_name);
+        if (_win != undefined) {
+            _win.open = false;
+        }
+    }
+}
+
+function gmui_wins_is_group_open(_group_id) {
+    var _groups = global.gmui.cache[? "wins_groups"];
+    if (!ds_map_exists(_groups, _group_id)) return false;
+    
+    var _group = _groups[? _group_id];
+    var _container = gmui_get_window(_group.container_name);
+    
+    return _container != undefined && _container.open;
+}
+
+function gmui_wins_cleanup_group(_group_id) {
+    var _groups = global.gmui.cache[? "wins_groups"];
+    if (!ds_map_exists(_groups, _group_id)) return;
+    
+    var _group = _groups[? _group_id];
+    ds_list_destroy(_group.docked_windows);
+    ds_map_delete(_groups, _group_id);
 }
 
 /************************************

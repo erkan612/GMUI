@@ -7,6 +7,7 @@
 gmui_init(fnCascadiaCode);
 
 wins_frame = undefined;
+wins_frame1 = undefined;
 
 checkA = false;
 checkB = true;
