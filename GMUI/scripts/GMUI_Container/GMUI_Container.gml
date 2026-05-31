@@ -40,6 +40,7 @@ function gmui_container_get(name, parent = undefined) {
 				new_line_requested: false,
 				indent_level: 0,
 				widget_counter: 0,
+				columns_counter: 0,
 				ignore_cursor_advance_once: false,
 			},
 			
@@ -291,6 +292,7 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	container.context.new_line_requested = false;
 	
 	container.context.widget_counter = 0;
+	container.context.columns_counter = 0;
 	
 	container.is_active = true;
 	
@@ -400,6 +402,7 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     container.context.new_line_requested = false;
     container.context.indent_level = 0;
     container.context.widget_counter = 0;
+	container.context.columns_counter = 0;
     container.context.ignore_cursor_advance_once = false;
     
     container.content_width = 0;

@@ -191,6 +191,7 @@ function gmui_context_menu_close_backward(name) {
 
 function gmui_context_menu_close(name) {
 	var ctx = gmui_container_get(name, undefined);
+	if (ctx == undefined) { return; };
 	var order = gmui_context_menu_get_order(ctx);
 	array_foreach(order, function(e, i) {
 		e.is_enabled = false;
@@ -409,6 +410,6 @@ function gmui_begin_context_menu_sub(text) {
     return open;
 };
 
-function gmui_end_context_menu_sub(name) {
+function gmui_end_context_menu_sub() {
     gmui_end_context_menu();
 };

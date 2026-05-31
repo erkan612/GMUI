@@ -167,7 +167,7 @@ function gmui_style_apply_ruler
     var _round_med = _ruler.rounding_medium;
     var _round_large = _ruler.rounding_large;
     var _round_pill = _ruler.rounding_pill;
-    
+	
     global.gmui.style = {
 		color_bg_dominant:		_ruler.color_bg_dominant,
 		color_bg_secondary:		_ruler.color_bg_secondary,
@@ -379,6 +379,29 @@ function gmui_style_apply_ruler
         window_collapse_button_color_idle: _arrow,
         window_collapse_button_hover_color: _arrow_hover,
         window_collapse_button_active_color: _arrow_active,
+        
+        // window menu bar
+		window_menu_height: 24,
+		window_menu_bg_color: _ruler.color_bg_secondary,
+		window_menu_button_hover_color: _ruler.color_widget_hover,
+		window_menu_button_active_color: _ruler.color_widget_active,
+		window_menu_text_color: _ruler.color_text_primary,
+		window_menu_separator_color: _ruler.color_border,
+		window_menu_button_padding_h: 10,
+		window_menu_button_padding_v: 4,
+		window_menu_button_rounding: _ruler.rounding_medium,
+		window_menu_text_color_hover: _ruler.color_text_bright,
+		window_menu_text_color_active: _ruler.color_text_bright,
+		
+		// columns
+		columns_separator_width:        1,
+		columns_separator_width_hover:  1,
+		columns_separator_width_active: 1,
+		columns_separator_color:        _ruler.color_border,
+		columns_separator_color_hover:  _ruler.color_text_disabled,
+		columns_separator_color_active: _ruler.color_accent,
+		columns_separator_grab_pad:     4,
+		columns_min_ratio:              0.05,
         
         // context menu
         context_menu_item_height: 22,

@@ -124,18 +124,22 @@ gmui_tab_add("settings", "Profile");
 /*
 better scroll handling
 fix modal dithering
-improve the tooltip into proper container with adjustable fixed positions or mouse track
 complete the fonts
 */
 
 /*
-window menu
-- gmui_begin_window_menu() - gmui_end_window_menu()
-- gmui_window_menu_item()
-
 columns
-- gmui_begin_columns() - gmui_end_columns()
-- gmui_set_column()
+- gmui_begin_columns(count, ratios, height) - gmui_end_columns()
+- gmui_set_column(idx)
+example usage
+gmui_begin_columns(3, [ 0.3, 0.5, 1 ]);
+gmui_set_column(0);
+gmui_button("a button on the left column");
+gmui_set_column(1);
+gmui_button("a button on the middle column");
+gmui_set_column(2);
+gmui_button("a button on the right column");
+gmui_end_columns();
 
 advanced tooltip:
 - gmui_begin_tooltip() - gmui_end_tooltip()

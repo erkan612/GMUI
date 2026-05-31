@@ -3585,17 +3585,11 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, flags = 0, fon
     if (selected_index >= 0 && selected_index < array_length(tabs)) sel = selected_index;
     tab_data.selected = sel;
     
-    gmui_style_push_multi({
-        container_padding_h: 0,
-        container_padding_v: 0,
-        element_spacing_h: 0,
-        element_spacing_v: 0,
-    });
-    
     if (gmui_begin_container(container.name + "_tabs_" + name, undefined, undefined, _width, _height)) {
         var tabs_container = gmui.current_container;
         tabs_container.use_surface = false;
         tabs_container.use_scissor = true;
+		tabs_container.scrolling_enabled = false;
         tabs_container.background_enabled = false;
         tabs_container.context.cursor_x = 0;
         tabs_container.context.cursor_y = 0;
@@ -3905,8 +3899,6 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, flags = 0, fon
         gmui_end_widget(widget, true);
         gmui_end_container();
     }
-    
-    gmui_style_pop_multi(["container_padding_h", "container_padding_v", "element_spacing_h", "element_spacing_v"]);
     
     return sel;
 }

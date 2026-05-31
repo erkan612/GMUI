@@ -24,7 +24,7 @@ if (gmui_begin_context_menu("test context menu")) {
         gmui_context_menu_item("Sub Item 1");
         gmui_context_menu_item("Sub Item 2");
         gmui_context_menu_item("Sub Item 3");
-        gmui_end_context_menu_sub("sub_menu");
+        gmui_end_context_menu_sub();
     }
 	
     gmui_separator_text("the end");
@@ -44,6 +44,25 @@ if (gmui_begin_window("test window", 100, 100, 500, 300)) {
 	//global.gmui.current_container.background_enabled = true;
 	//global.gmui.current_container.mask_enabled = true;
 	//global.gmui.current_container.z_interaction_enabled = true;
+	
+	gmui_window_menu(
+		[
+			[ "File", "test context menu" ],
+			[ "Edit", "" ],
+			[ "Help", "" ],
+		]
+	);
+	
+	gmui_begin_columns(3, [ 0.2, 0.5, 1 ], 100);
+	gmui_set_column(0);
+	gmui_button("Click Me!");
+	gmui_set_column(1);
+	gmui_button("Click Me!");
+	gmui_set_column(2);
+	gmui_button("Click Me!");
+	gmui_end_columns();
+	
+	//gmui_button("Click Me!");
 	
 	tab_idx = gmui_tabs("settings", tab_idx, undefined, 20);
 	
