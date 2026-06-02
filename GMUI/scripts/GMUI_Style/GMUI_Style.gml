@@ -412,6 +412,32 @@ function gmui_style_apply_ruler
         context_menu_shortcut_color: _text_secondary,
         context_menu_arrow_color: _arrow,
         context_menu_padding_h: _sp_medium,
+		
+		// docking
+		dock_separator_thickness:   5,
+		dock_separator_grab_pad:    4,
+		dock_separator_color:       _ruler.color_border,
+		dock_separator_color_hover: _ruler.color_text_disabled,
+		dock_separator_color_active: _ruler.color_accent,
+		dock_min_ratio:             0.05,
+
+		dock_tab_bar_height:        26,
+		dock_tab_bar_bg:            _ruler.color_bg_secondary,
+		dock_tab_color:             _ruler.color_bg_secondary,
+		dock_tab_color_hover:       _ruler.color_widget_hover,
+		dock_tab_color_active:      _ruler.color_widget_active,
+		dock_tab_text_color:        _ruler.color_text_disabled,
+		dock_tab_text_color_active: _ruler.color_text_primary,
+		dock_tab_rounding:          3,
+		dock_tab_padding_h:         10,
+
+		dock_zone_size:             48,
+		dock_zone_color:            _ruler.color_accent,
+		dock_zone_color_hover:      _ruler.color_accent,
+		dock_zone_alpha:            0.25,
+		dock_zone_alpha_hover:      0.65,
+		dock_zone_rounding:         4,
+		dock_zone_icon_color:       make_color_rgb(255, 255, 255),
         
         // tooltip
         tooltip_background_color: _bg_sec,

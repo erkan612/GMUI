@@ -12,6 +12,9 @@ function gmui_init() {
 		calls: [ ],
 		cache: ds_map_create(),
 		highest_z_index: 1,
+		_wins_active_frame: "",
+		tab_groups: ds_map_create(),
+		tab_group_counter: 0,
 		
 		input: {
 			// mouse
@@ -145,6 +148,7 @@ function gmui_cleanup() {
 	ds_stack_destroy(gmui.container_stack);
 	ds_stack_destroy(gmui.scissor_stack);
 	ds_map_destroy(gmui.cache);
+	ds_map_destroy(gmui.tab_groups);
 	
 	global.gmui = { };
 };

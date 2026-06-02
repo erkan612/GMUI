@@ -119,6 +119,8 @@ tabs = [ "General", "Gameplay", "Profile" ];
 gmui_tab_add("settings", "General");
 gmui_tab_add("settings", "Gameplay");
 gmui_tab_add("settings", "Profile");
+is_first_frame = true;
+wins_frame = undefined;
 
 
 /*
@@ -128,26 +130,112 @@ complete the fonts
 */
 
 /*
-columns
-- gmui_begin_columns(count, ratios, height) - gmui_end_columns()
-- gmui_set_column(idx)
-example usage
-gmui_begin_columns(3, [ 0.3, 0.5, 1 ]);
-gmui_set_column(0);
-gmui_button("a button on the left column");
-gmui_set_column(1);
-gmui_button("a button on the middle column");
-gmui_set_column(2);
-gmui_button("a button on the right column");
-gmui_end_columns();
+docking
+- gmui_dockspace_frame_create(x, y, w, h) ; unlike node, frame has its own dockspace but frame can also be used as node
+- gmui_dockspace_node_create(x, y, w, h)
+- gmui_dockspace_node_into_frame(node) ; takes a node and converts it into a frame, used for nested frames
+- gmui_dockspace_node_split(node, split_axis, ratios) ; ratios is an array, its size declares the amount of split in the given axis
+- gmui_dockspace_dock(name, node) ; docks a window with the given name into specified node
+- gmui_begin_dockspace(name, x, y, w, h, flags) - gmui_end_dockspace() ; parent dockspace, allows for nested dockspaces, its own docking can be disabled so only its nested dockspaces can be used
+- gmui_begin_dockspace_window(name, flags) - gmui_end_dockspace_window() ; basic window that will hold onto position and size of the node that has its given name
+- gmui_dockspace_frame_update(node) ; updates the given nodes splitters(resizes, drags/drops and docks etc)
+
+enum gmui_split_dir {
+	HORIZONTAL,
+	VERTICAL,
+};
+
+enum gmui_dockspace_flags {
+	NONE = 1 << 0, // default
+	WINDOW = 1 << 1, // a docking space that acts as a window with proper title bar and dragging and resizing etc.
+	TABS = 1 << 2, // a docking space acts as a window (requires WINDOW flag) and has tabs in its title that also can be dragged and docked
+};
+
+// dockspace window uses gmui_window_flags
+
+// step event:
+if (is_first_frame) {
+	is_first_frame = false;
+	
+	wins_frame = gmui_dockspace_frame_create(0, 0, 1310, 700);
+	var splits = gmui_docking_node_split(wins_frame, gmui_split_dir.HORIZONTAL, [ 0.4, 0.7, 0.3, 1 ]); // result is left to right
+	var win0 = splits[0];
+	var win1 = splits[1];
+	var win2 = splits[2];
+	splits = gmui_docking_node_split(splits[3], gmui_split_dir.VERTICAL, [ 1, 1 ]); // result is top to bottom
+	var win3 = splits[0];
+	wins_frame_nested = gmui_dockspace_node_into_frame(splits[1]);
+	splits = gmui_docking_node_split(wins_frame_nested, gmui_split_dir.HORIZONTAL, [ 1, 1 ]);
+	var win4 = splits[0];
+	var win5 = splits[1];
+	
+	gmui_dockspace_dock("win1", win1);
+	gmui_dockspace_dock("win2", win2);
+	gmui_dockspace_dock("win3", win3);
+	gmui_dockspace_dock("win4", win4);
+	gmui_dockspace_dock("win5", win5);
+}
+
+gmui_dockspace_frame_update(wins_frame); // also updates its nested frames ( like wins_frame_nested)
+
+gmui_begin_dockspace(wins_frame);
+
+if (gmui_begin_dockspace_window("win1")) {
+	gmui_end_dockspace_window()
+}
+
+if (gmui_begin_dockspace_window("win2")) {
+	gmui_end_dockspace_window()
+}
+
+if (gmui_begin_dockspace_window("win3")) {
+	gmui_end_dockspace_window()
+}
+
+gmui_begin_dockspace(wins_frame_nested); // nested frames windows can also be docked into their parents spaces or their parents windows can be docked into their nested frames spaces
+
+if (gmui_begin_dockspace_window("win4")) {
+	gmui_end_dockspace_window()
+}
+
+if (gmui_begin_dockspace_window("win5")) {
+	gmui_end_dockspace_window()
+}
+
+gmui_end_dockspace();
+
+gmui_end_dockspace();
+
+
+
+
+
+
+gmui_begin_dockspace("main", 0, 0, display_get_gui_width(), display_get_gui_height());
+
+if (gmui_dockspace_window("Inspector")) {
+    gmui_text("hello");
+    gmui_end_window();
+}
+if (gmui_dockspace_window("Scene")) {
+    gmui_text("world");
+    gmui_end_window();
+}
+
+gmui_end_dockspace();
+
+---
 
 advanced tooltip:
 - gmui_begin_tooltip() - gmui_end_tooltip()
 - gmui_tooltip_advanced(name, widget_id)
 
-wins 
+---
 
 style editor
+
+---
+
 demo
 */
 
