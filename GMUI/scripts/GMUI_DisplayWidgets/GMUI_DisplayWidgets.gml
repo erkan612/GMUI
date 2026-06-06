@@ -176,6 +176,33 @@ function gmui_separator() { // TODO: if new line requested, align the line in th
     gmui_end_widget(widget);
 };
 
+function gmui_separator_vertical(stay = true, new_line = false, height = -1) {
+    if (stay) { gmui_sameline(); };
+	
+	var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("separator");
+    var container = widget.container;
+    
+	var available_height = height <= 0 ? container.context.line_height : height;
+    
+    widget.width = style.separator_thickness + style.element_spacing_h;
+    widget.height = available_height;
+    
+	if (gmui_widget_is_visible(widget)) {
+	    gmui_add_rectangle(
+	        widget.x + style.element_spacing_h / 2, widget.y,
+	        widget.x + style.element_spacing_h / 2 + style.separator_thickness, widget.y + available_height,
+	        false,
+	        style.separator_color, 1
+	    );
+	};
+    
+    gmui_end_widget(widget);
+	
+	if (!new_line) { gmui_sameline(); };
+};
+
 function gmui_separator_text(text, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
@@ -715,3 +742,47 @@ function gmui_render_toast(font = undefined) {
     }
     gmui.cache[? "_toasts"] = toasts;
 };
+
+// spinner
+function gmui_spinner(size = 16, thickness = 2) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("spinner");
+    
+    widget.width = size;
+    widget.height = size;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var cx = widget.x + size / 2;
+        var cy = widget.y + size / 2;
+        var radius = size / 2;
+        var inner_radius = radius - thickness;
+        
+        var time = current_time / 1000;
+        var angle_offset = (time * 3 * pi) % (2 * pi);
+        var arc_length = pi * 0.8;
+        var segments = 12;
+        var angle_step = arc_length / segments;
+        
+        for (var i = 0; i < segments; i++) {
+            var a1 = angle_offset + i * angle_step;
+            var a2 = angle_offset + (i + 1) * angle_step;
+            
+            var alpha = 0.3 + (i / segments) * 0.7;
+            
+            var x1 = cx + cos(a1) * inner_radius;
+            var y1 = cy - sin(a1) * inner_radius;
+            var x2 = cx + cos(a1) * radius;
+            var y2 = cy - sin(a1) * radius;
+            var x3 = cx + cos(a2) * radius;
+            var y3 = cy - sin(a2) * radius;
+            var x4 = cx + cos(a2) * inner_radius;
+            var y4 = cy - sin(a2) * inner_radius;
+            
+            var seg_color = style.color_accent;
+            gmui_add_triangle(x1, y1, x2, y2, x3, y3, seg_color, alpha);
+            gmui_add_triangle(x1, y1, x3, y3, x4, y4, seg_color, alpha);
+        }
+    }
+    gmui_end_widget(widget);
+}

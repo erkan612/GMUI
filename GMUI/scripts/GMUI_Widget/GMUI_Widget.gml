@@ -126,40 +126,47 @@ function gmui_widget_is_visible(widget) {
 //};
 
 function gmui_widget_is_hovered(widget, _offset) {
-    var gmui = global.gmui;
-	
-	if (gmui.input.hovered_widget_id != undefined && gmui.input.hovered_widget_id != widget.id) { return false; };
-	
-    var offset = is_undefined(_offset) ? gmui_get_container_screen_offset(widget.container) : _offset;
+	var gmui = global.gmui;
     
-    var local_mx = gmui.input.m_x - offset[0];
-    var local_my = gmui.input.m_y - offset[1];
-    
-    if (widget.container.scrolling_enabled) {
-        local_mx += widget.container.scroll_x;
-        local_my += widget.container.scroll_y;
+    if (gmui.input.active_widget_id != undefined && gmui.input.active_widget_id != widget.id) {
+        return false;
     }
     
-    return point_in_rectangle(
-        local_mx, local_my,
-        widget.x, widget.y,
-        widget.x + widget.width, widget.y + widget.height
-    ) && gmui.input.hovered_container != undefined && gmui.input.hovered_container.name == widget.container.name;
+    if (gmui.input.hovered_widget_id != undefined && gmui.input.hovered_widget_id != widget.id) {
+        return false;
+    }
+
+	var offset = is_undefined(_offset) ? gmui_get_container_screen_offset(widget.container) : _offset;
+	var local_mx = gmui.input.m_x - offset[0];
+	var local_my = gmui.input.m_y - offset[1];
+	if (widget.container.scrolling_enabled) {
+		local_mx += widget.container.scroll_x;
+		local_my += widget.container.scroll_y;
+	}
+    
+    var is_hovered = point_in_rectangle(
+		local_mx, local_my,
+		widget.x, widget.y,
+		widget.x + widget.width, widget.y + widget.height
+	) && gmui.input.hovered_container != undefined && gmui.input.hovered_container.name == widget.container.name;
+    
+    if (is_hovered) {
+        gmui.input.hovered_widget_id = widget.id;
+    }
+    
+	return is_hovered;
 };
 
 function gmui_widget_is_pressed(widget) {
 	var gmui = global.gmui;
 	var hovered = gmui_widget_is_hovered(widget);
-	
 	if (hovered && gmui_input_mouse_pressed()) {
 		gmui.input.active_widget_id = widget.id;
 		return true;
 	}
-	
-	if (gmui_input_mouse_held() && gmui.input.active_widget_id == widget.id && hovered) {
+	if (gmui_input_mouse_held() && gmui.input.active_widget_id == widget.id) {
 		return true;
 	}
-	
 	return false;
 };
 
@@ -172,7 +179,9 @@ function gmui_widget_mouse_interactive_behaviour(widget) {
 	var hovered = gmui_widget_is_hovered(widget);
 	gmui_widget_is_pressed(widget);
 	var active = gmui_widget_is_active(widget);
+    
 	var released = hovered && active && gmui_input_mouse_released();
+    
 	return {
 		is_hovering: hovered,
 		is_active: active,

@@ -1,20 +1,16 @@
 gmui_update();
 
-if (gmui_begin("Test A", 100, 10, 500, 300, gmui_window_flags.TABBED)) {
-	gmui_text_bullet("This is window A!");
-	
-	tab_idx = gmui_tabs("settings", tab_idx, undefined, undefined, "0", true);
-	tab_idx1 = gmui_tabs("settings1", tab_idx1, undefined, undefined, "0", false);
-	
-	gmui_end();
-};
+//if (gmui_begin("Test A", 100, 10, 500, 300, gmui_window_flags.TABBED)) {
+//	gmui_text_bullet("This is window A!");
+//	gmui_end();
+//};
 
-if (gmui_begin("Test B", 100, 320, 500, 300, gmui_window_flags.TABBED)) {
-	gmui_text_bullet("This is window B!");
-	gmui_end();
-};
+//if (gmui_begin("Test B", 100, 320, 500, 300, gmui_window_flags.TABBED)) {
+//	gmui_text_bullet("This is window B!");
+//	gmui_end();
+//};
 
-/*
+
 if (gmui_begin_popup("test popup", undefined, undefined, false)) {
 	if (gmui_button_fill("Ok")) { gmui_popup_close("test popup"); };
 	gmui_end_popup();
@@ -68,6 +64,29 @@ if (gmui_begin_window("test window", 100, 100, 500, 300)) {
 		]
 	);
 	
+	gmui_button_success("success button");
+	gmui_button_danger("dangerous button");
+	gmui_button_primary("primary button");
+	gmui_button_ghost("ghost button");
+	button_toggle = gmui_button_toggle("toggle button", button_toggle);
+	if (gmui_button_loading("loading button", button_loading)) {
+		button_loading = true;
+		show_debug_message("Entering loading state...");
+	};
+	
+	if (gmui_button_hold("Hold to Reset All", 800, 200, 32)) {
+        show_debug_message("Reset confirmed! (Held for 800ms)");
+    }
+	
+	my_check1 = gmui_checkbox_success(my_check1, "success checkbox");
+	my_check2 = gmui_checkbox_danger(my_check2, "danger checkbox");
+	toggled1 = gmui_toggle_success(toggled1);
+	toggled2 = gmui_toggle_danger(toggled2);
+	
+	gmui_button("Click Me!"); gmui_separator_vertical(); gmui_button("Click Me!"); gmui_separator_vertical(); gmui_spinner();
+	
+	gmui_plot_legend([ "Apples", "Oranges", "Bananas" ], [ c_red, c_orange, c_yellow ], 3);
+	
 	gmui_begin_columns(3, [ 0.2, 0.5, 1 ], 100);
 	gmui_set_column(0);
 	gmui_button("Click Me!");
@@ -79,7 +98,8 @@ if (gmui_begin_window("test window", 100, 100, 500, 300)) {
 	
 	//gmui_button("Click Me!");
 	
-	tab_idx = gmui_tabs("settings", tab_idx, undefined, 20);
+	tab_idx = gmui_tabs("settings", tab_idx, -1, -1, "group_a");
+	tab_idx1 = gmui_tabs("settings1", tab_idx1, -1, -1, "group_a");
 	
 	if (gmui_button("open popup")) { gmui_popup_open("test popup"); };
 	

@@ -202,6 +202,375 @@ function gmui_button_plus(width = 24, height = 24, font = undefined) {
 	return button_result;
 };
 
+function gmui_button_icon(sprite, subimg = 0, width = 32, height = 32) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_icon");
+	widget.width = width;
+	widget.height = height;
+	var released = false;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = mouse_interaction.is_hovering;
+		var active = mouse_interaction.is_active;
+		released = mouse_interaction.is_pressed;
+		
+		var bg_color = style.button_color_idle;
+		if (active) bg_color = style.button_color_active;
+		else if (hovered) bg_color = style.button_color_hovered;
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + width, widget.y + height, false, bg_color, 1, style.button_rounding);
+		gmui_add_roundrect(widget.x, widget.y, widget.x + width, widget.y + height, true, style.button_border_color, 1, style.button_rounding);
+		
+		var img_w = sprite_get_width(sprite);
+		var img_h = sprite_get_height(sprite);
+		var sx = widget.x + (width - img_w) / 2;
+		var sy = widget.y + (height - img_h) / 2;
+		gmui_add_sprite(sprite, subimg, sx, sy);
+	}
+	gmui_end_widget(widget, true);
+	return released;
+};
+
+function gmui_button_icon_text(sprite, subimg, text, width = -1, height = -1, font = undefined) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_icon_text");
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
+	var img_w = sprite_get_width(sprite);
+	var img_h = sprite_get_height(sprite);
+	var gap = 8;
+	
+	var calc_w = img_w + gap + text_size[0] + style.button_padding_h * 2;
+	var calc_h = max(img_h, text_size[1]) + style.button_padding_v * 2;
+	
+	widget.width = width > 0 ? width : calc_w;
+	widget.height = height > 0 ? height : calc_h;
+	var released = false;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = mouse_interaction.is_hovering;
+		var active = mouse_interaction.is_active;
+		released = mouse_interaction.is_pressed;
+		
+		var bg_color = style.button_color_idle;
+		if (active) bg_color = style.button_color_active;
+		else if (hovered) bg_color = style.button_color_hovered;
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, bg_color, 1, style.button_rounding);
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, style.button_border_color, 1, style.button_rounding);
+		
+		var sy = widget.y + (widget.height - img_h) / 2;
+		gmui_add_sprite(sprite, subimg, widget.x + style.button_padding_h, sy);
+		
+		var text_x = widget.x + style.button_padding_h + img_w + gap;
+		var text_y = widget.y + (widget.height - text_size[1]) / 2;
+		gmui_add_text(text, text_x, text_y, style.button_text_color, style.button_text_alpha, _font);
+	}
+	gmui_end_widget(widget, true);
+	return released;
+};
+
+function gmui_button_danger(text, width = -1, height = -1, font = undefined) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_danger");
+	
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
+	
+	widget.width = width > 0 ? width : max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
+	widget.height = height > 0 ? height : max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
+	var released = false;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = mouse_interaction.is_hovering;
+		var active = mouse_interaction.is_active;
+		released = mouse_interaction.is_pressed;
+		
+		var idle_col = make_color_rgb(180, 50, 50);
+		var hover_col = make_color_rgb(220, 70, 70);
+		var active_col = make_color_rgb(140, 30, 30);
+		var border_col = make_color_rgb(100, 20, 20);
+		
+		var bg_color = idle_col;
+		if (active) bg_color = active_col;
+		else if (hovered) bg_color = hover_col;
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, bg_color, 1, style.button_rounding);
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, border_col, 1, style.button_rounding);
+		
+		var text_x = widget.x + (widget.width - text_size[0]) / 2;
+		var text_y = widget.y + (widget.height - text_size[1]) / 2;
+		gmui_add_text(text, text_x, text_y, c_white, 1, _font);
+	};
+	gmui_end_widget(widget, true);
+	return released;
+};
+
+function gmui_button_success(text, width = -1, height = -1, font = undefined) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_danger");
+	
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
+	
+	widget.width = width > 0 ? width : max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
+	widget.height = height > 0 ? height : max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
+	var released = false;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = mouse_interaction.is_hovering;
+		var active = mouse_interaction.is_active;
+		released = mouse_interaction.is_pressed;
+		
+		var idle_col = make_color_rgb(50, 160, 80);
+		var hover_col = make_color_rgb(70, 190, 100);
+		var active_col = make_color_rgb(35, 120, 60);
+		var border_col = make_color_rgb(30, 100, 50);
+		
+		var bg_color = idle_col;
+		if (active) bg_color = active_col;
+		else if (hovered) bg_color = hover_col;
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, bg_color, 1, style.button_rounding);
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, border_col, 1, style.button_rounding);
+		
+		var text_x = widget.x + (widget.width - text_size[0]) / 2;
+		var text_y = widget.y + (widget.height - text_size[1]) / 2;
+		gmui_add_text(text, text_x, text_y, c_white, 1, _font);
+	};
+	gmui_end_widget(widget, true);
+	return released;
+};
+
+function gmui_button_hold(text, hold_time_ms = 500, width = -1, height = -1, font = undefined) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_hold");
+	
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
+	
+	widget.width = width > 0 ? width : max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
+	widget.height = height > 0 ? height : max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
+	
+	var widget_id = widget.id;
+	if (!ds_map_exists(gmui.cache, widget_id + "_hold_start")) {
+		gmui.cache[? widget_id + "_hold_start"] = 0;
+	}
+	
+	var released = false;
+	var progress = 0;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = mouse_interaction.is_hovering;
+		var active = mouse_interaction.is_active;
+		
+		if (active && hovered) {
+			if (gmui.cache[? widget_id + "_hold_start"] == 0) {
+				gmui.cache[? widget_id + "_hold_start"] = current_time;
+			}
+			var elapsed = current_time - gmui.cache[? widget_id + "_hold_start"];
+			progress = clamp(elapsed / max(1, hold_time_ms), 0, 1);
+			
+			if (progress >= 1.0) {
+				released = true;
+				gmui.cache[? widget_id + "_hold_start"] = 0;
+				gmui.input.active_widget_id = undefined; 
+			}
+		} else {
+			gmui.cache[? widget_id + "_hold_start"] = 0;
+		}
+		
+		var bg_color = style.button_color_idle;
+		if (active) bg_color = style.button_color_active;
+		else if (hovered) bg_color = style.button_color_hovered;
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, bg_color, 1, style.button_rounding);
+		
+		if (progress > 0) {
+			var fill_w = widget.width * progress;
+			var progress_col = make_color_rgb(255, 150, 50);
+			gmui_add_roundrect(widget.x, widget.y, widget.x + fill_w, widget.y + widget.height, false, progress_col, 0.4, style.button_rounding);
+		}
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, style.button_border_color, 1, style.button_rounding);
+		
+		var text_x = widget.x + (widget.width - text_size[0]) / 2;
+		var text_y = widget.y + (widget.height - text_size[1]) / 2;
+		gmui_add_text(text, text_x, text_y, style.button_text_color, style.button_text_alpha, _font);
+	};
+	gmui_end_widget(widget, true);
+	return released;
+};
+
+function gmui_button_primary(text, width = -1, height = -1, font = undefined) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_primary");
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
+	
+	widget.width = width > 0 ? width : max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
+	widget.height = height > 0 ? height : max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
+	var released = false;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = mouse_interaction.is_hovering;
+		var active = mouse_interaction.is_active;
+		released = mouse_interaction.is_pressed;
+		
+		var idle_col = style.color_accent;
+		var hover_col = style.color_accent_hover;
+		var active_col = style.color_accent_pressed;
+		var border_col = style.color_accent_dark;
+		
+		var bg_color = idle_col;
+		if (active) bg_color = active_col;
+		else if (hovered) bg_color = hover_col;
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, bg_color, 1, style.button_rounding);
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, border_col, 1, style.button_rounding);
+		
+		var text_x = widget.x + (widget.width - text_size[0]) / 2;
+		var text_y = widget.y + (widget.height - text_size[1]) / 2;
+		gmui_add_text(text, text_x, text_y, c_white, 1, _font);
+	};
+	gmui_end_widget(widget, true);
+	return released;
+};
+
+function gmui_button_ghost(text, width = -1, height = -1, font = undefined) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_ghost");
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
+	
+	widget.width = width > 0 ? width : max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
+	widget.height = height > 0 ? height : max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
+	var released = false;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = mouse_interaction.is_hovering;
+		var active = mouse_interaction.is_active;
+		released = mouse_interaction.is_pressed;
+		
+		var text_col = style.color_text_primary;
+		var border_col = style.color_border_light;
+		var bg_alpha = 0.0;
+		
+		if (active) {
+			bg_alpha = 0.2;
+			border_col = style.color_accent_pressed;
+		} else if (hovered) {
+			bg_alpha = 0.1;
+			border_col = style.color_accent;
+			text_col = style.color_accent_hover;
+		}
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, style.color_widget_base, bg_alpha, style.button_rounding);
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, border_col, 1, style.button_rounding);
+		
+		var text_x = widget.x + (widget.width - text_size[0]) / 2;
+		var text_y = widget.y + (widget.height - text_size[1]) / 2;
+		gmui_add_text(text, text_x, text_y, text_col, 1, _font);
+	};
+	gmui_end_widget(widget, true);
+	return released;
+};
+
+function gmui_button_toggle(text, is_active, width = -1, height = -1, font = undefined) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_toggle");
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
+	
+	widget.width = width > 0 ? width : max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
+	widget.height = height > 0 ? height : max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
+	var released = false;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = mouse_interaction.is_hovering;
+		var active = mouse_interaction.is_active;
+		released = mouse_interaction.is_pressed;
+		
+		var bg_color = is_active ? style.color_accent : style.button_color_idle;
+		var text_col = is_active ? c_white : style.button_text_color;
+		var border_col = is_active ? style.color_accent_dark : style.button_border_color;
+		
+		if (!is_active) {
+			if (active) bg_color = style.button_color_active;
+			else if (hovered) bg_color = style.button_color_hovered;
+		}
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, bg_color, 1, style.button_rounding);
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, border_col, 1, style.button_rounding);
+		
+		var text_x = widget.x + (widget.width - text_size[0]) / 2;
+		var text_y = widget.y + (widget.height - text_size[1]) / 2;
+		gmui_add_text(text, text_x, text_y, text_col, 1, _font);
+	};
+	gmui_end_widget(widget, true);
+	
+	return released ? !is_active : is_active;
+};
+
+function gmui_button_loading(text, is_loading, width = -1, height = -1, font = undefined) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var widget = gmui_begin_widget("button_loading");
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
+	
+	widget.width = width > 0 ? width : max(style.button_min_width, text_size[0] + style.button_padding_h * 2 + (is_loading ? 20 : 0));
+	widget.height = height > 0 ? height : max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
+	var released = false;
+	
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		var hovered = !is_loading && mouse_interaction.is_hovering;
+		var active = !is_loading && mouse_interaction.is_active;
+		released = !is_loading && mouse_interaction.is_pressed;
+		
+		var bg_color = is_loading ? style.color_widget_active : style.button_color_idle;
+		if (!is_loading && active) bg_color = style.button_color_active;
+		else if (!is_loading && hovered) bg_color = style.button_color_hovered;
+		
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, bg_color, 1, style.button_rounding);
+		gmui_add_roundrect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, style.button_border_color, 1, style.button_rounding);
+		
+		var _text = text;
+		var offset_x = 0;
+		
+		if (is_loading) {
+			var dots = floor((current_time / 400) % 4);
+			_text = text + string_repeat(".", dots);
+			offset_x = -10;
+		}
+		
+		var text_x = widget.x + (widget.width - text_size[0]) / 2 + offset_x;
+		var text_y = widget.y + (widget.height - text_size[1]) / 2;
+		
+		var final_alpha = is_loading ? 0.7 : 1.0;
+		gmui_add_text(_text, text_x, text_y, style.button_text_color, final_alpha, _font);
+	};
+	gmui_end_widget(widget, true);
+	return released;
+};
+
 // checkbox
 function gmui_checkbox(checked, label = "", font = undefined) {
     var gmui = global.gmui;
@@ -300,6 +669,102 @@ function gmui_checkbox_disabled(checked, label = "", font = undefined) {
     gmui_end_widget(widget);
     return checked;
 };
+
+function gmui_checkbox_danger(checked, label = "", font = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("checkbox_danger");
+    var _font = gmui_resolve_font(widget, font);
+    var label_size = label != "" ? gmui_calculate_text_size(label, _font) : [0, 0];
+    var box_size = style.checkbox_size;
+    var padding = style.checkbox_padding;
+    
+    widget.width = box_size + padding + label_size[0];
+    widget.height = max(box_size, label_size[1]);
+    var new_checked = checked;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var mouse = gmui_widget_mouse_interactive_behaviour(widget);
+        var hovered = mouse.is_hovering;
+        var active = mouse.is_active;
+        var released = mouse.is_pressed;
+        if (hovered && released) new_checked = !checked;
+        
+        var idle = make_color_rgb(180, 50, 50);
+        var hover = make_color_rgb(220, 70, 70);
+        var active_col = make_color_rgb(140, 30, 30);
+        var border = make_color_rgb(100, 20, 20);
+        var check_col = c_white;
+        
+        var bg = idle;
+        if (active) bg = active_col;
+        else if (hovered) bg = hover;
+        if (new_checked) bg = active_col;
+        
+        gmui_add_roundrect(widget.x, widget.y, widget.x + box_size, widget.y + box_size, false, bg, 1, style.checkbox_rounding);
+        gmui_add_roundrect(widget.x, widget.y, widget.x + box_size, widget.y + box_size, true, border, 1, style.checkbox_rounding);
+        
+        if (new_checked) {
+            var p = 3;
+            var mid = widget.x + box_size / 2;
+            gmui_add_line_width(widget.x + p + 1, widget.y + box_size / 2, mid, widget.y + box_size - p - 1, 2, check_col);
+            gmui_add_line_width(mid, widget.y + box_size - p - 1, widget.x + box_size - p, widget.y + p + 1, 2, check_col);
+        }
+        if (label != "") {
+            gmui_add_text(label, widget.x + box_size + padding, widget.y + (widget.height - label_size[1]) / 2, make_color_rgb(220, 200, 200), 1, _font);
+        }
+    }
+    gmui_end_widget(widget, true);
+    return new_checked;
+}
+
+function gmui_checkbox_success(checked, label = "", font = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("checkbox_success");
+    var _font = gmui_resolve_font(widget, font);
+    var label_size = label != "" ? gmui_calculate_text_size(label, _font) : [0, 0];
+    var box_size = style.checkbox_size;
+    var padding = style.checkbox_padding;
+    
+    widget.width = box_size + padding + label_size[0];
+    widget.height = max(box_size, label_size[1]);
+    var new_checked = checked;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var mouse = gmui_widget_mouse_interactive_behaviour(widget);
+        var hovered = mouse.is_hovering;
+        var active = mouse.is_active;
+        var released = mouse.is_pressed;
+        if (hovered && released) new_checked = !checked;
+        
+        var idle = make_color_rgb(50, 160, 80);
+        var hover = make_color_rgb(70, 190, 100);
+        var active_col = make_color_rgb(35, 120, 60);
+        var border = make_color_rgb(30, 100, 50);
+        var check_col = c_white;
+        
+        var bg = idle;
+        if (active) bg = active_col;
+        else if (hovered) bg = hover;
+        if (new_checked) bg = active_col;
+        
+        gmui_add_roundrect(widget.x, widget.y, widget.x + box_size, widget.y + box_size, false, bg, 1, style.checkbox_rounding);
+        gmui_add_roundrect(widget.x, widget.y, widget.x + box_size, widget.y + box_size, true, border, 1, style.checkbox_rounding);
+        
+        if (new_checked) {
+            var p = 3;
+            var mid = widget.x + box_size / 2;
+            gmui_add_line_width(widget.x + p + 1, widget.y + box_size / 2, mid, widget.y + box_size - p - 1, 2, check_col);
+            gmui_add_line_width(mid, widget.y + box_size - p - 1, widget.x + box_size - p, widget.y + p + 1, 2, check_col);
+        }
+        if (label != "") {
+            gmui_add_text(label, widget.x + box_size + padding, widget.y + (widget.height - label_size[1]) / 2, make_color_rgb(180, 230, 190), 1, _font);
+        }
+    }
+    gmui_end_widget(widget, true);
+    return new_checked;
+}
 
 // selectable
 function gmui_selectable(label, selected, width = global.gmui.style.selectable_min_width, font = undefined) {
@@ -832,6 +1297,82 @@ function gmui_toggle_disabled(value) {
     gmui_end_widget(widget);
     return value;
 };
+
+function gmui_toggle_danger(value) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("toggle_danger");
+    var toggle_w = style.toggle_width;
+    var toggle_h = style.toggle_height;
+    var knob_size = style.toggle_knob_size;
+    var padding = style.toggle_padding;
+    
+    widget.width = toggle_w;
+    widget.height = toggle_h;
+    var new_value = value;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var mouse = gmui_widget_mouse_interactive_behaviour(widget);
+        if (mouse.is_hovering && mouse.is_pressed) new_value = !value;
+        
+        var idle = make_color_rgb(180, 50, 50);
+        var hover = make_color_rgb(220, 70, 70);
+        var active_col = make_color_rgb(140, 30, 30);
+        var off_bg = style.color_widget_base;
+        var knob = c_white;
+        
+        var bg = value ? idle : off_bg;
+        if (value && mouse.is_hovering) bg = hover;
+        if (value && mouse.is_active) bg = active_col;
+        if (!value && mouse.is_hovering) bg = style.color_widget_hover;
+        
+        gmui_add_roundrect(widget.x, widget.y, widget.x + toggle_w, widget.y + toggle_h, false, bg, 1, style.toggle_rounding);
+        
+        var knob_x = value ? widget.x + toggle_w - knob_size - padding : widget.x + padding;
+        var knob_y = widget.y + (toggle_h - knob_size) / 2;
+        gmui_add_roundrect(knob_x, knob_y, knob_x + knob_size, knob_y + knob_size, false, knob, 1, knob_size / 2);
+    }
+    gmui_end_widget(widget, true);
+    return new_value;
+}
+
+function gmui_toggle_success(value) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("toggle_success");
+    var toggle_w = style.toggle_width;
+    var toggle_h = style.toggle_height;
+    var knob_size = style.toggle_knob_size;
+    var padding = style.toggle_padding;
+    
+    widget.width = toggle_w;
+    widget.height = toggle_h;
+    var new_value = value;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var mouse = gmui_widget_mouse_interactive_behaviour(widget);
+        if (mouse.is_hovering && mouse.is_pressed) new_value = !value;
+        
+        var idle = make_color_rgb(50, 160, 80);
+        var hover = make_color_rgb(70, 190, 100);
+        var active_col = make_color_rgb(35, 120, 60);
+        var off_bg = style.color_widget_base;
+        var knob = c_white;
+        
+        var bg = value ? idle : off_bg;
+        if (value && mouse.is_hovering) bg = hover;
+        if (value && mouse.is_active) bg = active_col;
+        if (!value && mouse.is_hovering) bg = style.color_widget_hover;
+        
+        gmui_add_roundrect(widget.x, widget.y, widget.x + toggle_w, widget.y + toggle_h, false, bg, 1, style.toggle_rounding);
+        
+        var knob_x = value ? widget.x + toggle_w - knob_size - padding : widget.x + padding;
+        var knob_y = widget.y + (toggle_h - knob_size) / 2;
+        gmui_add_roundrect(knob_x, knob_y, knob_x + knob_size, knob_y + knob_size, false, knob, 1, knob_size / 2);
+    }
+    gmui_end_widget(widget, true);
+    return new_value;
+}
 
 // knob/dial
 function gmui_knob(value, min_val, max_val, size = -1, label = "", font = undefined) {
@@ -3551,955 +4092,12 @@ function gmui_list_box(selected, items, item_count, multi_select = false, width 
 };
 
 // tabs
-/*
-function gmui_tabs(name, selected_index, width = -1, height = -1, detachable = false, flags = 0, font = undefined) {
+function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", empty_detach_handler = undefined, bar_attach_handler = undefined, flags = 0, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
     var container = gmui.current_container;
     var cache_key = "_tabs_data_" + name;
     
-    if (!ds_map_exists(gmui.cache, cache_key)) {
-        gmui.cache[? cache_key] = {
-            labels: [],
-            selected: 0,
-            dragging: -1,
-            drag_mouse_offset: 0,
-            tab_pressed: -1,
-            close_pressed: -1,
-            drag_pending: -1,
-            drag_start_screen_x: 0,
-            drag_start_tab_x: 0,
-        };
-    }
-    var tab_data = gmui.cache[? cache_key];
-    var tabs = tab_data.labels;
-    
-    var _width = width > 0 ? width : container.width - style.container_padding_h * 2 - container.context.indent_level;
-    var _height = height > 0 ? height : style.tab_bar_height;
-    var close_size = 14;
-    var drag_threshold = 4;
-    var enable_move = (flags & gmui_tab_flags.NO_MOVE) == 0;
-    var enable_close = (flags & gmui_tab_flags.NO_CLOSE) == 0;
-    var actual_close_size = enable_close ? close_size : 0;
-    
-    var sel = clamp(tab_data.selected, 0, max(0, array_length(tabs) - 1));
-    if (selected_index >= 0 && selected_index < array_length(tabs)) sel = selected_index;
-    tab_data.selected = sel;
-    
-    if (gmui_begin_container(container.name + "_tabs_" + name, undefined, undefined, _width, _height)) {
-        var tabs_container = gmui.current_container;
-        tabs_container.use_surface = false;
-        tabs_container.use_scissor = true;
-        tabs_container.scrolling_enabled = false;
-        tabs_container.background_enabled = false;
-        tabs_container.context.cursor_x = 0;
-        tabs_container.context.cursor_y = 0;
-        
-        var widget = gmui_begin_widget("tabs");
-        widget.width = _width;
-        widget.height = _height;
-        
-        var _font = gmui_resolve_font(widget, font);
-        var tab_count = array_length(tabs);
-        var drag_idx = tab_data.dragging;
-        
-        var pending_idx = tab_data.drag_pending;
-        if (enable_move && pending_idx >= 0 && pending_idx < tab_count) {
-            if (gmui.input.m_held && abs(gmui.input.m_x - tab_data.drag_start_screen_x) >= drag_threshold) {
-                tab_data.dragging = pending_idx;
-                tab_data.drag_mouse_offset = tab_data.drag_start_screen_x - tab_data.drag_start_tab_x;
-                drag_idx = pending_idx;
-                tab_data.drag_pending = -1;
-                tab_data.tab_pressed = -1;
-                tab_data.close_pressed = -1;
-            }
-        }
-        
-        if (drag_idx == -1 && gmui_input_mouse_pressed()) {
-            var offset = gmui_get_container_screen_offset(tabs_container);
-            
-            var press_widths = array_create(tab_count);
-            var press_positions = array_create(tab_count);
-            var press_total = 0;
-            for (var i = 0; i < tab_count; i++) {
-                var text_size = gmui_calculate_text_size(tabs[i], _font);
-                var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-                press_widths[i] = tw;
-                press_positions[i] = press_total;
-                press_total += tw + style.tab_item_spacing;
-            }
-            
-            for (var i = 0; i < tab_count; i++) {
-                var base_x = press_positions[i];
-                var tab_width = press_widths[i];
-                var screen_left = offset[0] + base_x - tabs_container.scroll_x;
-                var screen_right = screen_left + tab_width;
-                var screen_top = offset[1];
-                var screen_bottom = screen_top + _height;
-                
-                var in_tab = gmui.input.m_x >= screen_left && gmui.input.m_x <= screen_right &&
-                             gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom;
-                
-                if (in_tab) {
-                    var close_zone_left = screen_right - actual_close_size - 8;
-                    var in_close_zone = enable_close && gmui.input.m_x >= close_zone_left;
-                    
-                    if (in_close_zone) {
-                        tab_data.close_pressed = i;
-                        tab_data.tab_pressed = -1;
-                        tab_data.drag_pending = -1;
-                    } else {
-                        tab_data.tab_pressed = i;
-                        tab_data.close_pressed = -1;
-                        if (enable_move) {
-                            tab_data.drag_pending = i;
-                            tab_data.drag_start_screen_x = gmui.input.m_x;
-                            tab_data.drag_start_tab_x = base_x;
-                        } else {
-                            tab_data.drag_pending = -1;
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-        
-        if (drag_idx == -1 && gmui_input_mouse_released()) {
-            var close_idx = tab_data.close_pressed;
-            var press_idx = tab_data.tab_pressed;
-            var was_pending = (tab_data.drag_pending >= 0);
-            
-            if (enable_close && close_idx >= 0 && close_idx < tab_count) {
-                var offset = gmui_get_container_screen_offset(tabs_container);
-                
-                var rel_widths = array_create(tab_count);
-                var rel_positions = array_create(tab_count);
-                var rel_total = 0;
-                for (var i = 0; i < tab_count; i++) {
-                    var text_size = gmui_calculate_text_size(tabs[i], _font);
-                    var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-                    rel_widths[i] = tw;
-                    rel_positions[i] = rel_total;
-                    rel_total += tw + style.tab_item_spacing;
-                }
-                
-                var base_x = rel_positions[close_idx];
-                var tab_width = rel_widths[close_idx];
-                var screen_left = offset[0] + base_x - tabs_container.scroll_x;
-                var screen_right = screen_left + tab_width;
-                var close_zone_left = screen_right - actual_close_size - 8;
-                
-                var still_in_close = gmui.input.m_x >= close_zone_left && 
-                                    gmui.input.m_x <= screen_right &&
-                                    gmui.input.m_y >= offset[1] && 
-                                    gmui.input.m_y <= offset[1] + _height;
-                
-                if (still_in_close) {
-                    array_delete(tabs, close_idx, 1);
-                    tab_data.labels = tabs;
-                    if (sel >= array_length(tabs)) sel = max(0, array_length(tabs) - 1);
-                    tab_data.selected = sel;
-                }
-            }
-            else if (press_idx >= 0 && press_idx < tab_count && was_pending) {
-                var offset = gmui_get_container_screen_offset(tabs_container);
-                
-                var rel_widths = array_create(tab_count);
-                var rel_positions = array_create(tab_count);
-                var rel_total = 0;
-                for (var i = 0; i < tab_count; i++) {
-                    var text_size = gmui_calculate_text_size(tabs[i], _font);
-                    var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-                    rel_widths[i] = tw;
-                    rel_positions[i] = rel_total;
-                    rel_total += tw + style.tab_item_spacing;
-                }
-                
-                var base_x = rel_positions[press_idx];
-                var tab_width = rel_widths[press_idx];
-                var screen_left = offset[0] + base_x - tabs_container.scroll_x;
-                var screen_right = screen_left + tab_width;
-                var close_zone_left = screen_right - actual_close_size - 8;
-                
-                var still_in_body = gmui.input.m_x >= screen_left && 
-                                   gmui.input.m_x < close_zone_left &&
-                                   gmui.input.m_y >= offset[1] && 
-                                   gmui.input.m_y <= offset[1] + _height;
-                
-                if (still_in_body) {
-                    sel = press_idx;
-                    tab_data.selected = sel;
-                }
-            }
-        }
-        
-        if (gmui.input.m_released) {
-            tab_data.tab_pressed = -1;
-            tab_data.close_pressed = -1;
-            tab_data.drag_pending = -1;
-        }
-        
-        tab_count = array_length(tabs);
-        
-        var tab_widths = array_create(tab_count);
-        var tab_positions = array_create(tab_count);
-        var total_width = 0;
-        
-        for (var i = 0; i < tab_count; i++) {
-            var text_size = gmui_calculate_text_size(tabs[i], _font);
-            var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-            tab_widths[i] = tw;
-            tab_positions[i] = total_width;
-            total_width += tw + style.tab_item_spacing;
-        }
-        if (tab_count > 0) total_width -= style.tab_item_spacing;
-        
-        if (drag_idx >= tab_count) {
-            drag_idx = -1;
-            tab_data.dragging = -1;
-        }
-        
-        var drag_draw_x = 0;
-        var drag_target = drag_idx;
-        
-        if (enable_move && drag_idx >= 0 && drag_idx < tab_count && gmui.input.m_held) {
-            var detach_gap = 20;
-            var offset = gmui_get_container_screen_offset(tabs_container);
-            if (detachable && gmui.input.m_y < offset[1] - detach_gap || gmui.input.m_y > offset[1] + _height + detach_gap) {
-                var detached_label = tabs[drag_idx];
-                gmui.cache[? "_last_detached_tab"] = {
-                    tab_name: detached_label,
-                    tab_source: name,
-                };
-                
-                array_delete(tabs, drag_idx, 1);
-                tab_data.labels = tabs;
-                tab_data.dragging = -1;
-                tab_data.drag_pending = -1;
-                tab_data.tab_pressed = -1;
-                tab_data.close_pressed = -1;
-                
-                if (sel >= array_length(tabs)) sel = max(0, array_length(tabs) - 1);
-                tab_data.selected = sel;
-                
-                gmui_end_widget(widget, true);
-                gmui_end_container();
-                return -2;
-            }
-            
-            drag_draw_x = gmui.input.m_x - tab_data.drag_mouse_offset;
-            drag_draw_x = clamp(drag_draw_x, -tab_widths[drag_idx] * 0.3, _width - tab_widths[drag_idx] * 0.7);
-            
-            var drag_center = drag_draw_x + tab_widths[drag_idx] / 2;
-            for (var j = 0; j < tab_count; j++) {
-                if (j == drag_idx) continue;
-                var j_center = tab_positions[j] + tab_widths[j] / 2;
-                if (drag_center > j_center && drag_idx < j) { drag_target = j; }
-                if (drag_center < j_center && drag_idx > j) { drag_target = j; break; }
-            }
-        }
-        
-        if (enable_move && drag_target != drag_idx && drag_idx >= 0 && drag_idx < tab_count && gmui.input.m_held) {
-            var moved_tab = tabs[drag_idx];
-            array_delete(tabs, drag_idx, 1);
-            array_insert(tabs, drag_target, moved_tab);
-            tab_data.labels = tabs;
-            
-            if (sel == drag_idx) sel = drag_target;
-            else if (drag_idx < drag_target && sel > drag_idx && sel <= drag_target) sel--;
-            else if (drag_idx > drag_target && sel >= drag_target && sel < drag_idx) sel++;
-            tab_data.selected = sel;
-            
-            tab_data.dragging = drag_target;
-            drag_idx = drag_target;
-            
-            total_width = 0;
-            for (var k = 0; k < tab_count; k++) {
-                tab_positions[k] = total_width;
-                total_width += tab_widths[k] + style.tab_item_spacing;
-            }
-            if (tab_count > 0) total_width -= style.tab_item_spacing;
-            
-            tab_data.drag_mouse_offset = gmui.input.m_x - tab_positions[drag_target];
-        }
-        
-        if (gmui.input.m_released && drag_idx >= 0) {
-            tab_data.dragging = -1;
-            drag_idx = -1;
-        }
-        
-        for (var i = 0; i < tab_count; i++) {
-            var base_x = tab_positions[i];
-            var tab_width = tab_widths[i];
-            var tab_height = _height;
-            var is_selected = (i == sel);
-            var is_dragging = (i == drag_idx && gmui.input.m_held);
-            
-            var draw_x = base_x;
-            var draw_y = 0;
-            if (is_dragging) {
-                draw_x = drag_draw_x;
-                draw_y = -2;
-            }
-            
-            var offset = gmui_get_container_screen_offset(tabs_container);
-            var screen_left = offset[0] + draw_x - tabs_container.scroll_x;
-            var screen_right = screen_left + tab_width;
-            var screen_top = offset[1] + draw_y;
-            var screen_bottom = screen_top + tab_height;
-            
-            var in_tab = !is_dragging && drag_idx == -1 &&
-                         gmui.input.m_x >= screen_left && gmui.input.m_x <= screen_right &&
-                         gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom;
-            
-            var close_zone_left = screen_right - actual_close_size - 8;
-            var in_close_zone = enable_close && in_tab && gmui.input.m_x >= close_zone_left;
-            var in_body = in_tab && !in_close_zone;
-            
-            var alpha = is_dragging ? 0.9 : 1;
-            var bg_color = style.tab_item_color;
-            var text_color = style.tab_item_text_color;
-            
-            if (is_selected) {
-                bg_color = style.tab_item_selected_color;
-                text_color = style.tab_item_selected_text_color;
-            } else if (in_body || in_close_zone || is_dragging) {
-                bg_color = style.tab_item_hovered_color;
-            }
-            
-            if (is_dragging) {
-                gmui_add_rectangle(draw_x + 2, draw_y + 2, draw_x + tab_width + 2, draw_y + tab_height + 2, false, make_color_rgb(0, 0, 0), 0.25);
-            }
-            
-            gmui_add_rect_expensive(
-                draw_x, draw_y, draw_x + tab_width, draw_y + tab_height,
-                bg_color,
-                gmui_corner_direction.TOP_LEFT | gmui_corner_direction.TOP_RIGHT,
-                style.tab_item_rounding, true
-            );
-            
-            if (i > 0 && !is_dragging && drag_idx != i - 1 && drag_idx != i) {
-                gmui_add_line(draw_x, draw_y + 6, draw_x, draw_y + tab_height - 6, style.color_border_dark, 1);
-            }
-            
-            var text_size = gmui_calculate_text_size(tabs[i], _font);
-            var max_text_w = tab_width - style.tab_item_padding_h * 2 - actual_close_size - 4;
-            var display_text = tabs[i];
-            if (text_size[0] > max_text_w) {
-                for (var len = string_length(display_text); len > 0; len--) {
-                    var test = string_copy(display_text, 1, len) + "...";
-                    if (gmui_calculate_text_size(test, _font)[0] <= max_text_w) {
-                        display_text = test;
-                        break;
-                    }
-                }
-                text_size = gmui_calculate_text_size(display_text, _font);
-            }
-            
-            var text_x;
-            if (enable_close) {
-                text_x = draw_x + (tab_width - close_size - 4 - text_size[0]) / 2;
-            } else {
-                text_x = draw_x + (tab_width - text_size[0]) / 2;
-            }
-            var text_y = draw_y + (tab_height - text_size[1]) / 2;
-            gmui_add_text(display_text, text_x, text_y, text_color, alpha, _font);
-            
-            if (enable_close) {
-                var close_draw_x = draw_x + tab_width - close_size - 6;
-                var close_draw_y = draw_y + (tab_height - close_size) / 2;
-                var close_color = style.tab_item_text_color;
-                if (in_close_zone) close_color = make_color_rgb(255, 100, 100);
-                var cp = 3;
-                gmui_add_line(close_draw_x + cp, close_draw_y + cp, close_draw_x + close_size - cp, close_draw_y + close_size - cp, close_color, 1.5);
-                gmui_add_line(close_draw_x + close_size - cp, close_draw_y + cp, close_draw_x + cp, close_draw_y + close_size - cp, close_color, 1.5);
-            }
-        }
-        
-        gmui_add_rectangle(0, _height - 1, _width, _height, false, style.color_border_dark, 1);
-        
-        tabs_container.content_width = total_width;
-        
-        gmui_end_widget(widget, true);
-        gmui_end_container();
-    }
-    
-    return sel;
-}
-*/
-
-/*
-function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", delete_on_empty_detach = false, flags = 0, font = undefined) {
-    var gmui = global.gmui;
-    var style = gmui.style;
-    var container = gmui.current_container;
-    var cache_key = "_tabs_data_" + name;
-    
-    if (!ds_map_exists(gmui.cache, cache_key)) {
-        gmui.cache[? cache_key] = {
-            labels: [],
-            selected: 0,
-            dragging: -1,
-            drag_mouse_offset: 0,
-            tab_pressed: -1,
-            close_pressed: -1,
-            drag_pending: -1,
-            drag_start_screen_x: 0,
-            drag_start_tab_x: 0,
-        };
-    }
-    var tab_data = gmui.cache[? cache_key];
-    var tabs = tab_data.labels;
-    
-    var _width = width > 0 ? width : container.width - style.container_padding_h * 2 - container.context.indent_level;
-    var _height = height > 0 ? height : style.tab_bar_height;
-    var close_size = 14;
-    var drag_threshold = 4;
-    var enable_move = (flags & gmui_tab_flags.NO_MOVE) == 0;
-    var enable_close = (flags & gmui_tab_flags.NO_CLOSE) == 0;
-    var actual_close_size = enable_close ? close_size : 0;
-    var detachable = (group != "" || delete_on_empty_detach);
-    
-    var sel = clamp(tab_data.selected, 0, max(0, array_length(tabs) - 1));
-    if (selected_index >= 0 && selected_index < array_length(tabs)) sel = selected_index;
-    tab_data.selected = sel;
-    
-    if (gmui_begin_container(container.name + "_tabs_" + name, undefined, undefined, _width, _height)) {
-        var tabs_container = gmui.current_container;
-        tabs_container.use_surface = false;
-        tabs_container.use_scissor = true;
-        tabs_container.scrolling_enabled = false;
-        tabs_container.background_enabled = false;
-        tabs_container.context.cursor_x = 0;
-        tabs_container.context.cursor_y = 0;
-        
-        var widget = gmui_begin_widget("tabs");
-        widget.width = _width;
-        widget.height = _height;
-        
-        var _font = gmui_resolve_font(widget, font);
-        var tab_count = array_length(tabs);
-        var drag_idx = tab_data.dragging;
-        
-        // ── Store group and screen rect for attach detection ──
-        if (group != "") {
-            tab_data._tab_group = group;
-            var _scr_offset = gmui_get_container_screen_offset(tabs_container);
-            tab_data._screen_rect = [
-                _scr_offset[0] + widget.x - tabs_container.scroll_x,
-                _scr_offset[1] + widget.y - tabs_container.scroll_y,
-                _scr_offset[0] + widget.x + _width - tabs_container.scroll_x,
-                _scr_offset[1] + widget.y + _height - tabs_container.scroll_y,
-            ];
-        }
-        
-        // ── Activate pending drag after threshold ──
-        var pending_idx = tab_data.drag_pending;
-        if (enable_move && pending_idx >= 0 && pending_idx < tab_count) {
-            if (gmui.input.m_held && abs(gmui.input.m_x - tab_data.drag_start_screen_x) >= drag_threshold) {
-                tab_data.dragging = pending_idx;
-                tab_data.drag_mouse_offset = tab_data.drag_start_screen_x - tab_data.drag_start_tab_x;
-                drag_idx = pending_idx;
-                tab_data.drag_pending = -1;
-                tab_data.tab_pressed = -1;
-                tab_data.close_pressed = -1;
-            }
-        }
-        
-        // ── Press detection ──
-        if (drag_idx == -1 && gmui_input_mouse_pressed()) {
-            var offset = gmui_get_container_screen_offset(tabs_container);
-            
-            var press_widths = array_create(tab_count);
-            var press_positions = array_create(tab_count);
-            var press_total = 0;
-            for (var i = 0; i < tab_count; i++) {
-                var text_size = gmui_calculate_text_size(tabs[i], _font);
-                var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-                press_widths[i] = tw;
-                press_positions[i] = press_total;
-                press_total += tw + style.tab_item_spacing;
-            }
-            
-            for (var i = 0; i < tab_count; i++) {
-                var base_x = press_positions[i];
-                var tab_width = press_widths[i];
-                var screen_left = offset[0] + base_x - tabs_container.scroll_x;
-                var screen_right = screen_left + tab_width;
-                var screen_top = offset[1];
-                var screen_bottom = screen_top + _height;
-                
-                var in_tab = gmui.input.m_x >= screen_left && gmui.input.m_x <= screen_right &&
-                             gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom;
-                
-                if (in_tab) {
-                    var close_zone_left = screen_right - actual_close_size - 8;
-                    var in_close_zone = enable_close && gmui.input.m_x >= close_zone_left;
-                    
-                    if (in_close_zone) {
-                        tab_data.close_pressed = i;
-                        tab_data.tab_pressed = -1;
-                        tab_data.drag_pending = -1;
-                    } else {
-                        tab_data.tab_pressed = i;
-                        tab_data.close_pressed = -1;
-                        if (enable_move) {
-                            tab_data.drag_pending = i;
-                            tab_data.drag_start_screen_x = gmui.input.m_x;
-                            tab_data.drag_start_tab_x = base_x;
-                        } else {
-                            tab_data.drag_pending = -1;
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-        
-        // ── Release logic (no active drag) ──
-        if (drag_idx == -1 && gmui_input_mouse_released()) {
-            var close_idx = tab_data.close_pressed;
-            var press_idx = tab_data.tab_pressed;
-            var was_pending = (tab_data.drag_pending >= 0);
-            
-            // Close button
-            if (enable_close && close_idx >= 0 && close_idx < tab_count) {
-                var offset = gmui_get_container_screen_offset(tabs_container);
-                
-                var rel_widths = array_create(tab_count);
-                var rel_positions = array_create(tab_count);
-                var rel_total = 0;
-                for (var i = 0; i < tab_count; i++) {
-                    var text_size = gmui_calculate_text_size(tabs[i], _font);
-                    var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-                    rel_widths[i] = tw;
-                    rel_positions[i] = rel_total;
-                    rel_total += tw + style.tab_item_spacing;
-                }
-                
-                var base_x = rel_positions[close_idx];
-                var tab_width = rel_widths[close_idx];
-                var screen_left = offset[0] + base_x - tabs_container.scroll_x;
-                var screen_right = screen_left + tab_width;
-                var close_zone_left = screen_right - actual_close_size - 8;
-                
-                var still_in_close = gmui.input.m_x >= close_zone_left && 
-                                    gmui.input.m_x <= screen_right &&
-                                    gmui.input.m_y >= offset[1] && 
-                                    gmui.input.m_y <= offset[1] + _height;
-                
-                if (still_in_close) {
-                    array_delete(tabs, close_idx, 1);
-                    tab_data.labels = tabs;
-                    if (sel >= array_length(tabs)) sel = max(0, array_length(tabs) - 1);
-                    tab_data.selected = sel;
-                }
-            }
-            // Tab body click (switch selection)
-            else if (press_idx >= 0 && press_idx < tab_count && was_pending) {
-                var offset = gmui_get_container_screen_offset(tabs_container);
-                
-                var rel_widths = array_create(tab_count);
-                var rel_positions = array_create(tab_count);
-                var rel_total = 0;
-                for (var i = 0; i < tab_count; i++) {
-                    var text_size = gmui_calculate_text_size(tabs[i], _font);
-                    var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-                    rel_widths[i] = tw;
-                    rel_positions[i] = rel_total;
-                    rel_total += tw + style.tab_item_spacing;
-                }
-                
-                var base_x = rel_positions[press_idx];
-                var tab_width = rel_widths[press_idx];
-                var screen_left = offset[0] + base_x - tabs_container.scroll_x;
-                var screen_right = screen_left + tab_width;
-                var close_zone_left = screen_right - actual_close_size - 8;
-                
-                var still_in_body = gmui.input.m_x >= screen_left && 
-                                   gmui.input.m_x < close_zone_left &&
-                                   gmui.input.m_y >= offset[1] && 
-                                   gmui.input.m_y <= offset[1] + _height;
-                
-                if (still_in_body) {
-                    sel = press_idx;
-                    tab_data.selected = sel;
-                }
-            }
-        }
-        
-        // ── Clear all press/pending state on every release ──
-        if (gmui.input.m_released) {
-            tab_data.tab_pressed = -1;
-            tab_data.close_pressed = -1;
-            tab_data.drag_pending = -1;
-        }
-        
-        tab_count = array_length(tabs);
-        
-        // ── Compute tab widths and positions ──
-		var tab_widths = array_create(tab_count);
-		var tab_positions = array_create(tab_count);
-		var total_width = 0;
-
-		var is_tab_detached = drag_idx >= 0 &&
-		                      ds_map_exists(gmui.cache, "_detached_tab_visual") &&
-		                      gmui.cache[? "_detached_tab_visual"].active &&
-		                      gmui.cache[? "_detached_tab_visual"].cache_key == cache_key;
-
-		for (var i = 0; i < tab_count; i++) {
-		    var text_size = gmui_calculate_text_size(tabs[i], _font);
-		    var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-		    tab_widths[i] = tw;
-		    // Detached tab gets zero-width slot so indices stay valid, but takes no visual space
-		    if (is_tab_detached && i == drag_idx) {
-		        tab_positions[i] = total_width;
-		        // don't advance total_width
-		        continue;
-		    }
-		    tab_positions[i] = total_width;
-		    total_width += tw + style.tab_item_spacing;
-		}
-		if (tab_count > 0 && !is_tab_detached) total_width -= style.tab_item_spacing;
-		else if (tab_count > 1 && is_tab_detached) total_width -= style.tab_item_spacing;
-        
-        // Clamp drag index after possible deletion
-        if (drag_idx >= tab_count) {
-            drag_idx = -1;
-            tab_data.dragging = -1;
-        }
-        
-        var drag_draw_x = 0;
-        var drag_target = drag_idx;
-        
-        // ── Drag update: live attach, detach visual, or reorder ──
-        if (enable_move && drag_idx >= 0 && drag_idx < tab_count && gmui.input.m_held) {
-            var detach_gap = 20;
-            var offset = gmui_get_container_screen_offset(tabs_container);
-            var outside = (gmui.input.m_y < offset[1] - detach_gap || gmui.input.m_y > offset[1] + _height + detach_gap) || (gmui.input.m_x < offset[1] - detach_gap || gmui.input.m_x > offset[1] + _width + detach_gap);
-            
-            // ── Live attach: if over another tab bar in the same group, move immediately ──
-            var live_attached = false;
-            if (group != "") {
-                var all_cache_keys = ds_map_keys_to_array(gmui.cache);
-                for (var k = 0; k < array_length(all_cache_keys); k++) {
-                    var key = all_cache_keys[k];
-                    if (string_pos("_tabs_data_", key) != 1) continue;
-                    if (key == cache_key) continue;
-                    
-                    var other_data = gmui.cache[? key];
-                    if (!variable_struct_exists(other_data, "_tab_group")) continue;
-                    if (other_data._tab_group != group) continue;
-                    
-                    if (variable_struct_exists(other_data, "_screen_rect")) {
-                        var r = other_data._screen_rect;
-                        if (point_in_rectangle(gmui.input.m_x, gmui.input.m_y, r[0], r[1], r[2], r[3])) {
-                            // Live attach
-                            var moved_label = tabs[drag_idx];
-                            array_delete(tabs, drag_idx, 1);
-                            tab_data.labels = tabs;
-                            
-                            var target_name = string_delete(key, 1, 11);
-                            var target_tabs = other_data.labels;
-                            var target_count = array_length(target_tabs);
-                            var insert_index = target_count;
-                            
-                            // Find insert position based on mouse X relative to target's tabs
-                            var target_widths = array_create(target_count);
-                            var target_positions = array_create(target_count);
-                            var target_total = 0;
-                            for (var t = 0; t < target_count; t++) {
-                                var t_text_size = gmui_calculate_text_size(target_tabs[t], _font);
-                                var t_tw = max(style.tab_item_min_width, t_text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
-                                target_widths[t] = t_tw;
-                                target_positions[t] = target_total;
-                                target_total += t_tw + style.tab_item_spacing;
-                            }
-                            
-                            var mouse_rel_x = gmui.input.m_x - r[0];
-                            for (var t = 0; t < target_count; t++) {
-                                var tab_center = target_positions[t] + target_widths[t] / 2;
-                                if (mouse_rel_x < tab_center) {
-                                    insert_index = t;
-                                    break;
-                                }
-                            }
-                            
-                            gmui_tab_insert(target_name, moved_label, insert_index);
-                            
-                            // Compute mouse offset within the dragged tab's visual
-                            var mouse_rel_to_tab_left = tab_data.drag_mouse_offset;
-
-							// Clear source drag state
-							tab_data.dragging = -1;
-							tab_data.drag_pending = -1;
-							tab_data.tab_pressed = -1;
-							tab_data.close_pressed = -1;
-
-							// Set target's drag state - use the same relative offset
-							var target_screen_x = r[0];
-							other_data.dragging = insert_index;
-							// The tab's visual left edge will be at mouse_x - mouse_rel_to_tab_left
-							// We need drag_mouse_offset to be mouse_x - tab_visual_left
-							// So drag_mouse_offset = mouse_rel_to_tab_left
-							other_data.drag_mouse_offset = mouse_rel_to_tab_left;
-							other_data.drag_pending = -1;
-							other_data.tab_pressed = -1;
-							other_data.close_pressed = -1;
-							other_data.drag_start_screen_x = gmui.input.m_x;
-							other_data.drag_start_tab_x = gmui.input.m_x - mouse_rel_to_tab_left;
-							other_data.selected = insert_index;
-                            
-                            // Clear detach visual
-                            if (variable_struct_exists(gmui.cache, "_detached_tab_visual")) {
-                                ds_map_delete(gmui.cache, "_detached_tab_visual");
-                            }
-                            
-                            gmui_end_widget(widget, true);
-                            gmui_end_container();
-                            return sel;
-                        }
-                    }
-                }
-            }
-            
-            // ── Detach visual (show floating tab) ──
-            if (!live_attached && detachable && outside) {
-                if (!variable_struct_exists(gmui.cache, "_detached_tab_visual") || !gmui.cache[? "_detached_tab_visual"].active) {
-                    gmui.cache[? "_detached_tab_visual"] = {
-                        label: tabs[drag_idx],
-                        source: name,
-                        group: group,
-                        width: tab_widths[drag_idx],
-                        height: _height,
-                        active: true,
-                        drag_idx: drag_idx,
-                        cache_key: cache_key,
-                        delete_on_empty: (group == "" && delete_on_empty_detach),
-                    };
-                }
-            } else if (!live_attached) {
-                // Mouse back inside — cancel detach visual
-				if (ds_map_exists(gmui.cache, "_detached_tab_visual")) {
-				    var vis = gmui.cache[? "_detached_tab_visual"];
-				    if (vis.active && vis.cache_key == cache_key) {
-				        ds_map_delete(gmui.cache, "_detached_tab_visual");
-				        // Recalculate mouse offset so the tab snaps back under the cursor correctly
-				        tab_data.drag_mouse_offset = gmui.input.m_x - tab_positions[drag_idx];
-				    }
-				}
-            }
-            
-            // ── Reorder (only if not detaching) ──
-            if (!variable_struct_exists(gmui.cache, "_detached_tab_visual") || !gmui.cache[? "_detached_tab_visual"].active) {
-                drag_draw_x = gmui.input.m_x - tab_data.drag_mouse_offset;
-                drag_draw_x = clamp(drag_draw_x, -tab_widths[drag_idx] * 0.3, _width - tab_widths[drag_idx] * 0.7);
-                
-                var drag_center = drag_draw_x + tab_widths[drag_idx] / 2;
-                for (var j = 0; j < tab_count; j++) {
-                    if (j == drag_idx) continue;
-                    var j_center = tab_positions[j] + tab_widths[j] / 2;
-                    if (drag_center > j_center && drag_idx < j) { drag_target = j; }
-                    if (drag_center < j_center && drag_idx > j) { drag_target = j; break; }
-                }
-            }
-        }
-        
-        // ── Apply reorder ──
-        if (enable_move && drag_target != drag_idx && drag_idx >= 0 && drag_idx < tab_count && gmui.input.m_held) {
-            var moved_tab = tabs[drag_idx];
-            array_delete(tabs, drag_idx, 1);
-            array_insert(tabs, drag_target, moved_tab);
-            tab_data.labels = tabs;
-            
-            if (sel == drag_idx) sel = drag_target;
-            else if (drag_idx < drag_target && sel > drag_idx && sel <= drag_target) sel--;
-            else if (drag_idx > drag_target && sel >= drag_target && sel < drag_idx) sel++;
-            tab_data.selected = sel;
-            
-            tab_data.dragging = drag_target;
-            drag_idx = drag_target;
-            
-            total_width = 0;
-            for (var k = 0; k < tab_count; k++) {
-                tab_positions[k] = total_width;
-                total_width += tab_widths[k] + style.tab_item_spacing;
-            }
-            if (tab_count > 0) total_width -= style.tab_item_spacing;
-            
-            tab_data.drag_mouse_offset = gmui.input.m_x - tab_positions[drag_target];
-        }
-        
-        // ── Release with active drag: finalize detach ──
-        if (gmui.input.m_released && drag_idx >= 0) {
-		    if (detachable && ds_map_exists(gmui.cache, "_detached_tab_visual")) {
-		        var vis = gmui.cache[? "_detached_tab_visual"];
-		        if (vis.active && vis.cache_key == cache_key) {
-		            var detached_label = tabs[vis.drag_idx];
-
-		            // Group detach: store for caller to handle (e.g. open new window)
-		            if (vis.group != "") {
-		                gmui.cache[? "_last_detached_tab"] = {
-		                    tab_name: detached_label,
-		                    tab_source: name,
-		                };
-		            }
-
-		            // Remove from source
-		            array_delete(tabs, vis.drag_idx, 1);
-		            tab_data.labels = tabs;
-
-		            if (sel >= array_length(tabs)) sel = max(0, array_length(tabs) - 1);
-		            tab_data.selected = sel;
-
-		            ds_map_delete(gmui.cache, "_detached_tab_visual");
-
-		            tab_data.dragging = -1;
-		            tab_data.drag_pending = -1;
-		            tab_data.tab_pressed = -1;
-		            tab_data.close_pressed = -1;
-
-		            gmui_end_widget(widget, true);
-		            gmui_end_container();
-
-		            // Group: caller must handle the detached tab
-		            if (vis.group != "") {
-		                return -2;
-		            }
-		            // delete_on_empty_detach: tab is already gone, just return normally
-		            return sel;
-		        }
-		    }
-
-		    tab_data.dragging = -1;
-		    tab_data.drag_pending = -1;
-		    tab_data.tab_pressed = -1;
-		    tab_data.close_pressed = -1;
-		    drag_idx = -1;
-		}
-        
-        // ── Drawing ──
-        tab_count = array_length(tabs);
-        if (tab_count == 0) {
-            gmui_end_widget(widget, true);
-            gmui_end_container();
-            return sel;
-        }
-        
-        for (var i = 0; i < tab_count; i++) {
-            var base_x = tab_positions[i];
-            var tab_width = tab_widths[i];
-            var tab_height = _height;
-            var is_selected = (i == sel);
-            var is_dragging = (i == drag_idx && gmui.input.m_held);
-
-		    // Skip drawing if this tab is shown as a floating detached visual
-		    var is_detached = is_dragging &&
-		                      ds_map_exists(gmui.cache, "_detached_tab_visual") &&
-		                      gmui.cache[? "_detached_tab_visual"].active &&
-		                      gmui.cache[? "_detached_tab_visual"].cache_key == cache_key;
-			if (is_detached) continue;
-            
-            var draw_x = base_x;
-            var draw_y = 0;
-            if (is_dragging) {
-                draw_x = drag_draw_x;
-                draw_y = -2;
-            }
-            
-            var offset = gmui_get_container_screen_offset(tabs_container);
-            var screen_left = offset[0] + draw_x - tabs_container.scroll_x;
-            var screen_right = screen_left + tab_width;
-            var screen_top = offset[1] + draw_y;
-            var screen_bottom = screen_top + tab_height;
-            
-            var in_tab = !is_dragging && drag_idx == -1 &&
-                         gmui.input.m_x >= screen_left && gmui.input.m_x <= screen_right &&
-                         gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom;
-            
-            var close_zone_left = screen_right - actual_close_size - 8;
-            var in_close_zone = enable_close && in_tab && gmui.input.m_x >= close_zone_left;
-            var in_body = in_tab && !in_close_zone;
-            
-            var alpha = is_dragging ? 0.9 : 1;
-            var bg_color = style.tab_item_color;
-            var text_color = style.tab_item_text_color;
-            
-            if (is_selected) {
-                bg_color = style.tab_item_selected_color;
-                text_color = style.tab_item_selected_text_color;
-            } else if (in_body || in_close_zone || is_dragging) {
-                bg_color = style.tab_item_hovered_color;
-            }
-            
-            if (is_dragging) {
-                gmui_add_rectangle(draw_x + 2, draw_y + 2, draw_x + tab_width + 2, draw_y + tab_height + 2, false, make_color_rgb(0, 0, 0), 0.25);
-            }
-            
-            gmui_add_rect_expensive(
-                draw_x, draw_y, draw_x + tab_width, draw_y + tab_height,
-                bg_color,
-                gmui_corner_direction.TOP_LEFT | gmui_corner_direction.TOP_RIGHT,
-                style.tab_item_rounding, true
-            );
-            
-            if (i > 0 && !is_dragging && drag_idx != i - 1 && drag_idx != i) {
-                gmui_add_line(draw_x, draw_y + 6, draw_x, draw_y + tab_height - 6, style.color_border_dark, 1);
-            }
-            
-            var text_size = gmui_calculate_text_size(tabs[i], _font);
-            var max_text_w = tab_width - style.tab_item_padding_h * 2 - actual_close_size - 4;
-            var display_text = tabs[i];
-            if (text_size[0] > max_text_w) {
-                for (var len = string_length(display_text); len > 0; len--) {
-                    var test = string_copy(display_text, 1, len) + "...";
-                    if (gmui_calculate_text_size(test, _font)[0] <= max_text_w) {
-                        display_text = test;
-                        break;
-                    }
-                }
-                text_size = gmui_calculate_text_size(display_text, _font);
-            }
-            
-            var text_x;
-            if (enable_close) {
-                text_x = draw_x + (tab_width - close_size - 4 - text_size[0]) / 2;
-            } else {
-                text_x = draw_x + (tab_width - text_size[0]) / 2;
-            }
-            var text_y = draw_y + (tab_height - text_size[1]) / 2;
-            gmui_add_text(display_text, text_x, text_y, text_color, alpha, _font);
-            
-            if (enable_close) {
-                var close_draw_x = draw_x + tab_width - close_size - 6;
-                var close_draw_y = draw_y + (tab_height - close_size) / 2;
-                var close_color = style.tab_item_text_color;
-                if (in_close_zone) close_color = make_color_rgb(255, 100, 100);
-                var cp = 3;
-                gmui_add_line(close_draw_x + cp, close_draw_y + cp, close_draw_x + close_size - cp, close_draw_y + close_size - cp, close_color, 1.5);
-                gmui_add_line(close_draw_x + close_size - cp, close_draw_y + cp, close_draw_x + cp, close_draw_y + close_size - cp, close_color, 1.5);
-            }
-        }
-        
-        gmui_add_rectangle(0, _height - 1, _width, _height, false, style.color_border_dark, 1);
-        
-        tabs_container.content_width = total_width;
-        
-        gmui_end_widget(widget, true);
-        gmui_end_container();
-    }
-    
-    return sel;
-}
-*/
-
-function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", delete_on_empty_detach = false, flags = 0, font = undefined) {
-    var gmui = global.gmui;
-    var style = gmui.style;
-    var container = gmui.current_container;
-    var cache_key = "_tabs_data_" + name;
-    
-    // Initialize tab group registry if it doesn't exist
     if (!ds_map_exists(gmui.cache, "_tab_group_registry")) {
         gmui.cache[? "_tab_group_registry"] = ds_map_create();
     }
@@ -4518,9 +4116,9 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
             drag_start_tab_x: 0,
         };
     }
+    
     var tab_data = gmui.cache[? cache_key];
     var tabs = tab_data.labels;
-    
     var _width = width > 0 ? width : container.width - style.container_padding_h * 2 - container.context.indent_level;
     var _height = height > 0 ? height : style.tab_bar_height;
     var close_size = 14;
@@ -4528,12 +4126,13 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
     var enable_move = (flags & gmui_tab_flags.NO_MOVE) == 0;
     var enable_close = (flags & gmui_tab_flags.NO_CLOSE) == 0;
     var actual_close_size = enable_close ? close_size : 0;
-    var detachable = (group != "" || delete_on_empty_detach);
+    
+    var detachable = (group != "");
     
     var sel = clamp(tab_data.selected, 0, max(0, array_length(tabs) - 1));
     if (selected_index >= 0 && selected_index < array_length(tabs)) sel = selected_index;
     tab_data.selected = sel;
-    
+
     if (gmui_begin_container(container.name + "_tabs_" + name, undefined, undefined, _width, _height)) {
         var tabs_container = gmui.current_container;
         tabs_container.use_surface = false;
@@ -4546,12 +4145,10 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
         var widget = gmui_begin_widget("tabs");
         widget.width = _width;
         widget.height = _height;
-        
         var _font = gmui_resolve_font(widget, font);
         var tab_count = array_length(tabs);
         var drag_idx = tab_data.dragging;
-        
-        // Store group and screen rect for attach detection, and register in group registry
+
         if (group != "") {
             tab_data._tab_group = group;
             var _scr_offset = gmui_get_container_screen_offset(tabs_container);
@@ -4562,16 +4159,13 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                 _scr_offset[1] + widget.y + _height - tabs_container.scroll_y,
             ];
             tab_data._screen_rect = screen_rect;
-            
-            // Register this tab bar in the group registry
             if (!ds_map_exists(tab_registry, group)) {
                 tab_registry[? group] = ds_map_create();
             }
             var group_bars = tab_registry[? group];
             group_bars[? name] = screen_rect;
         }
-        
-        // Activate pending drag after threshold
+
         var pending_idx = tab_data.drag_pending;
         if (enable_move && pending_idx >= 0 && pending_idx < tab_count) {
             if (gmui.input.m_held && abs(gmui.input.m_x - tab_data.drag_start_screen_x) >= drag_threshold) {
@@ -4583,11 +4177,9 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                 tab_data.close_pressed = -1;
             }
         }
-        
-        // Press detection
+
         if (drag_idx == -1 && gmui_input_mouse_pressed()) {
             var offset = gmui_get_container_screen_offset(tabs_container);
-            
             var press_widths = array_create(tab_count);
             var press_positions = array_create(tab_count);
             var press_total = 0;
@@ -4598,7 +4190,6 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                 press_positions[i] = press_total;
                 press_total += tw + style.tab_item_spacing;
             }
-            
             for (var i = 0; i < tab_count; i++) {
                 var base_x = press_positions[i];
                 var tab_width = press_widths[i];
@@ -4606,14 +4197,11 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                 var screen_right = screen_left + tab_width;
                 var screen_top = offset[1];
                 var screen_bottom = screen_top + _height;
-                
                 var in_tab = gmui.input.m_x >= screen_left && gmui.input.m_x <= screen_right &&
                              gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom;
-                
                 if (in_tab) {
                     var close_zone_left = screen_right - actual_close_size - 8;
                     var in_close_zone = enable_close && gmui.input.m_x >= close_zone_left;
-                    
                     if (in_close_zone) {
                         tab_data.close_pressed = i;
                         tab_data.tab_pressed = -1;
@@ -4624,7 +4212,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                         if (enable_move) {
                             tab_data.drag_pending = i;
                             tab_data.drag_start_screen_x = gmui.input.m_x;
-                            tab_data.drag_start_tab_x = base_x;
+                            tab_data.drag_start_tab_x = screen_left;
                         } else {
                             tab_data.drag_pending = -1;
                         }
@@ -4633,17 +4221,14 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                 }
             }
         }
-        
-        // Release logic (no active drag)
+
         if (drag_idx == -1 && gmui_input_mouse_released()) {
             var close_idx = tab_data.close_pressed;
             var press_idx = tab_data.tab_pressed;
             var was_pending = (tab_data.drag_pending >= 0);
             
-            // Close button
             if (enable_close && close_idx >= 0 && close_idx < tab_count) {
                 var offset = gmui_get_container_screen_offset(tabs_container);
-                
                 var rel_widths = array_create(tab_count);
                 var rel_positions = array_create(tab_count);
                 var rel_total = 0;
@@ -4654,18 +4239,15 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                     rel_positions[i] = rel_total;
                     rel_total += tw + style.tab_item_spacing;
                 }
-                
                 var base_x = rel_positions[close_idx];
                 var tab_width = rel_widths[close_idx];
                 var screen_left = offset[0] + base_x - tabs_container.scroll_x;
                 var screen_right = screen_left + tab_width;
                 var close_zone_left = screen_right - actual_close_size - 8;
-                
-                var still_in_close = gmui.input.m_x >= close_zone_left && 
-                                    gmui.input.m_x <= screen_right &&
-                                    gmui.input.m_y >= offset[1] && 
-                                    gmui.input.m_y <= offset[1] + _height;
-                
+                var still_in_close = gmui.input.m_x >= close_zone_left &&
+                                     gmui.input.m_x <= screen_right &&
+                                     gmui.input.m_y >= offset[1] &&
+                                     gmui.input.m_y <= offset[1] + _height;
                 if (still_in_close) {
                     array_delete(tabs, close_idx, 1);
                     tab_data.labels = tabs;
@@ -4673,10 +4255,8 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                     tab_data.selected = sel;
                 }
             }
-            // Tab body click (switch selection)
             else if (press_idx >= 0 && press_idx < tab_count && was_pending) {
                 var offset = gmui_get_container_screen_offset(tabs_container);
-                
                 var rel_widths = array_create(tab_count);
                 var rel_positions = array_create(tab_count);
                 var rel_total = 0;
@@ -4687,72 +4267,61 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                     rel_positions[i] = rel_total;
                     rel_total += tw + style.tab_item_spacing;
                 }
-                
                 var base_x = rel_positions[press_idx];
                 var tab_width = rel_widths[press_idx];
                 var screen_left = offset[0] + base_x - tabs_container.scroll_x;
                 var screen_right = screen_left + tab_width;
                 var close_zone_left = screen_right - actual_close_size - 8;
-                
-                var still_in_body = gmui.input.m_x >= screen_left && 
-                                   gmui.input.m_x < close_zone_left &&
-                                   gmui.input.m_y >= offset[1] && 
-                                   gmui.input.m_y <= offset[1] + _height;
-                
+                var still_in_body = gmui.input.m_x >= screen_left &&
+                                    gmui.input.m_x < close_zone_left &&
+                                    gmui.input.m_y >= offset[1] &&
+                                    gmui.input.m_y <= offset[1] + _height;
                 if (still_in_body) {
                     sel = press_idx;
                     tab_data.selected = sel;
                 }
             }
         }
-        
-        // Clear all press/pending state on every release
+
         if (gmui.input.m_released) {
             tab_data.tab_pressed = -1;
             tab_data.close_pressed = -1;
             tab_data.drag_pending = -1;
         }
-        
+
         tab_count = array_length(tabs);
         
-        // Compute tab widths and positions
         var tab_widths = array_create(tab_count);
         var tab_positions = array_create(tab_count);
         var total_width = 0;
-        
         var is_tab_detached = drag_idx >= 0 &&
-                              ds_map_exists(gmui.cache, "_detached_tab_visual") &&
-                              gmui.cache[? "_detached_tab_visual"].active &&
-                              gmui.cache[? "_detached_tab_visual"].cache_key == cache_key;
-        
+            ds_map_exists(gmui.cache, "_detached_tab_visual") &&
+            !is_undefined(gmui.cache[? "_detached_tab_visual"]) &&
+            gmui.cache[? "_detached_tab_visual"].active &&
+            gmui.cache[? "_detached_tab_visual"].cache_key == cache_key;
+
         for (var i = 0; i < tab_count; i++) {
             var text_size = gmui_calculate_text_size(tabs[i], _font);
             var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
             tab_widths[i] = tw;
-            
-            // Detached tab gets zero-width slot so indices stay valid
             if (is_tab_detached && i == drag_idx) {
                 tab_positions[i] = total_width;
                 continue;
             }
-            
             tab_positions[i] = total_width;
             total_width += tw + style.tab_item_spacing;
         }
-        
         if (tab_count > 0 && !is_tab_detached) total_width -= style.tab_item_spacing;
         else if (tab_count > 1 && is_tab_detached) total_width -= style.tab_item_spacing;
-        
-        // Clamp drag index after possible deletion
+
         if (drag_idx >= tab_count) {
             drag_idx = -1;
             tab_data.dragging = -1;
         }
-        
+
         var drag_draw_x = 0;
         var drag_target = drag_idx;
-        
-        // Drag update: live attach, detach visual, or reorder
+
         if (enable_move && drag_idx >= 0 && drag_idx < tab_count && gmui.input.m_held) {
             var detach_gap_vertical = 20;
             var detach_gap_horizontal = 30;
@@ -4760,36 +4329,28 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
             var outside_vertical = (gmui.input.m_y < offset[1] - detach_gap_vertical || gmui.input.m_y > offset[1] + _height + detach_gap_vertical);
             var outside_horizontal = (gmui.input.m_x < offset[0] - detach_gap_horizontal || gmui.input.m_x > offset[0] + _width + detach_gap_horizontal);
             var outside = outside_vertical || outside_horizontal;
-            
-            // Live attach: if over another tab bar in the same group, move immediately
+
             var live_attached = false;
             if (group != "" && ds_map_exists(tab_registry, group)) {
                 var group_bars = tab_registry[? group];
                 var bar_names = ds_map_keys_to_array(group_bars);
-                
                 for (var k = 0; k < array_length(bar_names); k++) {
                     var bar_name = bar_names[k];
                     if (bar_name == name) continue;
-                    
                     var target_cache_key = "_tabs_data_" + bar_name;
                     if (!ds_map_exists(gmui.cache, target_cache_key)) continue;
-                    
                     var other_data = gmui.cache[? target_cache_key];
                     if (!variable_struct_exists(other_data, "_tab_group")) continue;
                     if (other_data._tab_group != group) continue;
-                    
                     var r = group_bars[? bar_name];
                     if (point_in_rectangle(gmui.input.m_x, gmui.input.m_y, r[0], r[1], r[2], r[3])) {
-                        // Live attach
                         var moved_label = tabs[drag_idx];
                         array_delete(tabs, drag_idx, 1);
                         tab_data.labels = tabs;
-                        
                         var target_tabs = other_data.labels;
                         var target_count = array_length(target_tabs);
                         var insert_index = target_count;
                         
-                        // Find insert position based on mouse X relative to target's tabs
                         var target_widths = array_create(target_count);
                         var target_positions = array_create(target_count);
                         var target_total = 0;
@@ -4800,7 +4361,6 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                             target_positions[t] = target_total;
                             target_total += t_tw + style.tab_item_spacing;
                         }
-                        
                         var mouse_rel_x = gmui.input.m_x - r[0];
                         for (var t = 0; t < target_count; t++) {
                             var tab_center = target_positions[t] + target_widths[t] / 2;
@@ -4809,19 +4369,15 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                                 break;
                             }
                         }
-                        
                         gmui_tab_insert(bar_name, moved_label, insert_index);
                         
-                        // Store the mouse position relative to the tab's visual left edge
                         var mouse_rel_to_tab_left = tab_data.drag_mouse_offset;
                         
-                        // Clear source drag state
                         tab_data.dragging = -1;
                         tab_data.drag_pending = -1;
                         tab_data.tab_pressed = -1;
                         tab_data.close_pressed = -1;
                         
-                        // Set target's drag state
                         other_data.dragging = insert_index;
                         other_data.drag_mouse_offset = mouse_rel_to_tab_left;
                         other_data.drag_pending = -1;
@@ -4830,26 +4386,23 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                         other_data.drag_start_screen_x = gmui.input.m_x;
                         other_data.drag_start_tab_x = gmui.input.m_x - mouse_rel_to_tab_left;
                         other_data.selected = insert_index;
-                        
                         if (sel >= array_length(tabs)) sel = max(0, array_length(tabs) - 1);
                         tab_data.selected = sel;
                         live_attached = true;
+						if (is_method(bar_attach_handler)) { bar_attach_handler(other_data); };
                         
-                        // Clear detach visual
-                        if (variable_struct_exists(gmui.cache, "_detached_tab_visual")) {
+                        if (ds_map_exists(gmui.cache, "_detached_tab_visual")) {
                             ds_map_delete(gmui.cache, "_detached_tab_visual");
                         }
-                        
                         gmui_end_widget(widget, true);
                         gmui_end_container();
                         return sel;
                     }
                 }
             }
-            
-            // Detach visual (show floating tab)
+
             if (!live_attached && detachable && outside) {
-                if (!variable_struct_exists(gmui.cache, "_detached_tab_visual") || !gmui.cache[? "_detached_tab_visual"].active) {
+                if (!ds_map_exists(gmui.cache, "_detached_tab_visual") || is_undefined(gmui.cache[? "_detached_tab_visual"]) || !gmui.cache[? "_detached_tab_visual"].active) {
                     gmui.cache[? "_detached_tab_visual"] = {
                         label: tabs[drag_idx],
                         source: name,
@@ -4859,26 +4412,22 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                         active: true,
                         drag_idx: drag_idx,
                         cache_key: cache_key,
-                        delete_on_empty: (group == "" && delete_on_empty_detach),
                     };
                 }
             } else if (!live_attached) {
-                // Mouse back inside - cancel detach visual
                 if (ds_map_exists(gmui.cache, "_detached_tab_visual")) {
                     var vis = gmui.cache[? "_detached_tab_visual"];
-                    if (vis.active && vis.cache_key == cache_key) {
+                    if (!is_undefined(vis) && vis.active && vis.cache_key == cache_key) {
                         ds_map_delete(gmui.cache, "_detached_tab_visual");
-                        // Recalculate mouse offset so the tab snaps back under the cursor correctly
-                        tab_data.drag_mouse_offset = gmui.input.m_x - tab_positions[drag_idx];
                     }
                 }
             }
-            
-            // Reorder (only if not detaching)
-            if (!variable_struct_exists(gmui.cache, "_detached_tab_visual") || !gmui.cache[? "_detached_tab_visual"].active) {
-                drag_draw_x = gmui.input.m_x - tab_data.drag_mouse_offset;
+
+            if (!ds_map_exists(gmui.cache, "_detached_tab_visual") || is_undefined(gmui.cache[? "_detached_tab_visual"]) || !gmui.cache[? "_detached_tab_visual"].active) {
+                var container_screen_offset_x = offset[0] - tabs_container.scroll_x;
+                var tab_screen_x = gmui.input.m_x - tab_data.drag_mouse_offset;
+                drag_draw_x = tab_screen_x - container_screen_offset_x;
                 drag_draw_x = clamp(drag_draw_x, -tab_widths[drag_idx] * 0.3, _width - tab_widths[drag_idx] * 0.7);
-                
                 var drag_center = drag_draw_x + tab_widths[drag_idx] / 2;
                 for (var j = 0; j < tab_count; j++) {
                     if (j == drag_idx) continue;
@@ -4888,22 +4437,18 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                 }
             }
         }
-        
-        // Apply reorder
+
         if (enable_move && drag_target != drag_idx && drag_idx >= 0 && drag_idx < tab_count && gmui.input.m_held) {
             var moved_tab = tabs[drag_idx];
             array_delete(tabs, drag_idx, 1);
             array_insert(tabs, drag_target, moved_tab);
             tab_data.labels = tabs;
-            
             if (sel == drag_idx) sel = drag_target;
             else if (drag_idx < drag_target && sel > drag_idx && sel <= drag_target) sel--;
             else if (drag_idx > drag_target && sel >= drag_target && sel < drag_idx) sel++;
             tab_data.selected = sel;
-            
             tab_data.dragging = drag_target;
             drag_idx = drag_target;
-            
             total_width = 0;
             for (var k = 0; k < tab_count; k++) {
                 tab_positions[k] = total_width;
@@ -4911,65 +4456,53 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
             }
             if (tab_count > 0) total_width -= style.tab_item_spacing;
             
-            tab_data.drag_mouse_offset = gmui.input.m_x - tab_positions[drag_target];
+            var apply_offset = gmui_get_container_screen_offset(tabs_container);
+            var container_screen_offset_x = apply_offset[0] - tabs_container.scroll_x;
+            var new_tab_screen_x = container_screen_offset_x + tab_positions[drag_target];
+            tab_data.drag_mouse_offset = gmui.input.m_x - new_tab_screen_x;
         }
-        
-        // Release with active drag: finalize detach
+
         if (gmui.input.m_released && drag_idx >= 0) {
             if (detachable && ds_map_exists(gmui.cache, "_detached_tab_visual")) {
                 var vis = gmui.cache[? "_detached_tab_visual"];
-                if (vis.active && vis.cache_key == cache_key) {
+                if (!is_undefined(vis) && vis.active && vis.cache_key == cache_key) {
                     var detached_label = tabs[vis.drag_idx];
                     
-                    // Group detach: store for caller to handle (e.g. open new window)
-                    if (vis.group != "") {
-                        gmui.cache[? "_last_detached_tab"] = {
-                            tab_name: detached_label,
-                            tab_source: name,
-                        };
+                    if (empty_detach_handler == -1) {
+                        array_delete(tabs, vis.drag_idx, 1);
+                    } 
+                    else if (is_method(empty_detach_handler)) {
+                        empty_detach_handler(name, detached_label);
                     }
                     
-                    // Remove from source
-                    array_delete(tabs, vis.drag_idx, 1);
                     tab_data.labels = tabs;
-                    
                     if (sel >= array_length(tabs)) sel = max(0, array_length(tabs) - 1);
                     tab_data.selected = sel;
                     
                     ds_map_delete(gmui.cache, "_detached_tab_visual");
-                    
                     tab_data.dragging = -1;
                     tab_data.drag_pending = -1;
                     tab_data.tab_pressed = -1;
                     tab_data.close_pressed = -1;
-                    
                     gmui_end_widget(widget, true);
                     gmui_end_container();
-                    
-                    // Group: caller must handle the detached tab
-                    if (vis.group != "") {
-                        return -2;
-                    }
-                    // delete_on_empty_detach: tab is already gone, just return normally
                     return sel;
                 }
             }
-            
             tab_data.dragging = -1;
             tab_data.drag_pending = -1;
             tab_data.tab_pressed = -1;
             tab_data.close_pressed = -1;
             drag_idx = -1;
         }
-        
-        // Drawing
+
         tab_count = array_length(tabs);
         if (tab_count == 0) {
             gmui_end_widget(widget, true);
             gmui_end_container();
             return sel;
         }
-        
+
         for (var i = 0; i < tab_count; i++) {
             var base_x = tab_positions[i];
             var tab_width = tab_widths[i];
@@ -4977,60 +4510,57 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
             var is_selected = (i == sel);
             var is_dragging = (i == drag_idx && gmui.input.m_held);
             
-            // Skip drawing if this tab is shown as a floating detached visual
             var is_detached = is_dragging &&
-                              ds_map_exists(gmui.cache, "_detached_tab_visual") &&
-                              gmui.cache[? "_detached_tab_visual"].active &&
-                              gmui.cache[? "_detached_tab_visual"].cache_key == cache_key;
+                ds_map_exists(gmui.cache, "_detached_tab_visual") &&
+                !is_undefined(gmui.cache[? "_detached_tab_visual"]) &&
+                gmui.cache[? "_detached_tab_visual"].active &&
+                gmui.cache[? "_detached_tab_visual"].cache_key == cache_key;
             if (is_detached) continue;
-            
+
             var draw_x = base_x;
             var draw_y = 0;
             if (is_dragging) {
                 draw_x = drag_draw_x;
                 draw_y = -2;
             }
-            
+
             var offset = gmui_get_container_screen_offset(tabs_container);
             var screen_left = offset[0] + draw_x - tabs_container.scroll_x;
             var screen_right = screen_left + tab_width;
             var screen_top = offset[1] + draw_y;
             var screen_bottom = screen_top + tab_height;
-            
             var in_tab = !is_dragging && drag_idx == -1 &&
                          gmui.input.m_x >= screen_left && gmui.input.m_x <= screen_right &&
                          gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom;
-            
             var close_zone_left = screen_right - actual_close_size - 8;
             var in_close_zone = enable_close && in_tab && gmui.input.m_x >= close_zone_left;
             var in_body = in_tab && !in_close_zone;
-            
             var alpha = is_dragging ? 0.9 : 1;
             var bg_color = style.tab_item_color;
             var text_color = style.tab_item_text_color;
-            
+
             if (is_selected) {
                 bg_color = style.tab_item_selected_color;
                 text_color = style.tab_item_selected_text_color;
             } else if (in_body || in_close_zone || is_dragging) {
                 bg_color = style.tab_item_hovered_color;
             }
-            
+
             if (is_dragging) {
                 gmui_add_rectangle(draw_x + 2, draw_y + 2, draw_x + tab_width + 2, draw_y + tab_height + 2, false, make_color_rgb(0, 0, 0), 0.25);
             }
-            
+
             gmui_add_rect_expensive(
                 draw_x, draw_y, draw_x + tab_width, draw_y + tab_height,
                 bg_color,
                 gmui_corner_direction.TOP_LEFT | gmui_corner_direction.TOP_RIGHT,
                 style.tab_item_rounding, true
             );
-            
+
             if (i > 0 && !is_dragging && drag_idx != i - 1 && drag_idx != i) {
                 gmui_add_line(draw_x, draw_y + 6, draw_x, draw_y + tab_height - 6, style.color_border_dark, 1);
             }
-            
+
             var text_size = gmui_calculate_text_size(tabs[i], _font);
             var max_text_w = tab_width - style.tab_item_padding_h * 2 - actual_close_size - 4;
             var display_text = tabs[i];
@@ -5044,7 +4574,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
                 }
                 text_size = gmui_calculate_text_size(display_text, _font);
             }
-            
+
             var text_x;
             if (enable_close) {
                 text_x = draw_x + (tab_width - close_size - 4 - text_size[0]) / 2;
@@ -5053,7 +4583,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
             }
             var text_y = draw_y + (tab_height - text_size[1]) / 2;
             gmui_add_text(display_text, text_x, text_y, text_color, alpha, _font);
-            
+
             if (enable_close) {
                 var close_draw_x = draw_x + tab_width - close_size - 6;
                 var close_draw_y = draw_y + (tab_height - close_size) / 2;
@@ -5066,13 +4596,10 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", de
         }
         
         gmui_add_rectangle(0, _height - 1, _width, _height, false, style.color_border_dark, 1);
-        
         tabs_container.content_width = total_width;
-        
         gmui_end_widget(widget, true);
         gmui_end_container();
     }
-    
     return sel;
 }
 
@@ -5127,10 +4654,8 @@ function gmui_tab_delete(name, label) {
     var gmui = global.gmui;
     var cache_key = "_tabs_data_" + name;
     if (!ds_map_exists(gmui.cache, cache_key)) return false;
-    
     var tab_data = gmui.cache[? cache_key];
     var tabs = tab_data.labels;
-    
     var index = -1;
     for (var i = 0; i < array_length(tabs); i++) {
         if (tabs[i] == label) {
@@ -5138,21 +4663,16 @@ function gmui_tab_delete(name, label) {
             break;
         }
     }
-    
     if (index < 0) return false;
-    
     array_delete(tabs, index, 1);
     tab_data.labels = tabs;
-    
     if (tab_data.selected >= array_length(tabs)) {
         tab_data.selected = max(0, array_length(tabs) - 1);
     }
-    
     if (tab_data.dragging == index) tab_data.dragging = -1;
     if (tab_data.drag_pending == index) tab_data.drag_pending = -1;
     if (tab_data.tab_pressed == index) tab_data.tab_pressed = -1;
     if (tab_data.close_pressed == index) tab_data.close_pressed = -1;
-    
     return true;
 }
 
@@ -5185,29 +4705,26 @@ function gmui_tab_insert(name, label, index) {
 function _gmui_draw_detached_tab() {
     var gmui = global.gmui;
     var style = gmui.style;
-    
     if (!ds_map_exists(gmui.cache, "_detached_tab_visual")) return;
     
     var vis = gmui.cache[? "_detached_tab_visual"];
-    if (!vis.active) {
+    
+    if (is_undefined(vis) || !vis.active) {
         ds_map_delete(gmui.cache, "_detached_tab_visual");
         return;
     }
     
-    // Clean up on mouse release
     if (gmui.input.m_released) {
         ds_map_delete(gmui.cache, "_detached_tab_visual");
         return;
     }
     
-    // Don't draw if mouse is over a group tab bar (live attach in progress)
     if (variable_struct_exists(vis, "group") && vis.group != "") {
         if (ds_map_exists(gmui.cache, "_tab_group_registry")) {
             var tab_registry = gmui.cache[? "_tab_group_registry"];
             if (ds_map_exists(tab_registry, vis.group)) {
                 var group_bars = tab_registry[? vis.group];
                 var bar_names = ds_map_keys_to_array(group_bars);
-                
                 for (var k = 0; k < array_length(bar_names); k++) {
                     var r = group_bars[? bar_names[k]];
                     if (point_in_rectangle(gmui.input.m_x, gmui.input.m_y, r[0], r[1], r[2], r[3])) {
@@ -5220,21 +4737,17 @@ function _gmui_draw_detached_tab() {
     
     var _x = gmui.input.m_x - vis.width / 2;
     var _y = gmui.input.m_y - vis.height / 2;
-    
     var alpha = 0.85;
     
-    // Drop shadow
     draw_set_alpha(0.2 * alpha);
     draw_set_color(c_black);
     draw_rectangle(_x + 2, _y + 2, _x + vis.width + 2, _y + vis.height + 2, false);
     
-    // Tab background
     var bg_color = style.tab_item_selected_color;
     draw_set_alpha(alpha);
     draw_set_color(bg_color);
     draw_roundrect_ext(_x, _y, _x + vis.width, _y + vis.height, style.tab_item_rounding, style.tab_item_rounding, false);
     
-    // Label
     var display_text = vis.label;
     var text_size = [string_width(display_text), string_height(display_text)];
     var max_text_w = vis.width - style.tab_item_padding_h * 2;
@@ -5251,15 +4764,12 @@ function _gmui_draw_detached_tab() {
     
     var text_x = _x + (vis.width - text_size[0]) / 2;
     var text_y = _y + (vis.height - text_size[1]) / 2;
-    
     draw_set_color(style.tab_item_selected_text_color);
     draw_set_alpha(alpha);
     draw_text(text_x, text_y, display_text);
     
-    // Border
     draw_set_color(c_black);
     draw_set_alpha(alpha);
     draw_roundrect_ext(_x, _y, _x + vis.width, _y + vis.height, style.tab_item_rounding, style.tab_item_rounding, true);
-    
     draw_set_alpha(1);
 }

@@ -83,6 +83,8 @@ function gmui_update() {
 	gmui_update_input();
 	
 	input.any_element_hovered = (gmui.input.hovered_widget_id != undefined);
+    
+    gmui_handle_scroll_bubble();
 };
 
 function gmui_draw_gui() {

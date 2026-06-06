@@ -208,6 +208,74 @@ function gmui_plot_histogram(values, count, width = -1, height = 120, bins = 10)
     return true;
 };
 
+function gmui_plot_histogram_normalized(values, count, width = -1, height = 120, bins = 10, font = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("plot_histogram_norm");
+    var container = widget.container;
+    
+    var plot_width = width > 0 ? width : container.width - style.container_padding_h * 2 - container.context.indent_level;
+    var plot_height = height;
+    widget.width = plot_width;
+    widget.height = plot_height;
+    var _font = gmui_resolve_font(widget, font);
+    
+    if (gmui_widget_is_visible(widget) && count > 0) {
+        var min_val = values[0];
+        var max_val = values[0];
+        for (var i = 1; i < count; i++) {
+            min_val = min(min_val, values[i]);
+            max_val = max(max_val, values[i]);
+        }
+        
+        var bin_counts = array_create(bins, 0);
+        var bin_range = max_val - min_val;
+        if (bin_range == 0) bin_range = 1;
+        
+        for (var i = 0; i < count; i++) {
+            var bin_index = clamp(floor((values[i] - min_val) / bin_range * bins), 0, bins - 1);
+            bin_counts[bin_index]++;
+        }
+        
+		var max_bin_count = 0;
+        for (var i = 0; i < bins; i++) {
+            max_bin_count = max(max_bin_count, bin_counts[i]);
+        }
+        if (max_bin_count == 0) max_bin_count = 1;
+		
+        gmui_add_rectangle(widget.x, widget.y, widget.x + plot_width, widget.y + plot_height, false, style.plot_bg_color, 1);
+        gmui_add_rectangle(widget.x, widget.y, widget.x + plot_width, widget.y + plot_height, true, style.plot_border_color, 1);
+        
+        var bar_full_width = plot_width / bins;
+        var bar_spacing = max(1, bar_full_width * 0.1);
+        var bar_width = bar_full_width - bar_spacing;
+        
+        for (var i = 0; i < bins; i++) {
+            var bx = widget.x + i * bar_full_width + bar_spacing / 2;
+            
+            var pct = count > 0 ? (bin_counts[i] / count) : 0;
+            var bar_height = plot_height * pct;
+            var by = widget.y + plot_height - bar_height;
+            
+			var normalized = bin_counts[i] / max_bin_count;
+            var bar_color = make_color_rgb(100 + normalized * 155, 200, 100);
+            
+            gmui_add_rectangle(bx, by, bx + bar_width, by + bar_height, false, bar_color, 1);
+            gmui_add_rectangle(bx, by, bx + bar_width, by + bar_height, true, style.plot_bar_border_color, 1);
+            
+            if (bar_height > 14) {
+                var text = string_format(pct * 100, 1, 1) + "%";
+                var text_size = gmui_calculate_text_size(text, _font);
+                var tx = bx + (bar_width - text_size[0]) / 2;
+                var ty = by + (bar_height - text_size[1]) / 2;
+                gmui_add_text(text, tx, ty, style.plot_bar_text_color, 1, _font);
+            }
+        }
+    }
+    gmui_end_widget(widget);
+    return true;
+}
+
 // scatter plot
 function gmui_plot_scatter(x_values, y_values, count, width = -1, height = 120) {
     var gmui = global.gmui;
@@ -1777,3 +1845,58 @@ function gmui_plot_table(headers, data, rows, cols, width = -1, font = undefined
     gmui_end_widget(widget);
     return true;
 };
+
+// legend(stand alone)
+function gmui_plot_legend(labels, colors, count, columns = 1, width = -1) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("plot_legend");
+    var container = widget.container;
+    
+    var swatch_size = style.plot_legend_swatch_size;
+    var gap = style.plot_legend_gap;
+    var padding = style.container_padding_h;
+    var item_height = max(swatch_size, gmui_calculate_text_size("W")[1]);
+    
+    var max_text_w = 0;
+    for (var i = 0; i < count; i++) {
+        var tw = gmui_calculate_text_size(labels[i])[0];
+        if (tw > max_text_w) max_text_w = tw;
+    }
+    
+    var col_width = swatch_size + gap + max_text_w + padding * 2;
+    var plot_w = width > 0 ? width : min(container.width - style.container_padding_h * 2, col_width * columns);
+    var actual_cols = min(columns, max(1, floor(plot_w / col_width)));
+    
+    var rows = ceil(count / actual_cols);
+    var plot_h = rows * item_height + (rows > 1 ? (rows - 1) * gap : 0) + padding * 2;
+    
+    widget.width = plot_w;
+    widget.height = plot_h;
+    
+    if (gmui_widget_is_visible(widget) && count > 0) {
+        gmui_add_roundrect(widget.x, widget.y, widget.x + plot_w, widget.y + plot_h, false, style.plot_legend_bg_color, 1, style.rounding_widget);
+        gmui_add_roundrect(widget.x, widget.y, widget.x + plot_w, widget.y + plot_h, true, style.plot_border_color, 1, style.rounding_widget);
+        
+        var final_col_w = plot_w / actual_cols;
+        
+        for (var i = 0; i < count; i++) {
+            var col = i div rows;
+            var row = i mod rows;
+            
+            var cx = widget.x + padding + col * final_col_w;
+            var cy = widget.y + padding + row * (item_height + gap);
+            
+            var c_color = colors[i % array_length(colors)];
+            
+            var sy = cy + (item_height - swatch_size) / 2;
+            gmui_add_roundrect(cx, sy, cx + swatch_size, sy + swatch_size, false, c_color, 1, style.rounding_small);
+            gmui_add_roundrect(cx, sy, cx + swatch_size, sy + swatch_size, true, style.plot_legend_swatch_border_color, 1, style.rounding_small);
+            
+            var tx = cx + swatch_size + gap;
+            var ty = cy + (item_height - gmui_calculate_text_size(labels[i])[1]) / 2;
+            gmui_add_text(labels[i], tx, ty, style.plot_legend_text_color, 1);
+        }
+    }
+    gmui_end_widget(widget);
+}

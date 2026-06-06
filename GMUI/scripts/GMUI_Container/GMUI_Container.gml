@@ -299,7 +299,7 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	gmui.current_container = container;
 	ds_stack_push(gmui.container_stack, container);
 	
-	gmui_container_scroll_wheel(container);
+	//gmui_container_scroll_wheel(container);
 	
 	if (container.scrolling_enabled && (container.content_height > container.height || container.content_width > container.width)) {
         var need_vertical = container.content_height > container.height;
@@ -414,7 +414,7 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     gmui.current_container = container;
     ds_stack_push(gmui.container_stack, container);
     
-    gmui_container_scroll_wheel(container);
+    //gmui_container_scroll_wheel(container);
     
     if (container.scrolling_enabled && (container.content_height > container.height || container.content_width > container.width)) {
         var need_vertical = container.content_height > container.height;
@@ -687,16 +687,45 @@ function gmui_container_calculate_mouse_hovering(container) {
     };
 };
 
-function gmui_container_scroll_wheel(container) {
+//function gmui_container_scroll_wheel(container) {
+//    var gmui = global.gmui;
+//    if (gmui.input.hovered_container != container) return;
+//    container.scroll_x -= gmui.input.m_wheel * container.scroll_speed * gmui_input_alt();
+//    container.scroll_y -= gmui.input.m_wheel * container.scroll_speed * !gmui_input_alt();
+//    var max_scroll_y = max(0, container.content_height - container.height);
+//    var max_scroll_x = max(0, container.content_width - container.width);
+//    container.scroll_x = clamp(container.scroll_x, 0, max_scroll_x);
+//    container.scroll_y = clamp(container.scroll_y, 0, max_scroll_y);
+//};
+
+function gmui_handle_scroll_bubble() {
     var gmui = global.gmui;
-    if (gmui.input.hovered_container != container) return;
-    container.scroll_x -= gmui.input.m_wheel * container.scroll_speed * gmui_input_alt();
-    container.scroll_y -= gmui.input.m_wheel * container.scroll_speed * !gmui_input_alt();
-    var max_scroll_y = max(0, container.content_height - container.height);
-    var max_scroll_x = max(0, container.content_width - container.width);
-    container.scroll_x = clamp(container.scroll_x, 0, max_scroll_x);
-    container.scroll_y = clamp(container.scroll_y, 0, max_scroll_y);
-};
+    var input = gmui.input;
+    
+    if (input.m_wheel == 0) return;
+    
+    var current = input.hovered_container;
+    
+    while (current != undefined) {
+        if (current.scrolling_enabled) {
+            var max_scroll_y = max(0, current.content_height - current.height);
+            var max_scroll_x = max(0, current.content_width - current.width);
+            
+            var scroll_y_amount = -input.m_wheel * current.scroll_speed * !gmui_input_alt();
+            var scroll_x_amount = -input.m_wheel * current.scroll_speed * gmui_input_alt();
+            
+            var new_scroll_y = clamp(current.scroll_y + scroll_y_amount, 0, max_scroll_y);
+            var new_scroll_x = clamp(current.scroll_x + scroll_x_amount, 0, max_scroll_x);
+            
+            if (new_scroll_y != current.scroll_y || new_scroll_x != current.scroll_x) {
+                current.scroll_y = new_scroll_y;
+                current.scroll_x = new_scroll_x;
+                return;
+            }
+        }
+        current = current.parent;
+    }
+}
 
 function gmui_container_ignore_cursor_advance_once(container = undefined) {
 	if (container == undefined) {

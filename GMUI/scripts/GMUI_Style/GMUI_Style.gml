@@ -197,6 +197,19 @@ function gmui_style_apply_ruler
 		color_border_light:		_ruler.color_border_light,
 		color_border_dark:		_ruler.color_border_dark,
 		
+		spacing_tiny:			_ruler.spacing_tiny,
+		spacing_small:			_ruler.spacing_small,
+		spacing_medium:			_ruler.spacing_medium,
+		spacing_large:			_ruler.spacing_large,
+		spacing_xlarge:			_ruler.spacing_xlarge,
+		
+		rounding_container:		_ruler.rounding_container,
+		rounding_widget:		_ruler.rounding_container,
+		rounding_small:			_ruler.rounding_small,
+		rounding_medium:		_ruler.rounding_medium,
+		rounding_large:			_ruler.rounding_large,
+		rounding_pill:			_ruler.rounding_pill,
+		
         // fonts (-5 = inherit directly from global.gmui.style.font, undefined = inherit from global.gmui.style.font_... if set, if not then inherit from global.gmui.style.font)
         font: -1,
         font_text: undefined,

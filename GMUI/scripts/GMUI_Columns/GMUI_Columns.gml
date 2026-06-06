@@ -150,6 +150,6 @@ function gmui_end_columns() {
     frame.parent.context.cursor_x    = style.container_padding_h;
     frame.parent.context.cursor_y    = frame.origin_y + frame.height;
     frame.parent.context.line_height  = 0;
-    frame.parent.context.new_line_requested = false;
+    frame.parent.context.new_line_requested = true;
     frame.parent.content_height = max(frame.parent.content_height, frame.origin_y + frame.height + style.container_padding_v);
 }
