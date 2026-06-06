@@ -53,6 +53,8 @@ function gmui_end_context_menu() {
 		};
 		if (!contains) { gmui_context_menu_close(window.name); };
     };
+	
+	gmui_container_set_size(window.name, window.width, container.context.cursor_y + container.context.line_height); // needs a proper way
 };
 
 function gmui_context_menu_open(name, x = -1, y = -1) {
