@@ -11,6 +11,8 @@
   "defaultScriptType":1,
   "Folders":[
     {"$GMFolder":"","%Name":"GMUI","folderPath":"folders/GMUI.yy","name":"GMUI","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"Core","folderPath":"folders/GMUI/Core.yy","name":"Core","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"Features","folderPath":"folders/GMUI/Features.yy","name":"Features","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Shaders","folderPath":"folders/GMUI/Shaders.yy","name":"Shaders","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Widgets","folderPath":"folders/GMUI/Widgets.yy","name":"Widgets","resourceType":"GMFolder","resourceVersion":"2.0",},
   ],
@@ -22,7 +24,7 @@
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.14.4.222",
+    "IDEVersion":"2026.0.0.16",
   },
   "name":"GMUI",
   "resources":[

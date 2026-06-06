@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"GMUI_WindowMenu",
   "parent":{
-    "name":"GMUI",
-    "path":"folders/GMUI.yy",
+    "name":"Features",
+    "path":"folders/GMUI/Features.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

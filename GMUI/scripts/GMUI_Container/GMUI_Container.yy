@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"GMUI_Container",
   "parent":{
-    "name":"GMUI",
-    "path":"folders/GMUI.yy",
+    "name":"Core",
+    "path":"folders/GMUI/Core.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
