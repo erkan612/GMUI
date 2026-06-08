@@ -1,6 +1,19 @@
 
 
 // WINDOW
+function gmui_window_get(name) {
+	var window = gmui_container_get(name, undefined);
+	if (!window.initialized) {
+		window.scrolling_enabled = false;
+		window.use_scissor = false;
+		window.use_surface = true;
+		window.mask_enabled = true;
+		window.z_interaction_enabled = true;
+		window.title_handler = gmui_default_window_title_handler;
+	};
+	return window;
+};
+
 function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags = 0) {
 	var gmui = global.gmui;
 	var style = gmui.style;
@@ -14,10 +27,9 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	var has_scroll = (flags & gmui_window_flags.NO_SCROLL) == 0;
 	var has_border = (flags & gmui_window_flags.NO_BORDERS) == 0;
 	var has_border_resize = (flags & gmui_window_flags.NO_BORDER_RESIZE) == 0;
-	var has_tabs = (flags & gmui_window_flags.TABBED) != 0;
 	
 	// calculate window pos and size
-	var window = gmui_container_get(name, undefined);
+	var window = gmui_window_get(name);
 	var wx = window.x;
 	var wy = window.y;
 	var ww = window.width;
@@ -27,13 +39,6 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 		wy = y < 0 ? 0 : y;
 		ww = width < 64 ? 64 : width;
 		wh = height < 64 ? 64 : height;
-		
-		window.scrolling_enabled = false;
-		window.use_scissor = false;
-		window.use_surface = true;
-		window.mask_enabled = true;
-		window.z_interaction_enabled = true;
-		window.title_handler = gmui_default_window_title_handler;
 	};
 	
 	if (!window.is_enabled) { return false; };
@@ -59,8 +64,8 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	// background
 	gmui_add_rectangle(0, 0, window.width, window.height, false, style.window_title_color_idle, 1);
 	
-	// title
-	if (window.title_handler != undefined) { window.title_handler(window); };
+	// title bar
+	window.title_handler(window);
 	
 	// borders
 	if (has_border && has_border_resize && !window._win_collapsed && input.active_widget_id == undefined && window.is_title_dragging == false) {
@@ -187,7 +192,6 @@ function gmui_default_window_title_handler(window) {
 	var has_scroll = (flags & gmui_window_flags.NO_SCROLL) == 0;
 	var has_border = (flags & gmui_window_flags.NO_BORDERS) == 0;
 	var has_border_resize = (flags & gmui_window_flags.NO_BORDER_RESIZE) == 0;
-	var has_tabs = (flags & gmui_window_flags.TABBED) != 0;
 	
 	// window interaction
 	var window_hovering = array_contains(input.hovered_container_array, window);

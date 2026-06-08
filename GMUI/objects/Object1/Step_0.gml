@@ -1,16 +1,5 @@
 gmui_update();
 
-//if (gmui_begin("Test A", 100, 10, 500, 300, gmui_window_flags.TABBED)) {
-//	gmui_text_bullet("This is window A!");
-//	gmui_end();
-//};
-
-//if (gmui_begin("Test B", 100, 320, 500, 300, gmui_window_flags.TABBED)) {
-//	gmui_text_bullet("This is window B!");
-//	gmui_end();
-//};
-
-
 if (gmui_begin_popup("test popup", undefined, undefined, false)) {
 	if (gmui_button_fill("Ok")) { gmui_popup_close("test popup"); };
 	gmui_end_popup();
@@ -357,7 +346,7 @@ if (gmui_begin_window("test window", 100, 100, 500, 300)) {
 	//my_text = gmui_textbox1(my_text, "say some!");
 	
 	if (gmui_begin_collapsing_header("Lines")) {
-		if (gmui_begin_collapsing_header("Buttons")) {
+		if (gmui_begin_collapsing_header_ex("Buttons")) {
 			for (var i = 0; i < 300; i++) {
 		        gmui_button("Button " + string(i));
 		    };

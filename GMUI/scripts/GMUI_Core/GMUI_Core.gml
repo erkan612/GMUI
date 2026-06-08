@@ -12,7 +12,7 @@ function gmui_init() {
 		calls: [ ],
 		cache: ds_map_create(),
 		highest_z_index: 1,
-		_wins_active_frame: "",
+		window_tab_connection_counter: 0,
 		
 		input: {
 			// mouse

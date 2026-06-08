@@ -332,6 +332,7 @@ function gmui_style_apply_ruler
         
         // collapsing header
         collapsing_header_height: 24,
+        collapsing_header_height_ex: 20,
         collapsing_header_color: _border,
         collapsing_header_hovered_color: _widget_hover,
         collapsing_header_active_color: _widget_active,

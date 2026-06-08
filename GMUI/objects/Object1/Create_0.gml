@@ -134,6 +134,8 @@ my_slider_value1 = 50;
 
 
 /*
+fix resize minimum limits
+fix window interaction bring to front
 fix modal dithering
 complete the fonts
 */

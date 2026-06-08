@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"GMUI_WindowTab",
+  "%Name":"GMUI_Demo",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"GMUI_WindowTab",
+  "name":"GMUI_Demo",
   "parent":{
-    "name":"Features",
-    "path":"folders/GMUI/Features.yy",
+    "name":"Core",
+    "path":"folders/GMUI/Core.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

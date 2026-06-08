@@ -2801,6 +2801,100 @@ function gmui_begin_collapsing_header(label, default_open = false, font = undefi
     return open;
 };
 
+function gmui_begin_collapsing_header_ex(label, default_open = false, font = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("collapsing_header");
+    var container = widget.container;
+    
+    var state_key = label + "_open";
+    if (container.state[? state_key] == undefined) {
+        container.state[? state_key] = default_open;
+    }
+    
+    var open = container.state[? state_key];
+    
+    var header_width = container.width - style.container_padding_h * 2 - container.context.indent_level;
+    var header_height = style.collapsing_header_height_ex;
+    
+    widget.width = header_width;
+    widget.height = header_height;
+	
+	var _font = gmui_resolve_font(widget, font);
+    
+	if (gmui_widget_is_visible(widget)) {
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		
+	    var hovered = mouse_interaction.is_hovering;
+	    var active = mouse_interaction.is_active;
+	    var released = mouse_interaction.is_pressed;
+    
+	    if (released) {
+	        open = !open;
+	        container.state[? state_key] = open;
+	    }
+    
+	    var bg_color = style.collapsing_header_color;
+	    if (active) {
+	        bg_color = style.collapsing_header_active_color;
+	    } else if (hovered) {
+	        bg_color = style.collapsing_header_hovered_color;
+	    }
+    
+	    gmui_add_roundrect(
+	        widget.x, widget.y,
+	        widget.x + header_width, widget.y + header_height,
+	        false,
+	        bg_color, 1,
+	        style.collapsing_header_rounding
+	    );
+    
+	    gmui_add_roundrect(
+	        widget.x, widget.y,
+	        widget.x + header_width, widget.y + header_height,
+	        true,
+	        style.collapsing_header_border_color, 1,
+	        style.collapsing_header_rounding
+	    );
+    
+		var arrow_padding = style.collapsing_header_padding;
+		var arrow_size = style.collapsing_header_arrow_size;
+		var arrow_x = widget.x + arrow_padding;
+		var arrow_y = widget.y + header_height / 2;
+		var arrow_color = style.collapsing_header_arrow_color;
+		var half = arrow_size / 2;
+
+		if (open) {
+		    gmui_add_triangle(
+		        arrow_x, arrow_y - half,				// top-left
+		        arrow_x + arrow_size, arrow_y - half,	// top-right
+		        arrow_x + half, arrow_y + half,			// bottom-center
+		        arrow_color
+		    );
+		} else {
+		    gmui_add_triangle(
+		        arrow_x, arrow_y - half,				// top
+		        arrow_x + arrow_size, arrow_y,			// right-center
+		        arrow_x, arrow_y + half,				// bottom
+		        arrow_color
+		    );
+		}
+    
+	    var text_x = arrow_x + arrow_size + arrow_padding;
+	    var text_size = gmui_calculate_text_size(label);
+	    var text_y = widget.y + (header_height - text_size[1]) / 2;
+	    gmui_add_text(label, text_x, text_y, style.collapsing_header_text_color, 1, _font);
+	};
+    
+    gmui_end_widget(widget, true);
+    
+    if (open) {
+        gmui_indent(style.collapsing_header_indent);
+    }
+    
+    return open;
+};
+
 function gmui_end_collapsing_header() {
     var style = global.gmui.style;
     gmui_unindent(style.collapsing_header_indent);
@@ -4092,11 +4186,22 @@ function gmui_list_box(selected, items, item_count, multi_select = false, width 
 };
 
 // tabs
-function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", empty_detach_handler = undefined, bar_attach_handler = undefined, flags = 0, font = undefined) {
+function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", handlers = undefined, flags = 0, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
     var container = gmui.current_container;
     var cache_key = "_tabs_data_" + name;
+	
+	var _handlers = handlers ?? {
+		on_empty_detach: undefined, // given tab_data, detached_label | undefined will be ignored
+		on_bar_attach: undefined, // given tab_data, other_data | undefined will revert the changes, -1 will delete te label
+		on_tab_close: undefined, // given tab_data, closed_label | undefined will be ignored
+		on_tab_select: undefined, // given tab_data, selected_label | undefined will be ignored
+	};
+	if (!variable_struct_exists(_handlers, "on_empty_detach")) { _handlers.on_empty_detach = undefined; };
+	if (!variable_struct_exists(_handlers, "on_bar_attach")) { _handlers.on_bar_attach = undefined; };
+	if (!variable_struct_exists(_handlers, "on_tab_close")) { _handlers.on_tab_close = undefined; };
+	if (!variable_struct_exists(_handlers, "on_tab_select")) { _handlers.on_tab_select = undefined; };
     
     if (!ds_map_exists(gmui.cache, "_tab_group_registry")) {
         gmui.cache[? "_tab_group_registry"] = ds_map_create();
@@ -4249,10 +4354,12 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", em
                                      gmui.input.m_y >= offset[1] &&
                                      gmui.input.m_y <= offset[1] + _height;
                 if (still_in_close) {
+					var closed_label = tabs[close_idx];
                     array_delete(tabs, close_idx, 1);
                     tab_data.labels = tabs;
                     if (sel >= array_length(tabs)) sel = max(0, array_length(tabs) - 1);
                     tab_data.selected = sel;
+					if (_handlers.on_tab_close != undefined && is_method(_handlers.on_tab_close)) { _handlers.on_tab_close(tab_data, closed_label); };
                 }
             }
             else if (press_idx >= 0 && press_idx < tab_count && was_pending) {
@@ -4279,6 +4386,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", em
                 if (still_in_body) {
                     sel = press_idx;
                     tab_data.selected = sel;
+					if (_handlers.on_tab_select != undefined && is_method(_handlers.on_tab_select)) { _handlers.on_tab_select(tab_data, tab_data.labels[sel]); };
                 }
             }
         }
@@ -4389,7 +4497,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", em
                         if (sel >= array_length(tabs)) sel = max(0, array_length(tabs) - 1);
                         tab_data.selected = sel;
                         live_attached = true;
-						if (is_method(bar_attach_handler)) { bar_attach_handler(other_data); };
+						if (is_method(_handlers.on_bar_attach)) { _handlers.on_bar_attach(tab_data, other_data); };
                         
                         if (ds_map_exists(gmui.cache, "_detached_tab_visual")) {
                             ds_map_delete(gmui.cache, "_detached_tab_visual");
@@ -4468,11 +4576,11 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", em
                 if (!is_undefined(vis) && vis.active && vis.cache_key == cache_key) {
                     var detached_label = tabs[vis.drag_idx];
                     
-                    if (empty_detach_handler == -1) {
+                    if (_handlers.on_empty_detach == -1) {
                         array_delete(tabs, vis.drag_idx, 1);
                     } 
-                    else if (is_method(empty_detach_handler)) {
-                        empty_detach_handler(name, detached_label);
+                    else if (is_method(_handlers.on_empty_detach)) {
+                        _handlers.on_empty_detach(tab_data, detached_label);
                     }
                     
                     tab_data.labels = tabs;
