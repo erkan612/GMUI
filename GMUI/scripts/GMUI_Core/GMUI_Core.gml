@@ -1,4 +1,42 @@
-
+/*********************************************************************************************
+*                                        MIT License                                         *
+*--------------------------------------------------------------------------------------------*
+* Copyright (c) 2026 erkan612                                                                *
+*                                                                                            *
+* Permission is hereby granted, free of charge, to any person obtaining a copy of this       *
+* software and associated documentation files (the "Software"), to deal in the Software      *
+* without restriction, including without limitation the rights to use, copy, modify, merge,  *
+* publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons *
+* to whom the Software is furnished to do so, subject to the following conditions:           *
+*                                                                                            *
+* The above copyright notice and this permission notice shall be included in all copies or   *
+* substantial portions of the Software.                                                      *
+*                                                                                            *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,        *
+* INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR   *
+* PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE  *
+* FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR       *
+* OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER     *
+* DEALINGS IN THE SOFTWARE.                                                                  *
+**********************************************************************************************
+*--------------------------------------------------------------------------------------------*
+*   						***************************************                          *
+*   						   ██████╗ ███╗   ███╗██╗   ██╗██╗		                         *
+*   						  ██╔════╝ ████╗ ████║██║   ██║██║		                         *
+*   						  ██║  ███╗██╔████╔██║██║   ██║██║		                         *
+*   						  ██║   ██║██║╚██╔╝██║██║   ██║██║		                         *
+*   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
+*   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
+*   						 GameMaker Immediate Mode UI Library	                         *
+*   						            Version 2.0.0					                     *
+*   																                         *
+*   						            by erkan612					                         *
+*   						=======================================	                         *
+*   						A feature rich Immediate-Mode UI system	                         *
+*   						             for GameMaker				                         *
+*   						=======================================	                         *
+*   						***************************************                          *
+*********************************************************************************************/
 
 // CORE
 function gmui_init() {
@@ -11,7 +49,12 @@ function gmui_init() {
 		last_widget: undefined,
 		calls: [ ],
 		cache: ds_map_create(),
-		highest_z_index: 1,
+		z_layers: {
+	        background: { base: 0,		highest: 0,		},
+	        normal:		{ base: 1000,	highest: 1000,	},
+	        modal_bg:   { base: 2000,	highest: 2000,	},
+	        popup:      { base: 2500,	highest: 2500,	},
+	    },
 		window_tab_connection_counter: 0,
 		
 		input: {
@@ -99,7 +142,8 @@ function gmui_draw_gui() {
 	for (var i = 0; i < array_length(gmui.containers_sorted); i++) {
 		var container = gmui.containers_sorted[i];
 		if (!container.is_active || !container.is_enabled) { continue; };
-		gmui.highest_z_index = max(container.z_index, gmui.highest_z_index);
+		//gmui.highest_z_index = max(container.z_index, gmui.highest_z_index);
+		container.z_index = min(max(container.z_index, gmui_get_layer_data(container.layer).base), gmui_get_layer_data(container.layer).highest);
 		gmui_draw_container(container);
 	};
 	

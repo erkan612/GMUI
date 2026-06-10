@@ -133,14 +133,28 @@ toggled2 = false;
 my_slider_value1 = 50;
 
 
+/* unexpected mouse behavior from:
+tabs
+column separators
+*/
+
 /*
-fix resize minimum limits
-fix window interaction bring to front
-fix modal dithering
+add textbox input color specification
+fix textbox selection glitching
 complete the fonts
 */
 
 /*
+gmui_auto_column(rows, columns_count)
+gmui_auto_column(
+	[
+		[ { widget: "text", params: [ "BG Color" ] }, { widget: "color_picker", variable_owner: Object1, variable_name: "auto_layout_bg_color" }, { widget: "input_int", params: [ Object1.auto_layout_bg_color ], variable_owner: Object1, variable_name: "auto_layout_bg_color" }, ],
+	],
+	1
+);
+
+---
+
 docking
 
 ---

@@ -54,6 +54,7 @@
     {"id":{"name":"GMUI_SHADER_CHECKERBOARD","path":"shaders/GMUI_SHADER_CHECKERBOARD/GMUI_SHADER_CHECKERBOARD.yy",},},
     {"id":{"name":"GMUI_SHADER_HUE","path":"shaders/GMUI_SHADER_HUE/GMUI_SHADER_HUE.yy",},},
     {"id":{"name":"GMUI_SHADER_SATURATION_BRIGHTNESS","path":"shaders/GMUI_SHADER_SATURATION_BRIGHTNESS/GMUI_SHADER_SATURATION_BRIGHTNESS.yy",},},
+    {"id":{"name":"GMUI_Icon","path":"sprites/GMUI_Icon/GMUI_Icon.yy",},},
   ],
   "resourceType":"GMProject",
   "resourceVersion":"2.0",

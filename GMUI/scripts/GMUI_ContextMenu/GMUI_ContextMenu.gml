@@ -12,6 +12,7 @@ function gmui_begin_context_menu(name, width = 160, height = 320) {
         gmui_begin_window(name, 0, 0, width, height, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR);
         gmui_end_window();
         window.is_enabled = false;
+        window.layer = gmui_layer.POPUP;
 		window.state[? "ctx_sub"] = undefined;
 		window.state[? "ctx_sub_state_key"] = undefined;
 		window.state[? "ctx_previous"] = undefined;

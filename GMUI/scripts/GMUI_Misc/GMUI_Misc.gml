@@ -290,33 +290,25 @@ function gmui_make_color_rgba(r, g, b, a) {
     g = clamp(g, 0, 255);
     b = clamp(b, 0, 255);
     a = clamp(a, 0, 255);
-
-    return (a << 24) | (b << 16) | (g << 8) | r;
+    
+    return (r) | (g << 8) | (b << 16) | (a << 24);
 }
 
 function gmui_color_rgba_get_red(color) {
-    return (color >> 16) & 255;
-};
+    return color & 255;
+}
 
 function gmui_color_rgba_get_green(color) {
     return (color >> 8) & 255;
-};
+}
 
 function gmui_color_rgba_get_blue(color) {
-    return color & 255;
-};
+    return (color >> 16) & 255;
+}
 
 function gmui_color_rgba_get_alpha(color) {
     return (color >> 24) & 255;
-};
-
-function gmui_color_rgba_to_rgb(color) {
-    return make_color_rgb(
-        gmui_color_rgba_get_red(color),
-        gmui_color_rgba_get_green(color),
-        gmui_color_rgba_get_blue(color)
-    );
-};
+}
 
 function gmui_color_rgb_to_rgba(color, alpha = 255) {
     return gmui_make_color_rgba(
@@ -325,7 +317,15 @@ function gmui_color_rgb_to_rgba(color, alpha = 255) {
         color_get_blue(color),
         alpha
     );
-};
+}
+
+function gmui_color_rgba_to_rgb(color) {
+    return make_color_rgb(
+        gmui_color_rgba_get_red(color),
+        gmui_color_rgba_get_green(color),
+        gmui_color_rgba_get_blue(color)
+    );
+}
 
 function gmui_color_rgba_to_array(color) {
     return [
@@ -334,11 +334,11 @@ function gmui_color_rgba_to_array(color) {
         gmui_color_rgba_get_blue(color),
         gmui_color_rgba_get_alpha(color)
     ];
-};
+}
 
 function gmui_color_rgba_from_array(arr) {
     return gmui_make_color_rgba(arr[0], arr[1], arr[2], arr[3]);
-};
+}
 
 function gmui_color_lighten(color, factor) {
     var r = clamp(gmui_color_rgba_get_red(color) * factor, 0, 255);
@@ -552,7 +552,16 @@ function _gmui_array_sum(arr, count) {
     return sum;
 }
 
-
+function gmui_get_layer_data(layer_enum) {
+    var layers = global.gmui.z_layers;
+    switch (layer_enum) {
+        case 0: return layers.background;
+        case 1: return layers.normal;
+        case 2: return layers.modal_bg;
+        case 3: return layers.popup;
+    }
+    return undefined;
+};
 
 
 

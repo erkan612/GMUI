@@ -302,7 +302,9 @@ function gmui_sprite(sprite, subimg = 0, width = -1, height = -1) {
     widget.height = sh;
     
     if (gmui_widget_is_visible(widget)) {
-        gmui_add_sprite(sprite, subimg, widget.x, widget.y, c_white, 1);
+		var xscale = width != -1 ? sprite_get_width(GMUI_Icon) / width : 1;
+		var yscale = height != -1 ? sprite_get_height(GMUI_Icon) / height : 1;
+        gmui_add_sprite_ext(sprite, subimg, widget.x, widget.y,  1 / xscale, 1 / yscale, 0, c_white, 1);
     }
     
     gmui_end_widget(widget);

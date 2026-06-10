@@ -10,6 +10,7 @@ function gmui_window_get(name) {
 		window.mask_enabled = true;
 		window.z_interaction_enabled = true;
 		window.title_handler = gmui_default_window_title_handler;
+		window.z_interaction_enabled = true;
 	};
 	return window;
 };
@@ -69,6 +70,7 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	
 	// borders
 	if (has_border && has_border_resize && !window._win_collapsed && input.active_widget_id == undefined && window.is_title_dragging == false) {
+		var diff = 0;
 		var border_left_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, 0, 0, wx + 4, wy + wh);
 		var border_left_pressed = border_left_hovering && input.m_pressed; if (border_left_pressed) { window.is_border_left_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
 		var border_left_holding = window.is_border_left_dragging;
@@ -77,7 +79,7 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 			gmui_add_line(1, 0, 1, wh, border_left_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
 		}
 		if (border_left_holding) {
-			var diff = input.m_x - window.dragging_diff_pos[0];
+			diff = input.m_x - window.dragging_diff_pos[0];
 			var new_width = ww - diff;
 			var new_pos = wx + diff;
 			window.dragging_diff_pos = [ input.m_x, input.m_y ];
@@ -93,9 +95,19 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 		    gmui_add_line(ww, 0, ww, wh, border_right_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
 		}
 		if (border_right_holding) {
-		    var diff = input.m_x - window.dragging_diff_pos[0];
+		    diff = input.m_x - window.dragging_diff_pos[0];
 		    var new_width = ww + diff;
 		    window.dragging_diff_pos = [ input.m_x, input.m_y ];
+		    gmui_container_set_size(window.name, new_width, wh, window.parent);
+		}
+		
+		if (border_left_holding || border_right_holding) {
+		    var new_width = ww + (border_left_holding ? -diff : diff);
+		    new_width = max(100, new_width);
+		    if (border_left_holding) {
+		        var new_pos = wx + (ww - new_width);
+		        gmui_container_set_pos(window.name, new_pos, wy, window.parent);
+		    }
 		    gmui_container_set_size(window.name, new_width, wh, window.parent);
 		}
 
@@ -107,7 +119,7 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 		    gmui_add_line(0, 1, ww, 1, border_top_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
 		}
 		if (border_top_holding) {
-		    var diff = input.m_y - window.dragging_diff_pos[1];
+		    diff = input.m_y - window.dragging_diff_pos[1];
 		    var new_height = wh - diff;
 		    var new_y = wy + diff;
 		    window.dragging_diff_pos = [ input.m_x, input.m_y ];
@@ -123,9 +135,19 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 		    gmui_add_line(0, wh, ww, wh, border_bottom_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
 		}
 		if (border_bottom_holding) {
-		    var diff = input.m_y - window.dragging_diff_pos[1];
+		    diff = input.m_y - window.dragging_diff_pos[1];
 		    var new_height = wh + diff;
 		    window.dragging_diff_pos = [ input.m_x, input.m_y ];
+		    gmui_container_set_size(window.name, ww, new_height, window.parent);
+		}
+
+		if (border_top_holding || border_bottom_holding) {
+		    var new_height = wh + (border_top_holding ? -diff : diff);
+		    new_height = max(80, new_height);
+		    if (border_top_holding) {
+		        var new_y = wy + (wh - new_height);
+		        gmui_container_set_pos(window.name, wx, new_y, window.parent);
+		    }
 		    gmui_container_set_size(window.name, ww, new_height, window.parent);
 		}
 	}

@@ -17,6 +17,7 @@ function gmui_container_get(name, parent = undefined) {
 			
 			initialized: false,
 			
+			layer: gmui_layer.NORMAL,
 			z_index: 0,
 			z_interaction_enabled: false,
 		
@@ -250,9 +251,9 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
     
 	container.parent = gmui.current_container;
 	
-	if (array_contains(gmui.input.hovered_container_array, container) && container.parent == undefined && gmui.input.m_pressed && container.z_interaction_enabled && ds_map_size(gmui.containers) > 0) {
-        container.z_index = gmui.highest_z_index + 1;
-	};
+	//if (array_contains(gmui.input.hovered_container_array, container) && container.parent == undefined && gmui.input.m_pressed && container.z_interaction_enabled && ds_map_size(gmui.containers) > 0) {
+    //    container.z_index = gmui.highest_z_index + 1;
+	//};
 	
 	if (container.parent != undefined && container.parent.context.new_line_requested && !container.parent.context.ignore_cursor_advance_once) {
 		container.parent.context.cursor_y += container.parent.context.line_height + global.gmui.style.element_spacing_v;
@@ -382,9 +383,9 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
 	
     container.parent = undefined;
 	
-	if (array_contains(gmui.input.hovered_container_array, container) && container.parent == undefined && gmui.input.m_pressed && container.z_interaction_enabled && ds_map_size(gmui.containers) > 0) {
-        container.z_index = gmui.highest_z_index + 1;
-	};
+	//if (array_contains(gmui.input.hovered_container_array, container) && container.parent == undefined && gmui.input.m_pressed && container.z_interaction_enabled && ds_map_size(gmui.containers) > 0) {
+    //    container.z_index = gmui.highest_z_index + 1;
+	//};
     
     container.x = x;
     container.y = y;
@@ -392,6 +393,13 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     container.height = height;
 	
 	if (!container.initialized) { container.initialized = true; };
+	
+	if (container.parent == undefined && 
+	    array_contains(gmui.input.hovered_container_array, container) && 
+	    gmui.input.m_pressed && 
+	    container.z_interaction_enabled) {
+	    gmui_container_bring_to_front(container.name);
+	}
     
     container.x_origin = 0;
     container.y_origin = 0;
@@ -841,23 +849,22 @@ function gmui_container_get_bounds(name, parent = undefined) {
 function gmui_container_bring_to_front(name) {
     var container = gmui_container_get(name, undefined);
     if (container == undefined) return;
-    if (container.z_index == global.gmui.highest_z_index) return;
-    if (string_pos("_popup_background", container.name) > 0 && container.z_index > global.gmui.highest_z_index - 2) return;
-	
-    container.z_index = global.gmui.highest_z_index + 1;
+    
+    if (container.layer == 2 || container.layer == 0) return;
+    
+    var layer_data = gmui_get_layer_data(container.layer);
+    layer_data.highest++;
+    container.z_index = layer_data.base + layer_data.highest;
 };
 
 function gmui_container_send_to_back(name) {
     var container = gmui_container_get(name, undefined);
     if (container == undefined) return;
     
-    var min_z = 999999;
-    var names = ds_map_keys_to_array(global.gmui.containers);
-    for (var i = 0; i < array_length(names); i++) {
-        var c = global.gmui.containers[? names[i]];
-        if (c.parent == undefined && c.name != name) min_z = min(min_z, c.z_index);
-    }
-    container.z_index = max(0, min_z - 1);
+    if (container.layer == 0 || container.layer == 2) return;
+    
+    var layer_data = gmui_get_layer_data(container.layer);
+    container.z_index = layer_data.base + 1;
 };
 
 function gmui_container_set_z(name, z, parent = undefined) {

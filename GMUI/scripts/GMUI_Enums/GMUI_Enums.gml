@@ -31,3 +31,10 @@ enum gmui_tab_flags {
 	NO_MOVE							= 1 << 0,
 	NO_CLOSE						= 1 << 1,
 };
+
+enum gmui_layer {
+    BACKGROUND						= 0,
+    NORMAL							= 1,
+    MODAL_BG						= 2,
+    POPUP							= 3,
+}

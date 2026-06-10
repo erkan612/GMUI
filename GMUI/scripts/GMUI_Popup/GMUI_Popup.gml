@@ -1,7 +1,7 @@
 
 
 // POPUP
-function gmui_begin_popup(name, width = 320, height = 160, is_modal = false) {
+function gmui_begin_popup(name, is_modal = false, width = 320) {
     var gmui = global.gmui;
     var input = gmui.input;
     
@@ -9,10 +9,11 @@ function gmui_begin_popup(name, width = 320, height = 160, is_modal = false) {
 	var is_first_frame = !ds_map_exists(gmui.containers, name);
     window = gmui_container_get(name, undefined);
 	if (is_first_frame) {
-		gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - height / 2, width, height, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE); // initialize first
+		gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - 160 / 2, width, 160, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE); // initialize first
 		gmui_end_window();
 		window.is_enabled = false;
-		gmui_container_get(name + "_popup_background").background_draw_func = function(container, x1, y1, x2, y2) {
+		var bg_container = gmui_container_get(name + "_popup_background");
+		bg_container.background_draw_func = function(container, x1, y1, x2, y2) {
 			var old_alpha = draw_get_alpha();
 			var old_color = draw_get_color();
 			draw_set_color(c_black);
@@ -21,6 +22,8 @@ function gmui_begin_popup(name, width = 320, height = 160, is_modal = false) {
 			draw_set_alpha(old_alpha);
 			draw_set_color(old_color);
 		};
+		bg_container.layer = gmui_layer.MODAL_BG;
+		window.layer = gmui_layer.POPUP;
 	};
     
     if (!window.is_enabled) { return false; };
@@ -31,31 +34,14 @@ function gmui_begin_popup(name, width = 320, height = 160, is_modal = false) {
 		gmui_container_bring_to_front(name + "_popup_background");
 	}
 	
-	var result = gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - height / 2, width, height, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE);
-	gmui_container_bring_to_front(name); // keep the popup in front
+	var result = gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - 160 / 2, width, 160, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE);
+	gmui_container_bring_to_front(name);
 	
 	return result;
 };
 
 function gmui_end_popup() {
     gmui_end_window();
-};
-
-function gmui_begin_popup_modal(name, width = 320, height = 160) {
-    var gmui = global.gmui;
-    var input = gmui.input;
-    
-	var window = undefined;
-	var is_first_frame = !ds_map_exists(gmui.containers, name);
-    window = gmui_container_get(name, undefined);
-	if (is_first_frame) { window.is_enabled = false; };
-    
-    if (!window.is_enabled) { return false; };
-	
-	var result = gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - height / 2, width, height, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE);
-	gmui_container_bring_to_front(name);
-	
-	return result;
 };
 
 function gmui_popup_open(name, x = -1, y = -1) {

@@ -1,6 +1,9 @@
 gmui_update();
 
-if (gmui_begin_popup("test popup", undefined, undefined, false)) {
+gmui_demo();
+gmui_style_editor();
+
+if (gmui_begin_popup("test popup", false)) {
 	if (gmui_button_fill("Ok")) { gmui_popup_close("test popup"); };
 	gmui_end_popup();
 };

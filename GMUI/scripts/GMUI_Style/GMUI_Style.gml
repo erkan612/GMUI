@@ -6,39 +6,84 @@ function gmui_style_init() {
 
 function gmui_style_apply_ruler
 (
-	_ruler = {
-		color_bg_dominant: make_color_rgb(32, 32, 32),
-		color_bg_secondary: make_color_rgb(45, 45, 45),
-		color_bg_tertiary: make_color_rgb(55, 55, 55),
-		
-		color_front_base: make_color_rgb(220, 220, 220),
+	_ruler = undefined
+) 
+{
+	var default_ruler = {
+		color_bg_dominant: make_color_rgb(24, 24, 24),
+		color_bg_secondary: make_color_rgb(30, 30, 30),
+		color_bg_tertiary: make_color_rgb(36, 36, 36),
+
+		color_front_base: make_color_rgb(225, 225, 225),
 		color_front_hover: make_color_rgb(255, 255, 255),
-		color_front_active: make_color_rgb(180, 180, 180),
-		
-		color_widget_base: make_color_rgb(70, 70, 70),
-		color_widget_hover: make_color_rgb(90, 90, 90),
-		color_widget_active: make_color_rgb(50, 50, 50),
-		
-		color_accent: make_color_rgb(100, 100, 255),
-		color_accent_hover: make_color_rgb(128, 128, 255),
-		color_accent_pressed: make_color_rgb(16, 16, 128),
-		color_accent_alt: make_color_rgb(100, 150, 255),
-		color_accent_dark: make_color_rgb(65, 105, 225),
-		color_accent_light: make_color_rgb(75, 115, 235),
-		
-		color_text_primary: make_color_rgb(220, 220, 220),
-		color_text_secondary: make_color_rgb(180, 180, 180),
-		color_text_disabled: make_color_rgb(128, 128, 128),
+		color_front_active: make_color_rgb(190, 190, 190),
+
+		color_widget_base: make_color_rgb(42, 42, 42),
+		color_widget_hover: make_color_rgb(48, 48, 48),
+		color_widget_active: make_color_rgb(36, 36, 36),
+
+		//color_accent: make_color_rgb(110, 125, 245),
+		//color_accent_hover: make_color_rgb(135, 150, 255),
+		//color_accent_pressed: make_color_rgb(85, 95, 210),
+		//color_accent_alt: make_color_rgb(125, 145, 255),
+		//color_accent_dark: make_color_rgb(70, 80, 190),
+		//color_accent_light: make_color_rgb(160, 170, 255),
+
+		color_accent: make_color_rgb(70, 130, 180),        
+		color_accent_hover: make_color_rgb(100, 160, 210), 
+		color_accent_pressed: make_color_rgb(50, 100, 150),
+		color_accent_alt: make_color_rgb(90, 150, 200),    
+		color_accent_dark: make_color_rgb(40, 90, 140),    
+		color_accent_light: make_color_rgb(130, 180, 220), 
+
+		color_text_primary: make_color_rgb(225, 225, 225),
+		color_text_secondary: make_color_rgb(170, 170, 170),
+		color_text_disabled: make_color_rgb(110, 110, 110),
 		color_text_bright: make_color_rgb(255, 255, 255),
-		
-		color_border: make_color_rgb(60, 60, 60),
-		color_border_light: make_color_rgb(100, 100, 100),
-		color_border_dark: make_color_rgb(80, 80, 80),
-		
-		toast_success: make_color_rgb(40, 120, 40),
-		toast_error: make_color_rgb(180, 50, 50),
-		toast_info: make_color_rgb(50, 100, 180),
-		toast_warning: make_color_rgb(180, 150, 30),
+
+		color_border: make_color_rgb(52, 52, 52),
+		color_border_light: make_color_rgb(68, 68, 68),
+		color_border_dark: make_color_rgb(40, 40, 40),
+
+		toast_success: make_color_rgb(60, 160, 90),
+		toast_error: make_color_rgb(210, 80, 80),
+		toast_info: make_color_rgb(80, 130, 220),
+		toast_warning: make_color_rgb(220, 180, 70),
+
+		/*
+		color_bg_dominant: make_color_rgb(20, 20, 26),
+		color_bg_secondary: make_color_rgb(26, 26, 34),
+		color_bg_tertiary: make_color_rgb(32, 32, 42),
+
+		color_front_base: make_color_rgb(225, 225, 225),
+		color_front_hover: make_color_rgb(255, 255, 255),
+		color_front_active: make_color_rgb(190, 190, 190),
+
+		color_widget_base: make_color_rgb(40, 40, 52),
+		color_widget_hover: make_color_rgb(46, 46, 60),
+		color_widget_active: make_color_rgb(34, 34, 44),
+
+		color_accent: make_color_rgb(92, 78, 155),
+		color_accent_hover: make_color_rgb(112, 96, 185),
+		color_accent_pressed: make_color_rgb(66, 56, 115),
+		color_accent_alt: make_color_rgb(102, 88, 170),
+		color_accent_dark: make_color_rgb(52, 44, 92),
+		color_accent_light: make_color_rgb(135, 120, 195),
+
+		color_text_primary: make_color_rgb(230, 230, 235),
+		color_text_secondary: make_color_rgb(165, 165, 175),
+		color_text_disabled: make_color_rgb(105, 105, 115),
+		color_text_bright: make_color_rgb(255, 255, 255),
+
+		color_border: make_color_rgb(48, 48, 60),
+		color_border_light: make_color_rgb(64, 64, 80),
+		color_border_dark: make_color_rgb(36, 36, 46),
+
+		toast_success: make_color_rgb(70, 150, 95),
+		toast_error: make_color_rgb(190, 75, 85),
+		toast_info: make_color_rgb(85, 125, 200),
+		toast_warning: make_color_rgb(200, 165, 80),
+		*/
 		
 		plot_bar_max: make_color_rgb(255, 100, 100),
 		plot_box_median: make_color_rgb(255, 100, 100),
@@ -98,9 +143,22 @@ function gmui_style_apply_ruler
 		tooltip_delay: 500,
 		toast_duration: 3000,
 		toast_position: "top-center",
-	}
-) 
-{
+	};
+	
+    if (is_undefined(_ruler)) {
+        _ruler = default_ruler;
+    }
+    
+    var ruler_keys = variable_struct_get_names(_ruler);
+    var default_keys = variable_struct_get_names(default_ruler);
+    
+    for (var i = 0; i < array_length(default_keys); i++) {
+        var key = default_keys[i];
+        if (!variable_struct_exists(_ruler, key)) {
+            variable_struct_set(_ruler, key, variable_struct_get(default_ruler, key));
+        }
+    }
+	
     var _bg_dom = _ruler.color_bg_dominant;
     var _bg_sec = _ruler.color_bg_secondary;
     var _bg_ter = _ruler.color_bg_tertiary;
