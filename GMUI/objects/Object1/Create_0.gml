@@ -1,6 +1,8 @@
 gmui_init();
 global.gmui.style.font = Font1;
 
+is_first_frame = true;
+
 my_check = false;
 my_slider_value = 0;
 my_text = "";
@@ -133,28 +135,12 @@ toggled2 = false;
 my_slider_value1 = 50;
 
 
-/* unexpected mouse behavior from:
-tabs
-column separators
-*/
-
 /*
-add textbox input color specification
 fix textbox selection glitching
 complete the fonts
 */
 
 /*
-gmui_auto_column(rows, columns_count)
-gmui_auto_column(
-	[
-		[ { widget: "text", params: [ "BG Color" ] }, { widget: "color_picker", variable_owner: Object1, variable_name: "auto_layout_bg_color" }, { widget: "input_int", params: [ Object1.auto_layout_bg_color ], variable_owner: Object1, variable_name: "auto_layout_bg_color" }, ],
-	],
-	1
-);
-
----
-
 docking
 
 ---
@@ -162,14 +148,6 @@ docking
 advanced tooltip:
 - gmui_begin_tooltip() - gmui_end_tooltip()
 - gmui_tooltip_advanced(name, widget_id)
-
----
-
-style editor
-
----
-
-demo
 */
 
 

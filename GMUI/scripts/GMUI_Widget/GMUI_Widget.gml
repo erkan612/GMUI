@@ -128,14 +128,10 @@ function gmui_widget_is_visible(widget) {
 function gmui_widget_is_hovered(widget, _offset) {
 	var gmui = global.gmui;
     
-    if (gmui.input.active_widget_id != undefined && gmui.input.active_widget_id != widget.id) {
+    if ((gmui.input.active_widget_id != undefined || gmui.input.hovered_widget_id != undefined) && gmui.input.active_widget_id != widget.id) {
         return false;
     }
     
-    if (gmui.input.hovered_widget_id != undefined && gmui.input.hovered_widget_id != widget.id) {
-        return false;
-    }
-
 	var offset = is_undefined(_offset) ? gmui_get_container_screen_offset(widget.container) : _offset;
 	var local_mx = gmui.input.m_x - offset[0];
 	var local_my = gmui.input.m_y - offset[1];

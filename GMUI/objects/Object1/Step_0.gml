@@ -56,6 +56,28 @@ if (gmui_begin_window("test window", 100, 100, 500, 300)) {
 		]
 	);
 	
+	var custom_auto_columns = gmui_auto_column(
+		[
+			[ { widget: "text", params: [ "Hello" ] }, { widget: "text", params: [ "World!" ] } ]
+		],
+		2
+	);
+	
+	if (is_first_frame) {
+		custom_auto_columns[0].background_enabled = true;
+		custom_auto_columns[0].background_draw_func = function(c, x1, y1, x2, y2) {
+			draw_set_color(make_color_rgb(100, 100, 100));
+			draw_rectangle(x1, y1, x2, y2, false);
+			draw_set_color(c_white);
+		};
+		custom_auto_columns[1].background_enabled = true;
+		custom_auto_columns[1].background_draw_func = function(c, x1, y1, x2, y2) {
+			draw_set_color(make_color_rgb(100, 100, 100));
+			draw_rectangle(x1, y1, x2, y2, false);
+			draw_set_color(c_white);
+		};
+	}
+	
 	gmui_button_success("success button");
 	gmui_button_danger("dangerous button");
 	gmui_button_primary("primary button");

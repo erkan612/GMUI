@@ -70,13 +70,14 @@ function gmui_set_column(idx) {
     frame.parent.context.ignore_cursor_advance_once = true;
 
     gmui.current_container = frame.parent;
+	var col = gmui_container_get("_col_" + frame.state_key + "_" + string(idx), gmui.current_container);
+	if (!col.initialized) {
+		col.background_enabled = false;
+	    col.use_surface        = false;
+	    col.use_scissor        = true;
+	    col.scrolling_enabled  = true;
+	}
     gmui_begin_container("_col_" + frame.state_key + "_" + string(idx), 0, 0, col_w, frame.height);
-
-    var col = gmui.current_container;
-    col.background_enabled = false;
-    col.use_surface        = false;
-    col.use_scissor        = true;
-    col.scrolling_enabled  = true;
 }
 
 function gmui_end_columns() {
@@ -106,7 +107,7 @@ function gmui_end_columns() {
         var sx = offset[0] + x_cursor - frame.parent.scroll_x;
         var sy1 = offset[1] + frame.origin_y - frame.parent.scroll_y;
         var sy2 = sy1 + frame.height;
-        if (point_in_rectangle(input.m_x, input.m_y, sx - grab_pad, sy1, sx + sep_w + grab_pad, sy2)) {
+        if (point_in_rectangle(input.m_x, input.m_y, sx - grab_pad, sy1, sx + sep_w + grab_pad, sy2) && array_contains(gmui.input.hovered_container_array, frame.parent.parent) && gmui.input.active_widget_id == undefined) {
             hovered_sep = i;
             if (input.m_pressed) {
                 state.drag_sep   = i;
@@ -153,3 +154,117 @@ function gmui_end_columns() {
     frame.parent.context.new_line_requested = true;
     frame.parent.content_height = max(frame.parent.content_height, frame.origin_y + frame.height + style.container_padding_v);
 }
+
+function gmui_auto_column(rows, column_count, column_ratios = undefined, row_height = 24) {
+    var columns = [];
+    
+    for (var c = 0; c < column_count; c++) {
+        columns[c] = [];
+        for (var r = 0; r < array_length(rows); r++) {
+            var row = rows[r];
+            if (c < array_length(row)) {
+                array_push(columns[c], row[c]);
+            } else {
+                array_push(columns[c], undefined);
+            }
+        }
+    }
+    
+    var ratios = column_ratios;
+    if (ratios == undefined) {
+        ratios = [];
+        for (var c = 0; c < column_count; c++) {
+            array_push(ratios, 1 / column_count);
+        }
+    }
+    
+    var total_height = array_length(rows) * row_height + global.gmui.style.container_padding_v * 2;
+    
+    gmui_begin_columns(column_count, ratios, total_height);
+    
+    var column_containers = [];
+    
+    for (var c = 0; c < column_count; c++) {
+        gmui_set_column(c);
+        
+        var col_container = global.gmui.current_container;
+        array_push(column_containers, col_container);
+        
+        var column = columns[c];
+        
+        for (var r = 0; r < array_length(column); r++) {
+            if (r > 0) gmui_newline();
+            
+            var cell = column[r];
+            if (cell == undefined) continue;
+            
+            var widget_name = "gmui_" + cell.widget;
+            var widget_function = real(asset_get_index(widget_name));
+            
+            if (widget_function < 0) {
+                show_debug_message("auto column: unknown widget - " + widget_name);
+                continue;
+            }
+            
+            var call_params = [];
+            if (variable_struct_exists(cell, "params")) {
+                for (var i = 0; i < array_length(cell.params); i++) {
+                    array_push(call_params, cell.params[i]);
+                }
+            }
+            
+            if (variable_struct_exists(cell, "variable_owner") && 
+                variable_struct_exists(cell, "variable_name")) {
+                var current_value = cell.variable_owner[$ cell.variable_name];
+                array_push(call_params, current_value);
+                
+                var result = method_call(widget_function, call_params);
+                cell.variable_owner[$ cell.variable_name] = result;
+            } else {
+                method_call(widget_function, call_params);
+            }
+        }
+    }
+    
+    gmui_end_columns();
+    
+    return column_containers;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

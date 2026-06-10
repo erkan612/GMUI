@@ -3057,9 +3057,12 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     var thumb_ratio = (value - min_val) / max(1, range);
     var thumb_y = track_y + (track_height - thumb_height) * thumb_ratio;
     
-	var hovered = gmui_widget_is_hovered(widget);
+	var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+	var hovered = mouse_interaction.is_hovering;
+	var active = mouse_interaction.is_active;
+	var released = mouse_interaction.is_pressed;
     var scrollbar_id = widget.id;
-    
+	
     var offset = gmui_get_container_screen_offset(widget.container);
     var screen_thumb_x = offset[0] + widget.x + sb_padding;
     var screen_thumb_y = offset[1] + widget.y + (track_height - thumb_height) * thumb_ratio;
@@ -3067,7 +3070,7 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
         gmui.input.m_x, gmui.input.m_y,
         screen_thumb_x, screen_thumb_y,
         screen_thumb_x + sb_thickness, screen_thumb_y + thumb_height
-    ) && gmui.input.hovered_container == widget.container;
+    ) && gmui_is_container_or_parent(widget.container, gmui.input.hovered_container);
 	
 	if (hovered || thumb_hovered) { gmui.input.hovered_widget_id = scrollbar_id; }
     
@@ -3077,12 +3080,12 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
         widget.container._sb_drag_start_value = value;
     }
     
-    if (hovered && gmui_input_mouse_pressed() && !thumb_hovered) {
-	    var click_y = gmui.input.m_y - (offset[1] + widget.y);
-	    var new_ratio = (click_y - thumb_height / 2) / (track_height - thumb_height);
-	    value = min_val + new_ratio * range;
-	    value = clamp(value, min_val, max_val);
-    }
+    //if (hovered && gmui_input_mouse_pressed() && !thumb_hovered) {
+	//    var click_y = gmui.input.m_y - (offset[1] + widget.y);
+	//    var new_ratio = (click_y - thumb_height / 2) / (track_height - thumb_height);
+	//    value = min_val + new_ratio * range;
+	//    value = clamp(value, min_val, max_val);
+    //}
     
     if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held) {
         var dy = gmui.input.m_y - widget.container._sb_drag_start_y;
@@ -3152,7 +3155,10 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     var thumb_ratio = (value - min_val) / max(1, range);
     var thumb_x = track_x + (track_width - thumb_width) * thumb_ratio;
     
-	var hovered = gmui_widget_is_hovered(widget);
+	var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+	var hovered = mouse_interaction.is_hovering;
+	var active = mouse_interaction.is_active;
+	var released = mouse_interaction.is_pressed;
     var scrollbar_id = widget.id;
     
     var offset = gmui_get_container_screen_offset(widget.container);
@@ -3162,7 +3168,7 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
         gmui.input.m_x, gmui.input.m_y,
         screen_thumb_x, screen_thumb_y,
         screen_thumb_x + thumb_width, screen_thumb_y + sb_thickness
-    ) && gmui.input.hovered_container == widget.container;
+    ) && gmui_is_container_or_parent(widget.container, gmui.input.hovered_container);
 	
 	if (hovered || thumb_hovered) { gmui.input.hovered_widget_id = scrollbar_id; }
     
@@ -3172,12 +3178,12 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
         widget.container._sb_drag_start_value = value;
     }
     
-    if (hovered && gmui_input_mouse_pressed() && !thumb_hovered) {
-        var click_x = gmui.input.m_x - (offset[0] + widget.x);
-        var new_ratio = (click_x - thumb_width / 2) / (track_width - thumb_width);
-        value = min_val + new_ratio * range;
-        value = clamp(value, min_val, max_val);
-    }
+    //if (hovered && gmui_input_mouse_pressed() && !thumb_hovered) {
+    //    var click_x = gmui.input.m_x - (offset[0] + widget.x);
+    //    var new_ratio = (click_x - thumb_width / 2) / (track_width - thumb_width);
+    //    value = min_val + new_ratio * range;
+    //    value = clamp(value, min_val, max_val);
+    //}
     
     if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held) {
         var dx = gmui.input.m_x - widget.container._sb_drag_start_x;
@@ -4436,7 +4442,8 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
                 var screen_top = offset[1];
                 var screen_bottom = screen_top + _height;
                 var in_tab = gmui.input.m_x >= screen_left && gmui.input.m_x <= screen_right &&
-                             gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom;
+                             gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom &&
+							 gmui.input.hovered_container == tabs_container && gmui.input.active_widget_id == undefined;
                 if (in_tab) {
                     var close_zone_left = screen_right - actual_close_size - 8;
                     var in_close_zone = enable_close && gmui.input.m_x >= close_zone_left;
@@ -4772,7 +4779,8 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
             var screen_bottom = screen_top + tab_height;
             var in_tab = !is_dragging && drag_idx == -1 &&
                          gmui.input.m_x >= screen_left && gmui.input.m_x <= screen_right &&
-                         gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom;
+                         gmui.input.m_y >= screen_top && gmui.input.m_y <= screen_bottom &&
+						 gmui.input.hovered_container == tabs_container && gmui.input.active_widget_id == undefined;
             var close_zone_left = screen_right - actual_close_size - 8;
             var in_close_zone = enable_close && in_tab && gmui.input.m_x >= close_zone_left;
             var in_body = in_tab && !in_close_zone;

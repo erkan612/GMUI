@@ -563,7 +563,14 @@ function gmui_get_layer_data(layer_enum) {
     return undefined;
 };
 
-
+function gmui_is_container_or_parent(container, hovered_container) {
+    var current = hovered_container;
+    while (current != undefined) {
+        if (current == container) return true;
+        current = current.parent;
+    }
+    return false;
+}
 
 
 
