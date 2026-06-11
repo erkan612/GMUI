@@ -923,6 +923,96 @@ var active = gmui_container_is_active("name");
 var hovered = gmui_container_is_hovered("name");
 ```
 
+
+### Lazy Render (Surface Caching)
+
+GMUI supports surface caching to dramatically improve performance for static or rarely-changing containers.
+
+#### How it works
+
+When lazy render is enabled, the container draws to a surface once, then reuses that surface on subsequent frames until something changes. This eliminates thousands of draw calls for static UI elements.
+
+```gml
+// Enable lazy render for current container
+gmui_container_surface_flag_enable();
+
+// Disable lazy render
+gmui_container_surface_flag_disable();
+
+// Force redraw on next frame
+gmui_container_surface_flag_dirty();
+```
+
+#### Container Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `surface_flag` | bool | Enable/disable lazy render |
+| `surface_dirty` | bool | Force redraw on next frame |
+
+#### Convenience Functions
+
+```gml
+// Enable for current container
+gmui_container_surface_flag_enable();
+
+// Enable for specific container
+gmui_container_surface_flag_enable(my_container);
+
+// Enable for container and all children
+gmui_container_surface_flag_enable_recursive();
+
+// Disable lazy render
+gmui_container_surface_flag_disable();
+
+// Toggle lazy render
+gmui_container_surface_flag_toggle();
+
+// Mark as dirty (force redraw)
+gmui_container_surface_flag_dirty();
+```
+
+#### Example
+
+```gml
+if (gmui_begin_window("Static Panel", 100, 100, 300, 200)) {
+    
+    // Enable lazy render - this window will only redraw when interacted with
+    gmui_container_surface_flag_enable();
+    
+    gmui_text("This content is cached");
+    gmui_text("Changes only when mouse hovers");
+    
+    static counter = 0;
+    if (gmui_button("Click me")) {
+        counter++;
+        // Mark dirty to update button state
+        gmui_container_surface_flag_dirty();
+    }
+    gmui_text("Clicks: " + string(counter));
+    
+    gmui_end_window();
+}
+```
+
+#### When to use
+
+| Use Case | Recommendation |
+|----------|----------------|
+| Static panels | ✅ Enable |
+| Property editors | ✅ Enable (updates on interaction) |
+| Charts | ⚠️ Only if data rarely changes |
+| Animations | ❌ Disable |
+| Interactive widgets | ✅ Enable with dirty flag on click |
+
+#### Performance Impact
+
+| Container | Without Lazy Render | With Lazy Render |
+|-----------|---------------------|------------------|
+| Style Editor (all headers closed) | 14.9ms | ~2ms |
+| Static dialog | 5ms | 0.2ms |
+| Dashboard with charts | 8ms | 0.5ms (static) / 8ms (updating) |
+
 ---
 
 ## Input Handling
