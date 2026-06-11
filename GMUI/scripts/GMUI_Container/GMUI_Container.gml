@@ -92,7 +92,7 @@ function gmui_container_disable_late_calls(container = undefined) {
 
 function gmui_container_surface_flag_enable(container = undefined) { 
     var c = container ?? global.gmui.current_container;
-    if (c != undefined) { 
+    if (c != undefined && !c.surface_flag) { 
         c.surface_flag = true; 
         c.surface_dirty = true;
     } 
@@ -107,8 +107,8 @@ function gmui_container_surface_flag_disable(container = undefined) {
 
 function gmui_container_surface_flag_toggle(container = undefined) { 
     var c = container ?? global.gmui.current_container;
-    if (c != undefined) { 
-        c.surface_flag = !c.surface_flag; 
+    if (c != undefined) {
+        c.surface_flag = !c.surface_flag;
         if (c.surface_flag) { c.surface_dirty = true; }
     } 
     return c.surface_flag;
