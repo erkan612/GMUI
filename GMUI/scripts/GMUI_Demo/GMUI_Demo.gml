@@ -849,7 +849,7 @@ function gmui_demo() {
             
             gmui_end_collapsing_header();
         }
-        
+		
         if (gmui_begin_collapsing_header("Collapsing Headers (Nested)")) {
             gmui_text("Demonstrating nested collapsing headers:");
             
@@ -1060,7 +1060,7 @@ function gmui_style_editor() {
     var tab_name = gmui_tab_get_label("style_editor_tabs", selected_tab);
     
     if (tab_name == "Colors") {
-        if (gmui_begin_collapsing_header("Background Colors", true)) {
+        if (gmui_begin_collapsing_header("Background Colors", false)) {
             _gmui_edit_color_group(ruler, [
                 { label: "BG Dominant", prop: "color_bg_dominant" },
                 { label: "BG Secondary", prop: "color_bg_secondary" },
@@ -1069,7 +1069,7 @@ function gmui_style_editor() {
             gmui_end_collapsing_header();
         }
         
-        if (gmui_begin_collapsing_header("Front Colors", true)) {
+        if (gmui_begin_collapsing_header("Front Colors", false)) {
             _gmui_edit_color_group(ruler, [
                 { label: "Front Base", prop: "color_front_base" },
                 { label: "Front Hover", prop: "color_front_hover" },
@@ -1078,7 +1078,7 @@ function gmui_style_editor() {
             gmui_end_collapsing_header();
         }
         
-        if (gmui_begin_collapsing_header("Widget Colors", true)) {
+        if (gmui_begin_collapsing_header("Widget Colors", false)) {
             _gmui_edit_color_group(ruler, [
                 { label: "Widget Base", prop: "color_widget_base" },
                 { label: "Widget Hover", prop: "color_widget_hover" },
@@ -1087,7 +1087,7 @@ function gmui_style_editor() {
             gmui_end_collapsing_header();
         }
         
-        if (gmui_begin_collapsing_header("Accent Colors", true)) {
+        if (gmui_begin_collapsing_header("Accent Colors", false)) {
             _gmui_edit_color_group(ruler, [
                 { label: "Accent", prop: "color_accent" },
                 { label: "Accent Hover", prop: "color_accent_hover" },
@@ -1099,7 +1099,7 @@ function gmui_style_editor() {
             gmui_end_collapsing_header();
         }
         
-        if (gmui_begin_collapsing_header("Text Colors", true)) {
+        if (gmui_begin_collapsing_header("Text Colors", false)) {
             _gmui_edit_color_group(ruler, [
                 { label: "Text Primary", prop: "color_text_primary" },
                 { label: "Text Secondary", prop: "color_text_secondary" },
@@ -1109,7 +1109,7 @@ function gmui_style_editor() {
             gmui_end_collapsing_header();
         }
         
-        if (gmui_begin_collapsing_header("Border Colors", true)) {
+        if (gmui_begin_collapsing_header("Border Colors", false)) {
             _gmui_edit_color_group(ruler, [
                 { label: "Border", prop: "color_border" },
                 { label: "Border Light", prop: "color_border_light" },
@@ -1118,7 +1118,7 @@ function gmui_style_editor() {
             gmui_end_collapsing_header();
         }
         
-        if (gmui_begin_collapsing_header("Toast Colors", true)) {
+        if (gmui_begin_collapsing_header("Toast Colors", false)) {
             _gmui_edit_color_group(ruler, [
                 { label: "Toast Success", prop: "toast_success" },
                 { label: "Toast Error", prop: "toast_error" },

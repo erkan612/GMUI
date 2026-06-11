@@ -23,6 +23,8 @@ function gmui_container_get(name, parent = undefined) {
 		
 			use_surface: false,
 			surface: -1,
+			surface_flag: false,
+			surface_dirty: true,
 			
 			use_scissor: true,
 		
@@ -86,6 +88,62 @@ function gmui_container_enable_late_calls(container = undefined) {
 function gmui_container_disable_late_calls(container = undefined) {
 	var c = container ?? global.gmui.current_container;
 	c.late_calls_enabled = false;
+};
+
+function gmui_container_surface_flag_enable(container = undefined) { 
+    var c = container ?? global.gmui.current_container;
+    if (c != undefined) { 
+        c.surface_flag = true; 
+        c.surface_dirty = true;
+    } 
+};
+
+function gmui_container_surface_flag_disable(container = undefined) { 
+    var c = container ?? global.gmui.current_container;
+    if (c != undefined) { 
+        c.surface_flag = false; 
+    } 
+};
+
+function gmui_container_surface_flag_toggle(container = undefined) { 
+    var c = container ?? global.gmui.current_container;
+    if (c != undefined) { 
+        c.surface_flag = !c.surface_flag; 
+        if (c.surface_flag) { c.surface_dirty = true; }
+    } 
+    return c.surface_flag;
+};
+
+function gmui_container_surface_dirty(container = undefined) { 
+    var c = container ?? global.gmui.current_container;
+    if (c != undefined && c.surface_flag) { 
+        c.surface_dirty = true; 
+    } 
+};
+
+function gmui_container_surface_flag_enable_recursive(container = undefined) { 
+    var c = container ?? global.gmui.current_container;
+    if (c == undefined) return;
+    
+    c.surface_flag = true;
+    c.surface_dirty = true;
+    
+    var children = ds_map_values_to_array(c.containers);
+    for (var i = 0; i < array_length(children); i++) {
+        gmui_container_surface_flag_enable_recursive(children[i]);
+    }
+};
+
+function gmui_container_surface_flag_disable_recursive(container = undefined) { 
+    var c = container ?? global.gmui.current_container;
+    if (c == undefined) return;
+    
+    c.surface_flag = false;
+    
+    var children = ds_map_values_to_array(c.containers);
+    for (var i = 0; i < array_length(children); i++) {
+        gmui_container_surface_flag_disable_recursive(children[i]);
+    }
 };
 
 function gmui_container_get_context() {
@@ -349,6 +407,8 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	container.content_width = 0;
 	container.content_height = 0;
 	
+	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; };
+	
 	return true;
 };
 
@@ -469,6 +529,8 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     
     container.content_width = 0;
     container.content_height = 0;
+	
+	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; };
     
     return true;
 };
@@ -490,14 +552,87 @@ function gmui_container_surface_free(container) {
 	if (surface_exists(container.surface)) { surface_free(container.surface); };
 };
 
+function gmui_handle_container_calls(container) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	
+	gmui.current_container = container;
+	var calls = container.calls;
+	for (var i = 0; i < array_length(calls); i++) {
+	    var call = calls[i];
+		var origin_x = 0;
+		var origin_y = 0;
+	
+		if (!surface_exists(container.surface)) {
+		    origin_x = container.x + container.x_origin;
+		    origin_y = container.y + container.y_origin;
+		}
+		if (container.scrolling_enabled) {
+		    origin_x -= container.scroll_x;
+		    origin_y -= container.scroll_y;
+		}
+	
+		gmui_handle_call(call, origin_x, origin_y);
+	};
+	
+	gmui.current_container = undefined;
+	
+	for (var i = 0; i < array_length(container.containers_sorted); i++) {
+		var c = container.containers_sorted[i];
+		if (!c.is_active || !c.is_enabled) { continue; };
+	
+		gmui_draw_container(c);
+	};
+	
+	gmui.current_container = container;
+	var late_calls = container.late_calls;
+	for (var i = 0; i < array_length(late_calls); i++) {
+	    var call = late_calls[i];
+		var origin_x = 0;
+		var origin_y = 0;
+	
+		if (!surface_exists(container.surface)) {
+		    origin_x = container.x + container.x_origin;
+		    origin_y = container.y + container.y_origin;
+		}
+		if (container.scrolling_enabled) {
+		    origin_x -= container.scroll_x;
+		    origin_y -= container.scroll_y;
+		}
+	
+		gmui_handle_call(call, origin_x, origin_y);
+	};
+};
+
+function gmui_container_early_exit_cleanup(container) {
+    container.calls = [ ];
+    container.late_calls = [ ];
+    container.widgets = [ ];
+    for (var i = 0; i < array_length(container.containers_sorted); i++) {
+        var c = container.containers_sorted[i];
+        if (!c.is_active || !c.is_enabled) { continue; };
+        gmui_container_early_exit_cleanup(c);
+    };
+    container.containers_sorted = [ ];
+    if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
+    if (variable_struct_exists(container, "_lb_counter")) { variable_struct_remove(container, "_lb_counter"); };
+};
+
 function gmui_draw_container(container) {
 	var gmui = global.gmui;
 	var style = gmui.style;
 	
-	if (!container.is_enabled) { return; };
+	if (!container.is_enabled || !container.is_active) { return; };
 	
 	if (container.use_surface) { gmui_container_surface_create(container); if (container.mask_enabled && !surface_exists(container.mask_surface)) { container.mask_surface = surface_create(container.width, container.height); }; } 
 	else if (surface_exists(container.surface)) { gmui_container_surface_free(container); if (surface_exists(container.mask_surface)) { surface_free(container.mask_surface); }; };
+	
+	if (container.use_surface && container.surface_flag && !container.surface_dirty) {
+	    draw_surface(container.surface, container.x + container.x_origin, container.y + container.y_origin);
+	    gmui_container_early_exit_cleanup(container);
+		show_debug_message("early out_" + string(current_time));
+	    return;
+	};
 	
 	if (container.parent != undefined && container.parent.use_surface && container.use_surface) { surface_reset_target(); };
 	if (surface_exists(container.surface)) { surface_set_target(container.surface); draw_clear_alpha(c_black, 0); };
@@ -533,54 +668,8 @@ function gmui_draw_container(container) {
 		}
 	}
 	
-	gmui.current_container = container;
+	gmui_handle_container_calls(container);
 	
-	var calls = container.calls;
-	for (var i = 0; i < array_length(calls); i++) {
-	    var call = calls[i];
-		var origin_x = 0;
-		var origin_y = 0;
-		
-		if (!surface_exists(container.surface)) {
-		    origin_x = container.x + container.x_origin;
-		    origin_y = container.y + container.y_origin;
-		}
-		if (container.scrolling_enabled) {
-		    origin_x -= container.scroll_x;
-		    origin_y -= container.scroll_y;
-		}
-		
-		gmui_handle_call(call, origin_x, origin_y);
-	};
-	
-	gmui.current_container = undefined;
-	
-	for (var i = 0; i < array_length(container.containers_sorted); i++) {
-		var c = container.containers_sorted[i];
-		if (!c.is_active || !c.is_enabled) { continue; };
-		
-		gmui_draw_container(c);
-	};
-	
-	gmui.current_container = container;
-	
-	var late_calls = container.late_calls;
-	for (var i = 0; i < array_length(late_calls); i++) {
-	    var call = late_calls[i];
-		var origin_x = 0;
-		var origin_y = 0;
-		
-		if (!surface_exists(container.surface)) {
-		    origin_x = container.x + container.x_origin;
-		    origin_y = container.y + container.y_origin;
-		}
-		if (container.scrolling_enabled) {
-		    origin_x -= container.scroll_x;
-		    origin_y -= container.scroll_y;
-		}
-		
-		gmui_handle_call(call, origin_x, origin_y);
-	};
 	container.calls = [ ];
 	container.late_calls = [ ];
 	container.widgets = [ ];
@@ -594,7 +683,6 @@ function gmui_draw_container(container) {
 	if (container.mask_enabled) {
 		var old_blend = gpu_get_blendmode();
 		gpu_set_blendmode(bm_subtract);
-		//draw_set_colour(c_black);
 		draw_surface(container.mask_surface, 0, 0);
 		gpu_set_blendmode(old_blend);
 	}
@@ -602,13 +690,14 @@ function gmui_draw_container(container) {
 	if (container.use_surface) { surface_reset_target(); };
 	if (container.parent != undefined && container.parent.use_surface && container.use_surface) { surface_set_target(container.parent.surface); };
 	
-	//container.is_active = false;
 	container.containers_sorted = [ ];
-	container.is_mouse_hovering = false;	
+	container.is_mouse_hovering = false;
 	
 	if (container.use_surface) {
 		draw_surface(container.surface, container.x + container.x_origin, container.y + container.y_origin);
 	};
+	
+	if (container.surface_flag) { container.surface_dirty = false; };
 	
 	if (variable_struct_exists(container, "_tb_counter")) {
 		variable_struct_remove(container, "_tb_counter");
