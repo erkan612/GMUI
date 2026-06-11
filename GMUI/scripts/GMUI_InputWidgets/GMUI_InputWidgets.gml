@@ -2138,10 +2138,19 @@ function gmui_textbox(text, placeholder = "", width = 200, font = undefined) {
 			    }
     
 			    if (!is_ignored_key && char != "" && byte >= 32 && byte <= 126) {
-			        text = string_insert(char, text, cursor + 1);
-			        cursor++;
-			        cursor_start = cursor;
-			    }
+				    if (cursor != cursor_start) {
+				        var s = min(cursor, cursor_start);
+				        var e = max(cursor, cursor_start);
+				        var count = e - s;
+				        text = string_delete(text, s + 1, count);
+				        cursor = s;
+				        cursor_start = cursor;
+				    }
+    
+				    text = string_insert(char, text, cursor + 1);
+				    cursor++;
+				    cursor_start = cursor;
+				}
 			}
         }
         
@@ -2264,8 +2273,6 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         variable_struct_set(container, state_prefix + "scroll_x", 0);
         variable_struct_set(container, state_prefix + "text", string_format(value, 1, 4));
     }
-	
-	variable_struct_set(container, state_prefix + "text", string_format(value, 1, 4));
     
     var cursor = variable_struct_get(container, state_prefix + "cursor");
     var cursor_start = variable_struct_get(container, state_prefix + "cursor_start");
@@ -2279,6 +2286,8 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
     if (!is_focused && !is_dragging) {
         cursor = string_length(text);
     }
+	
+	if (!is_focused && !is_dragging) { variable_struct_set(container, state_prefix + "text", string_format(value, 1, 4)); };
     
     if (gmui_widget_is_visible(widget)) {
         var hovered = gmui_widget_is_hovered(widget);
@@ -2564,8 +2573,6 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
         variable_struct_set(container, state_prefix + "text", string(value));
     }
 	
-	variable_struct_set(container, state_prefix + "text", string(value));
-    
     var cursor = variable_struct_get(container, state_prefix + "cursor");
     var cursor_start = variable_struct_get(container, state_prefix + "cursor_start");
     var scroll_x = variable_struct_get(container, state_prefix + "scroll_x");
@@ -2578,6 +2585,8 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
     if (!is_focused && !is_dragging) {
         cursor = string_length(text);
     }
+	
+	if (!is_focused && !is_dragging) { variable_struct_set(container, state_prefix + "text", string(value)); };
     
     if (gmui_widget_is_visible(widget)) {
         var hovered = gmui_widget_is_hovered(widget);

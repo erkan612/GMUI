@@ -1,20 +1,6 @@
 gmui_update();
 
-// Create a window first
 if (gmui_begin_window("Split Demo", 100, 100, 800, 500)) {
-    
-	//gmui_begin_columns(2, undefined, -1);
-	//gmui_set_column(0);
-	//gmui_button("Click Me!");
-	//gmui_set_column(1);
-	//gmui_begin_rows(2, undefined, -1);
-	//gmui_set_row(0);
-	//gmui_button("Click Me!");
-	//gmui_set_row(1);
-	//gmui_button("Click Me!");
-	//gmui_end_rows();
-	//gmui_end_columns();
-	
 	if (gmui_begin_wins("main_split", gmui_split_dir.HORIZONTAL)) {
 		if (gmui_begin_wins_pane(0)) {
 			gmui_button("Click Me!");
@@ -39,31 +25,9 @@ if (gmui_begin_window("Split Demo", 100, 100, 800, 500)) {
 		gmui_end_wins();
 	}
 	
-    // Horizontal split (left/right)
-    //if (gmui_begin_split("main_split", gmui_split_dir.HORIZONTAL, [0.3, 0.7], 6, 50)) {
-        
-    //    // Left pane
-    //    if (gmui_begin_split_pane(0)) {
-    //        gmui_text("Left Panel");
-    //        gmui_button("Button 1");
-    //        gmui_button("Button 2");
-    //        gmui_end_split_pane();
-    //    }
-        
-    //    // Right pane
-    //    if (gmui_begin_split_pane(1)) {
-    //        gmui_text("Right Panel");
-            
-    //        gmui_end_split_pane();
-    //    }
-        
-    //    gmui_end_split();
-    //}
-    
     gmui_end_window();
 }
 
-/*
 gmui_demo();
 gmui_style_editor();
 

@@ -1,5 +1,5 @@
 gmui_init();
-global.gmui.style.font = Font1;
+//global.gmui.style.font = Font1;
 
 is_first_frame = true;
 
@@ -134,21 +134,6 @@ toggled1 = false;
 toggled2 = false;
 my_slider_value1 = 50;
 
-
-/*
-fix textbox selection glitching
-complete the fonts
-*/
-
-/*
-docking
-
----
-
-advanced tooltip:
-- gmui_begin_tooltip() - gmui_end_tooltip()
-- gmui_tooltip_advanced(name, widget_id)
-*/
 
 
 
