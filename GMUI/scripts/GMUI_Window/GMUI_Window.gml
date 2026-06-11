@@ -28,6 +28,11 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	var has_scroll = (flags & gmui_window_flags.NO_SCROLL) == 0;
 	var has_border = (flags & gmui_window_flags.NO_BORDERS) == 0;
 	var has_border_resize = (flags & gmui_window_flags.NO_BORDER_RESIZE) == 0;
+	var has_auto_resize_horizontal = (flags & gmui_window_flags.AUTO_RESIZE_HORIZONTAL) != 0;
+	var has_auto_resize_vertical = (flags & gmui_window_flags.AUTO_RESIZE_VERTICAL) != 0;
+	
+	var can_resize_horizontal = has_border && !has_auto_resize_horizontal;
+	var can_resize_vertical = has_border && !has_auto_resize_vertical;
 	
 	// calculate window pos and size
 	var window = gmui_window_get(name);
@@ -38,8 +43,8 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	if (!window.initialized) {
 		wx = x < 0 ? 0 : x;
 		wy = y < 0 ? 0 : y;
-		ww = width < 64 ? 64 : width;
-		wh = height < 64 ? 64 : height;
+		ww = max(width, style.window_min_width);
+		wh = max(height, style.window_min_height);
 	};
 	
 	if (!window.is_enabled) { return false; };
@@ -71,84 +76,89 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	// borders
 	if (has_border && has_border_resize && !window._win_collapsed && input.active_widget_id == undefined && window.is_title_dragging == false) {
 		var diff = 0;
-		var border_left_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, 0, 0, wx + 4, wy + wh);
-		var border_left_pressed = border_left_hovering && input.m_pressed; if (border_left_pressed) { window.is_border_left_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
-		var border_left_holding = window.is_border_left_dragging;
-		if (input.m_released) { window.is_border_left_dragging = false; };
-		if (border_left_hovering || border_left_holding) {
-			gmui_add_line(1, 0, 1, wh, border_left_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
-		}
-		if (border_left_holding) {
-			diff = input.m_x - window.dragging_diff_pos[0];
-			var new_width = ww - diff;
-			var new_pos = wx + diff;
-			window.dragging_diff_pos = [ input.m_x, input.m_y ];
-			gmui_container_set_pos(window.name, new_pos, wy, window.parent);
-			gmui_container_set_size(window.name, new_width, wh, window.parent);
+		
+		if (can_resize_horizontal) {
+			var border_left_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, 0, 0, wx + 4, wy + wh);
+			var border_left_pressed = border_left_hovering && input.m_pressed; if (border_left_pressed) { window.is_border_left_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
+			var border_left_holding = window.is_border_left_dragging;
+			if (input.m_released) { window.is_border_left_dragging = false; };
+			if (border_left_hovering || border_left_holding) {
+				gmui_add_line(1, 0, 1, wh, border_left_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
+			}
+			if (border_left_holding) {
+				diff = input.m_x - window.dragging_diff_pos[0];
+				var new_width = ww - diff;
+				var new_pos = wx + diff;
+				window.dragging_diff_pos = [ input.m_x, input.m_y ];
+				gmui_container_set_pos(window.name, new_pos, wy, window.parent);
+				gmui_container_set_size(window.name, new_width, wh, window.parent);
+			}
+		
+			var border_right_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, wx + ww - 4, wy, wx + ww, wy + wh);
+			var border_right_pressed = border_right_hovering && input.m_pressed; if (border_right_pressed) { window.is_border_right_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
+			var border_right_holding = window.is_border_right_dragging;
+			if (input.m_released) { window.is_border_right_dragging = false; };
+			if (border_right_hovering || border_right_holding) {
+			    gmui_add_line(ww, 0, ww, wh, border_right_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
+			}
+			if (border_right_holding) {
+			    diff = input.m_x - window.dragging_diff_pos[0];
+			    var new_width = ww + diff;
+			    window.dragging_diff_pos = [ input.m_x, input.m_y ];
+			    gmui_container_set_size(window.name, new_width, wh, window.parent);
+			}
+		
+			if (border_left_holding || border_right_holding) {
+			    var new_width = ww + (border_left_holding ? -diff : diff);
+			    new_width = max(style.window_min_width, new_width);
+			    if (border_left_holding) {
+			        var new_pos = wx + (ww - new_width);
+			        gmui_container_set_pos(window.name, new_pos, wy, window.parent);
+			    }
+			    gmui_container_set_size(window.name, new_width, wh, window.parent);
+			}
 		}
 		
-		var border_right_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, wx + ww - 4, wy, wx + ww, wy + wh);
-		var border_right_pressed = border_right_hovering && input.m_pressed; if (border_right_pressed) { window.is_border_right_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
-		var border_right_holding = window.is_border_right_dragging;
-		if (input.m_released) { window.is_border_right_dragging = false; };
-		if (border_right_hovering || border_right_holding) {
-		    gmui_add_line(ww, 0, ww, wh, border_right_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
-		}
-		if (border_right_holding) {
-		    diff = input.m_x - window.dragging_diff_pos[0];
-		    var new_width = ww + diff;
-		    window.dragging_diff_pos = [ input.m_x, input.m_y ];
-		    gmui_container_set_size(window.name, new_width, wh, window.parent);
-		}
-		
-		if (border_left_holding || border_right_holding) {
-		    var new_width = ww + (border_left_holding ? -diff : diff);
-		    new_width = max(100, new_width);
-		    if (border_left_holding) {
-		        var new_pos = wx + (ww - new_width);
-		        gmui_container_set_pos(window.name, new_pos, wy, window.parent);
-		    }
-		    gmui_container_set_size(window.name, new_width, wh, window.parent);
-		}
+		if (can_resize_vertical) {
+			var border_top_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, wx, wy, wx + ww, wy + 4);
+			var border_top_pressed = border_top_hovering && input.m_pressed; if (border_top_pressed) { window.is_border_top_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
+			var border_top_holding = window.is_border_top_dragging;
+			if (input.m_released) { window.is_border_top_dragging = false; };
+			if (border_top_hovering || border_top_holding) {
+			    gmui_add_line(0, 1, ww, 1, border_top_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
+			}
+			if (border_top_holding) {
+			    diff = input.m_y - window.dragging_diff_pos[1];
+			    var new_height = wh - diff;
+			    var new_y = wy + diff;
+			    window.dragging_diff_pos = [ input.m_x, input.m_y ];
+			    gmui_container_set_pos(window.name, wx, new_y, window.parent);
+			    gmui_container_set_size(window.name, ww, new_height, window.parent);
+			}
 
-		var border_top_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, wx, wy, wx + ww, wy + 4);
-		var border_top_pressed = border_top_hovering && input.m_pressed; if (border_top_pressed) { window.is_border_top_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
-		var border_top_holding = window.is_border_top_dragging;
-		if (input.m_released) { window.is_border_top_dragging = false; };
-		if (border_top_hovering || border_top_holding) {
-		    gmui_add_line(0, 1, ww, 1, border_top_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
-		}
-		if (border_top_holding) {
-		    diff = input.m_y - window.dragging_diff_pos[1];
-		    var new_height = wh - diff;
-		    var new_y = wy + diff;
-		    window.dragging_diff_pos = [ input.m_x, input.m_y ];
-		    gmui_container_set_pos(window.name, wx, new_y, window.parent);
-		    gmui_container_set_size(window.name, ww, new_height, window.parent);
-		}
+			var border_bottom_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, wx, wy + wh - 4, wx + ww, wy + wh);
+			var border_bottom_pressed = border_bottom_hovering && input.m_pressed; if (border_bottom_pressed) { window.is_border_bottom_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
+			var border_bottom_holding = window.is_border_bottom_dragging;
+			if (input.m_released) { window.is_border_bottom_dragging = false; };
+			if (border_bottom_hovering || border_bottom_holding) {
+			    gmui_add_line(0, wh, ww, wh, border_bottom_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
+			}
+			if (border_bottom_holding) {
+			    diff = input.m_y - window.dragging_diff_pos[1];
+			    var new_height = wh + diff;
+			    window.dragging_diff_pos = [ input.m_x, input.m_y ];
+			    gmui_container_set_size(window.name, ww, new_height, window.parent);
+			}
 
-		var border_bottom_hovering = window_hovering && point_in_rectangle(input.m_x, input.m_y, wx, wy + wh - 4, wx + ww, wy + wh);
-		var border_bottom_pressed = border_bottom_hovering && input.m_pressed; if (border_bottom_pressed) { window.is_border_bottom_dragging = true; window.dragging_diff_pos = [ input.m_x, input.m_y ]; };
-		var border_bottom_holding = window.is_border_bottom_dragging;
-		if (input.m_released) { window.is_border_bottom_dragging = false; };
-		if (border_bottom_hovering || border_bottom_holding) {
-		    gmui_add_line(0, wh, ww, wh, border_bottom_holding ? style.color_accent_pressed : style.color_accent_hover, 1);
-		}
-		if (border_bottom_holding) {
-		    diff = input.m_y - window.dragging_diff_pos[1];
-		    var new_height = wh + diff;
-		    window.dragging_diff_pos = [ input.m_x, input.m_y ];
-		    gmui_container_set_size(window.name, ww, new_height, window.parent);
-		}
-
-		if (border_top_holding || border_bottom_holding) {
-		    var new_height = wh + (border_top_holding ? -diff : diff);
-		    new_height = max(80, new_height);
-		    if (border_top_holding) {
-		        var new_y = wy + (wh - new_height);
-		        gmui_container_set_pos(window.name, wx, new_y, window.parent);
-		    }
-		    gmui_container_set_size(window.name, ww, new_height, window.parent);
+			if (border_top_holding || border_bottom_holding) {
+			    var new_height = wh + (border_top_holding ? -diff : diff);
+			    new_height = max(style.window_min_height, new_height);
+			    if (border_top_holding) {
+			        var new_y = wy + (wh - new_height);
+			        gmui_container_set_pos(window.name, wx, new_y, window.parent);
+			    }
+			    gmui_container_set_size(window.name, ww, new_height, window.parent);
+			}
 		}
 	}
 	
@@ -160,7 +170,7 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	
 	// window content container
 	if (!window._win_collapsed) {
-		var window_border_width = has_border ? 6 : 0;
+		var window_border_width = has_border ? style.window_border_width : 0;
 		
 		window.context.cursor_x = window_border_width;
 		window.context.cursor_y = has_title ? style.window_title_height : window_border_width;
@@ -185,6 +195,13 @@ function gmui_end_window() {
 	
 	var container = gmui.current_container;
 	var is_collapsed = variable_struct_exists(container, "_win_collapsed");
+	var window = container.parent;
+	var flags = window.flags;
+	
+	var has_title = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
+	var has_border = (flags & gmui_window_flags.NO_BORDERS) == 0;
+	var has_auto_resize_horizontal = (flags & gmui_window_flags.AUTO_RESIZE_HORIZONTAL) != 0;
+	var has_auto_resize_vertical = (flags & gmui_window_flags.AUTO_RESIZE_VERTICAL) != 0;
 	
 	if (!is_collapsed) {
 		container = container.parent;
@@ -193,6 +210,19 @@ function gmui_end_window() {
 	}
 	
 	gmui_end_container_plain();
+	
+	if (has_auto_resize_horizontal) { 
+	    var new_width = window.content_container.content_width;
+	    if (has_border) new_width += style.window_border_width * 2;
+	    gmui_container_set_width(window.name, new_width);
+	};
+	
+	if (has_auto_resize_vertical) {
+	    var new_height = window.content_container.content_height;
+	    if (has_title) new_height += style.window_title_height;
+	    if (has_border) new_height += style.window_border_width * 2;
+	    gmui_container_set_height(window.name, new_height);
+	};
 };
 
 function gmui_default_window_title_handler(window) {

@@ -461,6 +461,9 @@ function gmui_style_apply_ruler
         window_collapse_button_color_idle: _arrow,
         window_collapse_button_hover_color: _arrow_hover,
         window_collapse_button_active_color: _arrow_active,
+		window_min_width: 128,
+		window_min_height: 64,
+		window_border_width: 6,
         
         // window menu bar
 		window_menu_height: 24,

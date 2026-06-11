@@ -24,6 +24,8 @@ enum gmui_window_flags {
     NO_SCROLL						= 1 << 4,
     NO_BORDERS						= 1 << 5,
     NO_BORDER_RESIZE				= 1 << 6,
+    AUTO_RESIZE_HORIZONTAL			= 1 << 7,
+    AUTO_RESIZE_VERTICAL			= 1 << 8,
 };
 
 enum gmui_tab_flags {

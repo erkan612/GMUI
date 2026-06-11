@@ -918,6 +918,26 @@ function gmui_container_set_size(name, w, h, parent = undefined) {
     }
 };
 
+function gmui_container_set_width(name, w, parent = undefined) {
+    var container = gmui_container_get(name, parent);
+    if (container != undefined && w != container.width) {
+        container.width = max(w, 1);
+        if (container.use_surface) {
+			gmui_container_surface_create(container, undefined, true);
+        }
+    }
+};
+
+function gmui_container_set_height(name, h, parent = undefined) {
+    var container = gmui_container_get(name, parent);
+    if (container != undefined && h != container.height) {
+        container.height = max(h, 1);
+        if (container.use_surface) {
+			gmui_container_surface_create(container, undefined, true);
+        }
+    }
+};
+
 function gmui_container_get_size(name, parent = undefined) {
     var container = gmui_container_get(name, parent);
     if (container != undefined) {

@@ -3241,6 +3241,9 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
 function gmui_tree_begin(name) {
     var gmui = global.gmui;
     var container = gmui.current_container;
+	
+	gmui_container_cursor_advance();
+	gmui_style_push("element_spacing_v", 0);
     
     if (!ds_map_exists(container.state, "_tree_stack")) {
         container.state[? "_tree_stack"] = [];
@@ -3447,6 +3450,7 @@ function gmui_tree_node_end() {
         array_pop(stack);
         container.state[? "_tree_stack"] = stack;
     }
+	gmui_style_pop("element_spacing_v");
 };
 
 // tree end
