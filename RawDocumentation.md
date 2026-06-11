@@ -377,6 +377,99 @@ Returns remaining width in current container.
 
 ---
 
+## Lazy Render Functions (Surface Caching)
+
+### gmui_container_surface_flag_enable(container)
+Enables lazy render (surface caching) for a container.
+
+**Parameters:**
+- `container` (struct, optional) - Container to enable (defaults to current)
+
+**Returns:** Nothing
+
+**Example:**
+```gml
+gmui_container_surface_flag_enable();
+```
+
+---
+
+### gmui_container_surface_flag_disable(container)
+Disables lazy render for a container.
+
+**Parameters:**
+- `container` (struct, optional) - Container to disable (defaults to current)
+
+**Returns:** Nothing
+
+---
+
+### gmui_container_surface_flag_toggle(container)
+Toggles lazy render state.
+
+**Parameters:**
+- `container` (struct, optional) - Container to toggle (defaults to current)
+
+**Returns:** bool - New state
+
+**Example:**
+```gml
+var enabled = gmui_container_surface_flag_toggle();
+```
+
+---
+
+### gmui_container_surface_dirty(container)
+Marks container surface as dirty (forces redraw next frame).
+
+**Parameters:**
+- `container` (struct, optional) - Container to mark (defaults to current)
+
+**Returns:** Nothing
+
+**Example:**
+```gml
+if (gmui_button("Update")) {
+    gmui_container_surface_dirty();
+}
+```
+
+---
+
+### gmui_container_surface_flag_enable_recursive(container)
+Enables lazy render for container and all children.
+
+**Parameters:**
+- `container` (struct, optional) - Container to enable (defaults to current)
+
+**Returns:** Nothing
+
+**Example:**
+```gml
+gmui_container_surface_flag_enable_recursive(window_container);
+```
+
+---
+
+### gmui_container_surface_flag_disable_recursive(container)
+Disables lazy render for container and all children.
+
+**Parameters:**
+- `container` (struct, optional) - Container to disable (defaults to current)
+
+**Returns:** Nothing
+
+---
+
+## Container Properties (Additional)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `surface_flag` | bool | Lazy render enabled |
+| `surface_dirty` | bool | Needs redraw on next frame |
+
+---
+
 ## Display Widgets
 
 ### gmui_text(text, font)
