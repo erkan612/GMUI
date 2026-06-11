@@ -58,6 +58,38 @@ gmui_draw_gui();
 
 ---
 
+## Gallery
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="ScreenShots/ss0.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss1.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss2.png" width="300"></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="ScreenShots/ss3.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss4.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss5.png" width="300"></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="ScreenShots/ss6.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss7.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss8.png" width="300"></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="ScreenShots/ss9.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss10.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss11.png" width="300"></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="ScreenShots/ss12.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss13.png" width="300"></td>
+    <td align="center"><img src="ScreenShots/ss14.png" width="300"></td>
+  </tr>
+</table>
+
+---
+
 ## Documentation
 
 - **[Getting Started](GettingStarted.md)**
