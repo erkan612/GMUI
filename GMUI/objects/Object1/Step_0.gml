@@ -1,5 +1,126 @@
 gmui_update();
 
+if (gmui_begin_window("Debug Inspector", 200, 100, 800, 500)) {
+    
+    if (gmui_begin_wins("inspector", gmui_split_dir.VERTICAL, [0.25, 0.5, 0.25])) {
+        
+        if (gmui_begin_wins_pane(0)) {
+            gmui_text_colored("OBJECTS", make_color_rgb(255, 150, 150));
+            gmui_separator();
+            
+            objects = ["player", "enemy_1", "enemy_2", "bullet", "explosion"];
+            selected = 0;
+            for (var i = 0; i < 5; i++) {
+                if (gmui_selectable(objects[i], selected == i, 180)) {
+                    selected = i;
+                }
+            }
+            
+            gmui_end_wins_pane();
+        }
+        
+        if (gmui_begin_wins_pane(1)) {
+            gmui_text_colored("PROPERTIES", make_color_rgb(150, 255, 150));
+            gmui_separator();
+            
+            gmui_kv_list([
+                ["Name", "player"],
+                ["X", 250],
+                ["Y", 340],
+                ["Speed", 5.5],
+                ["Health", 100],
+                ["Mana", 75],
+                ["Level", 42]
+            ], 7);
+            
+            gmui_end_wins_pane();
+        }
+        
+        if (gmui_begin_wins_pane(2)) {
+            gmui_text_colored("COMPONENTS", make_color_rgb(150, 150, 255));
+            gmui_separator();
+            
+            comps = ["Sprite", "Collider", "RigidBody", "AudioSource"];
+            for (var i = 0; i < 4; i++) {
+                gmui_checkbox(true, comps[i]);
+            }
+            
+            gmui_end_wins_pane();
+        }
+        
+        gmui_end_wins();
+    }
+    
+    gmui_end_window();
+}
+
+if (gmui_begin_window("Analytics Dashboard", 100, 100, 900, 600)) {
+    
+    if (gmui_begin_wins("dashboard", gmui_split_dir.HORIZONTAL, [0.5, 0.5])) {
+        
+        if (gmui_begin_wins_pane(0)) {
+            
+            if (gmui_begin_wins("top_panes", gmui_split_dir.VERTICAL, [0.5, 0.5])) {
+                
+                if (gmui_begin_wins_pane(0)) {
+                    gmui_text_colored("REVENUE", make_color_rgb(100, 200, 100));
+                    gmui_separator();
+                    revenue = [120, 200, 150, 180, 220, 250, 300];
+                    gmui_plot_bars(revenue, 7, 400, 120);
+                    gmui_end_wins_pane();
+                }
+                
+                if (gmui_begin_wins_pane(1)) {
+                    gmui_text_colored("USERS", make_color_rgb(100, 150, 255));
+                    gmui_separator();
+                    users = [45, 60, 55, 70, 80, 95, 110];
+                    gmui_plot_lines(users, 7, 400, 120, true);
+                    gmui_end_wins_pane();
+                }
+                
+                gmui_end_wins();
+            }
+            
+            gmui_end_wins_pane();
+        }
+        
+        if (gmui_begin_wins_pane(1)) {
+            
+            if (gmui_begin_wins("bottom_panes", gmui_split_dir.VERTICAL, [0.5, 0.5])) {
+                
+                if (gmui_begin_wins_pane(0)) {
+                    gmui_text_colored("DISTRIBUTION", make_color_rgb(255, 200, 100));
+                    gmui_separator();
+                    pie_vals = [35, 25, 20, 20];
+                    pie_labels = ["Desktop", "Mobile", "Tablet", "Console"];
+                    gmui_plot_pie(pie_vals, pie_labels, 4, 400, 180);
+                    gmui_end_wins_pane();
+                }
+                
+                if (gmui_begin_wins_pane(1)) {
+                    gmui_text_colored("SYSTEM STATUS", make_color_rgb(200, 150, 255));
+                    gmui_separator();
+                    gmui_text("CPU: 42%");
+                    gmui_progress_bar(0.42, 0, 1, 380);
+                    gmui_text("Memory: 1.2GB / 4GB");
+                    gmui_progress_bar(0.30, 0, 1, 380);
+                    gmui_text("Disk: 245GB / 500GB");
+                    gmui_progress_bar(0.49, 0, 1, 380);
+                    gmui_end_wins_pane();
+                }
+                
+                gmui_end_wins();
+            }
+            
+            gmui_end_wins_pane();
+        }
+        
+        gmui_end_wins();
+    }
+    
+    gmui_end_window();
+}
+
 if (gmui_begin_window("Split Demo", 100, 100, 800, 500)) {
 	if (gmui_begin_wins("main_split", gmui_split_dir.HORIZONTAL)) {
 		if (gmui_begin_wins_pane(0)) {
