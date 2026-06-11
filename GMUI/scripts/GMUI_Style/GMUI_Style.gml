@@ -474,6 +474,16 @@ function gmui_style_apply_ruler
 		columns_separator_color_active: _ruler.color_accent,
 		columns_separator_grab_pad:     4,
 		columns_min_ratio:              0.05,
+		
+		// rows
+		rows_separator_height:			1,
+		rows_separator_height_hover:	1,
+		rows_separator_height_active:	1,
+		rows_separator_color:			_ruler.color_border,
+		rows_separator_color_hover:		_ruler.color_text_disabled,
+		rows_separator_color_active:	 _ruler.color_accent,
+		rows_separator_grab_pad:		4,
+		rows_min_ratio:					0.05,
         
         // context menu
         context_menu_item_height: 22,

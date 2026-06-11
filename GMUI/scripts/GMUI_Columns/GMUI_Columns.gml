@@ -28,8 +28,14 @@ function gmui_begin_columns(count, ratios = undefined, height = 200) {
 
     var sep_w   = gmui.style.columns_separator_width;
     var avail_w = parent.width - gmui.style.container_padding_h * 2 - sep_w * (count - 1);
-
+	
     if (!variable_struct_exists(gmui, "_col_stack")) gmui[$ "_col_stack"] = [];
+	
+    var actual_height = height;
+    if (height == -1) {
+        actual_height = parent.height - gmui.style.container_padding_v * 2 - parent.context.cursor_y;
+    }
+
     array_push(gmui[$ "_col_stack"], {
         parent:      parent,
         state_key:   state_key,
@@ -37,7 +43,7 @@ function gmui_begin_columns(count, ratios = undefined, height = 200) {
         count:       count,
         avail_w:     avail_w,
         sep_w:       sep_w,
-        height:      height,
+        height:      actual_height,
         origin_x:    parent.context.cursor_x,
         origin_y:    parent.context.cursor_y,
         current_col: -1,
@@ -230,41 +236,3 @@ function gmui_auto_column(rows, column_count, column_ratios = undefined, row_hei
     
     return column_containers;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

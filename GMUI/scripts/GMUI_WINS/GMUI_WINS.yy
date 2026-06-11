@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"GMUI_WINS",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"GMUI_WINS",
+  "parent":{
+    "name":"Features",
+    "path":"folders/GMUI/Features.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

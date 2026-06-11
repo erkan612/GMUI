@@ -38,3 +38,8 @@ enum gmui_layer {
     MODAL_BG						= 2,
     POPUP							= 3,
 }
+
+enum gmui_split_dir {
+	HORIZONTAL						= 0,
+	VERTICAL						= 1,
+};

@@ -128,7 +128,11 @@ function gmui_widget_is_visible(widget) {
 function gmui_widget_is_hovered(widget, _offset) {
 	var gmui = global.gmui;
     
-    if ((gmui.input.active_widget_id != undefined || gmui.input.hovered_widget_id != undefined) && gmui.input.active_widget_id != widget.id) {
+    if (gmui.input.active_widget_id != undefined && gmui.input.active_widget_id != widget.id) {
+        return false;
+    }
+    
+    if (gmui.input.hovered_widget_id != undefined && gmui.input.hovered_widget_id != widget.id) {
         return false;
     }
     
