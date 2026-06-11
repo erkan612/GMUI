@@ -349,7 +349,6 @@ function gmui_demo() {
             if (gmui_begin_collapsing_header_ex("Color Picker")) {
                 static color = gmui_make_color_rgba(100, 150, 255, 255);
 				var color_array = gmui_color_rgba_to_array(color);
-				show_debug_message(gmui_color_rgba_to_array(color));
 				gmui_text("Red:"); gmui_sameline(); color_array[0] = gmui_input_int(color_array[0], 1, 0, 255);
 				gmui_sameline();
 				gmui_text("Green:"); gmui_sameline(); color_array[1] = gmui_input_int(color_array[1], 1, 0, 255);
