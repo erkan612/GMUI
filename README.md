@@ -93,5 +93,4 @@ gmui_draw_gui();
 ## Documentation
 
 - **[Getting Started](GettingStarted.md)**
-- **[Full Documentation](Documentation.md)**
-- **[API Reference](RawDocumentation.md)**
+- **[API Reference](ApiReference.md)**
