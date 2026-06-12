@@ -257,8 +257,7 @@ gmui_cleanup();
 
 - Run `gmui_demo()` to see interactive examples
 - Open `gmui_style_editor()` to customize the look
-- Read the [Full Documentation](Documentation.md)
-- Check the [API Reference](RawDocumentation.md)
+- Check the [API Reference](ApiReference.md)
 
 ---
 
