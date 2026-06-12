@@ -1,5 +1,6 @@
 
 
+// STYLE
 function gmui_style_init() {
 	gmui_style_apply_ruler();
 };
@@ -388,6 +389,7 @@ function gmui_style_apply_ruler
         textbox_border_size: 1,
         textbox_cursor_width: 1,
         textbox_height: 24,
+		textbox_password_char: "*",
         
         // drag textbox
         drag_textbox_color: _bg_ter,
@@ -563,6 +565,7 @@ function gmui_style_apply_ruler
         progress_circular_bg_color: _bg_ter,
         progress_circular_fill_color: _accent_alt,
         progress_circular_text_color: _text_primary,
+		progress_circular_segments: 16,
         
         // combo box
         combo_height: 24,
@@ -584,7 +587,7 @@ function gmui_style_apply_ruler
         
         // color picker
         color_picker_width: 200,
-        color_picker_height: 150,
+        color_picker_height: 200,
         color_picker_hue_height: 16,
         color_picker_alpha_height: 16,
         color_picker_preview_size: 30,
@@ -940,5 +943,18 @@ function gmui_style_scope_multi(map, func) {
     gmui_style_push_multi(map);
     func();
     var keys = variable_struct_get_names(map);
+    gmui_style_pop_multi(keys);
+};
+
+function gmui_with_style(key, value, func) {
+    gmui_style_push(key, value);
+    func();
+    gmui_style_pop(key);
+};
+
+function gmui_with_style_multi(style_map, func) {
+    gmui_style_push_multi(style_map);
+    func();
+    var keys = variable_struct_get_names(style_map);
     gmui_style_pop_multi(keys);
 };

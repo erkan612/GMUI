@@ -2,7 +2,21 @@
 function gmui_add_call(type, params) {
 	var gmui = global.gmui;
 	var current_container = gmui.current_container;
-	var calls_array = current_container == undefined ? gmui.calls : (current_container.late_calls_enabled ? current_container.late_calls : current_container.calls);
+	var calls_array = undefined;
+	if (current_container == undefined) {
+		calls_array = gmui.calls;
+	}
+	//else if (current_container.widget_flag && current_container.current_widget != undefined) {
+	//	calls_array = current_container.current_widget.calls;
+	//}
+	else if (current_container.late_calls_enabled) {
+		calls_array = current_container.late_calls;
+	}
+	else {
+		calls_array = current_container.calls;
+	};
+	
+	if (calls_array == undefined) { return; }; // this shouldnt happen
 	
 	array_push(calls_array, {
 		type: type, 
@@ -227,6 +241,16 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		params.func(params);
 	} break;
 	};
+	
+	if (variable_struct_exists(params, "x")) { params.x -= origin_x; };
+	if (variable_struct_exists(params, "y")) { params.y -= origin_y; };
+	
+	if (variable_struct_exists(params, "x1")) { params.x1 -= origin_x; };
+	if (variable_struct_exists(params, "y1")) { params.y1 -= origin_y; };
+	if (variable_struct_exists(params, "x2")) { params.x2 -= origin_x; };
+	if (variable_struct_exists(params, "y2")) { params.y2 -= origin_y; };
+	if (variable_struct_exists(params, "x3")) { params.x3 -= origin_x; };
+	if (variable_struct_exists(params, "y3")) { params.y3 -= origin_y; };
 };
 
 // Misc Calls

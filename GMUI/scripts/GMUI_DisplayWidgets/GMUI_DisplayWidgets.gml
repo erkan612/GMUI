@@ -12,7 +12,7 @@ function gmui_text(text, font = undefined) {
 	
 	var _font = gmui_resolve_font(widget, font);
 	
-	if (gmui_widget_is_visible(widget)) {
+	if (gmui_widget_is_callable(widget)) {
 		gmui_add_text(text, widget.x, widget.y, style.text_color, style.text_alpha, _font);
 	};
 	
@@ -29,7 +29,7 @@ function gmui_text_disabled(text, font = undefined) {
     widget.width = text_size[0];
     widget.height = text_size[1];
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         gmui_add_text(text, widget.x, widget.y, style.text_disabled_color, style.text_alpha, _font);
     }
     
@@ -46,7 +46,7 @@ function gmui_text_colored(text, color, font = undefined) {
     widget.width = text_size[0];
     widget.height = text_size[1];
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         gmui_add_text(text, widget.x, widget.y, color, style.text_alpha, _font);
     }
     
@@ -66,7 +66,7 @@ function gmui_text_bullet(text, font = undefined) {
     widget.width = bullet_size + bullet_spacing + text_size[0];
     widget.height = max(bullet_size, text_size[1]);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         gmui_add_rectangle(widget.x, widget.y + text_size[1] / 2 - bullet_size / 2, 
                           widget.x + bullet_size, widget.y + text_size[1] / 2 + bullet_size / 2,
                           false, style.text_color, 1);
@@ -119,7 +119,7 @@ function gmui_text_wrap(text, width = -1, font = undefined) {
     widget.width = max_line_width;
     widget.height = total_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var line_y = widget.y;
         for (var i = 0; i < array_length(lines); i++) {
             gmui_add_text(lines[i], widget.x, line_y, style.text_color, style.text_alpha, _font);
@@ -144,7 +144,7 @@ function gmui_text_label(label, value, font = undefined) {
     widget.width = label_size[0] + value_size[0];
     widget.height = max(label_size[1], value_size[1]);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         gmui_add_text(label_text, widget.x, widget.y, style.text_disabled_color, style.text_alpha, _font);
         gmui_add_text(value, widget.x + label_size[0], widget.y, style.text_color, style.text_alpha, _font);
     }
@@ -164,7 +164,7 @@ function gmui_separator() { // TODO: if new line requested, align the line in th
     widget.width = available_width;
     widget.height = style.separator_thickness + style.element_spacing_v;
     
-	if (gmui_widget_is_visible(widget)) {
+	if (gmui_widget_is_callable(widget)) {
 	    gmui_add_rectangle(
 	        widget.x, widget.y + style.element_spacing_v / 2,
 	        widget.x + available_width, widget.y + style.element_spacing_v / 2 + style.separator_thickness,
@@ -189,7 +189,7 @@ function gmui_separator_vertical(stay = true, new_line = false, height = -1) {
     widget.width = style.separator_thickness + style.element_spacing_h;
     widget.height = available_height;
     
-	if (gmui_widget_is_visible(widget)) {
+	if (gmui_widget_is_callable(widget)) {
 	    gmui_add_rectangle(
 	        widget.x + style.element_spacing_h / 2, widget.y,
 	        widget.x + style.element_spacing_h / 2 + style.separator_thickness, widget.y + available_height,
@@ -219,7 +219,7 @@ function gmui_separator_text(text, font = undefined) {
 	
 	var _font = gmui_resolve_font(widget, font);
     
-	if (gmui_widget_is_visible(widget)) {
+	if (gmui_widget_is_callable(widget)) {
 	    var line_width = (available_width - text_size[0] - gap * 2) / 2;
     
 	    if (line_width > 0) {
@@ -261,7 +261,7 @@ function gmui_separator_text_left(text, font = undefined) {
 	
 	var _font = gmui_resolve_font(widget, font);
     
-	if (gmui_widget_is_visible(widget)) {
+	if (gmui_widget_is_callable(widget)) {
 	    var line_start = widget.x + text_size[0] + gap;
 	    var line_width = available_width - text_size[0] - gap;
     
@@ -301,7 +301,7 @@ function gmui_sprite(sprite, subimg = 0, width = -1, height = -1) {
     widget.width = sw;
     widget.height = sh;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
 		var xscale = width != -1 ? sprite_get_width(GMUI_Icon) / width : 1;
 		var yscale = height != -1 ? sprite_get_height(GMUI_Icon) / height : 1;
         gmui_add_sprite_ext(sprite, subimg, widget.x, widget.y,  1 / xscale, 1 / yscale, 0, c_white, 1);
@@ -319,7 +319,7 @@ function gmui_surface(surface) {
     widget.width = sw;
     widget.height = sh;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         gmui_add_surface(surface, widget.x, widget.y);
     }
     
@@ -341,7 +341,7 @@ function gmui_progress_bar(value, min_val = 0, max_val = 1, width = -1, show_tex
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var normalized = clamp((value - min_val) / (max_val - min_val), 0, 1);
         var fill_width = (bar_width - style.progress_bar_border_size * 2) * normalized;
         
@@ -398,7 +398,7 @@ function gmui_progress_bar_indeterminate(width = -1) {
     widget.width = bar_width;
     widget.height = bar_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var time = current_time / 1000;
         var anim = (sin(time * 3) * 0.5 + 0.5);
         var bar_size = bar_width * 0.3;
@@ -448,7 +448,7 @@ function gmui_progress_circular(value, min_val = 0, max_val = 1, size = -1, show
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var normalized = clamp((value - min_val) / (max_val - min_val), 0, 1);
         var cx = widget.x + radius;
         var cy = widget.y + radius;
@@ -456,7 +456,7 @@ function gmui_progress_circular(value, min_val = 0, max_val = 1, size = -1, show
         gmui_add_circle(cx, cy, radius, true, style.progress_circular_bg_color, 1);
         
         if (normalized > 0) { // simplified
-            var segments = max(8, floor(normalized * 32));
+            var segments = max(8, floor(normalized * style.progress_circular_segments));
             var angle_step = (2 * pi * normalized) / segments;
             var start_angle = -pi / 2;
             
@@ -503,14 +503,14 @@ function gmui_progress_spinner(size = -1, thickness = -1) {
     widget.width = circle_size;
     widget.height = circle_size;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var cx = widget.x + radius;
         var cy = widget.y + radius;
         var time = current_time / 1000;
         var angle_offset = (time * 2 * pi) % (2 * pi);
         var arc_length = pi * 1.2;
         
-        var segments = 20;
+        var segments = style.progress_circular_segments;
         var angle_step = arc_length / segments;
         
         for (var i = 0; i < segments; i++) {
@@ -539,6 +539,14 @@ function gmui_progress_spinner(size = -1, thickness = -1) {
     }
     
     gmui_end_widget(widget);
+};
+
+function gmui_progress(value, max_val, width = -1, show_text = true, font = undefined) {
+    return gmui_progress_bar(value, 0, max_val, width, show_text, font);
+};
+
+function gmui_progress_percent(percent, width = -1, show_text = true, font = undefined) {
+    return gmui_progress_bar(percent, 0, 100, width, show_text, font);
 };
 
 // tooltip
@@ -622,6 +630,17 @@ function gmui_tooltip(text, widget, width = -1, font = undefined) {
 	gmui.current_container = container;
 };
 
+function gmui_tooltip_on_last(text, width = -1, font = undefined) {
+    var last = global.gmui.last_widget;
+    if (last != undefined) {
+        gmui_tooltip(text, last, width, font);
+    }
+};
+
+function gmui_tooltip_on_hover(widget, text, width = -1, font = undefined) {
+    gmui_tooltip(text, widget, width, font);
+};
+
 // toast notification
 function gmui_toast_push(message, type = "info", duration = -1) {
     var gmui = global.gmui;
@@ -637,6 +656,22 @@ function gmui_toast_push(message, type = "info", duration = -1) {
         start_time: current_time,
         duration: duration > 0 ? duration : style.toast_duration,
     });
+};
+
+function gmui_toast_info(message, duration = -1) {
+    gmui_toast_push(message, "info", duration);
+};
+
+function gmui_toast_success(message, duration = -1) {
+    gmui_toast_push(message, "success", duration);
+};
+
+function gmui_toast_warning(message, duration = -1) {
+    gmui_toast_push(message, "warning", duration);
+};
+
+function gmui_toast_error(message, duration = -1) {
+    gmui_toast_push(message, "error", duration);
 };
 
 // toast render
@@ -754,7 +789,7 @@ function gmui_spinner(size = 16, thickness = 2) {
     widget.width = size;
     widget.height = size;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var cx = widget.x + size / 2;
         var cy = widget.y + size / 2;
         var radius = size / 2;
@@ -763,7 +798,7 @@ function gmui_spinner(size = 16, thickness = 2) {
         var time = current_time / 1000;
         var angle_offset = (time * 3 * pi) % (2 * pi);
         var arc_length = pi * 0.8;
-        var segments = 12;
+        var segments = style.progress_circular_segments;
         var angle_step = arc_length / segments;
         
         for (var i = 0; i < segments; i++) {

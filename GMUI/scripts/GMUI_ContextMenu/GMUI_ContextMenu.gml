@@ -416,3 +416,14 @@ function gmui_begin_context_menu_sub(text) {
 function gmui_end_context_menu_sub() {
     gmui_end_context_menu();
 };
+
+function gmui_context_menu_item_if(condition, text, short_cut = undefined, font = undefined) {
+    if (condition) {
+        return gmui_context_menu_item(text, short_cut, font);
+    }
+    return false;
+};
+
+function gmui_context_menu_separator() {
+    gmui_separator();
+};

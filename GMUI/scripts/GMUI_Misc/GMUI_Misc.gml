@@ -349,6 +349,14 @@ function gmui_color_rgba_to_array(color) {
     ];
 }
 
+function gmui_color_rgb_to_array(color) {
+    return [
+        color_get_red(color),
+        color_get_green(color),
+        color_get_blue(color)
+    ];
+}
+
 function gmui_color_rgba_from_array(arr) {
     return gmui_make_color_rgba(arr[0], arr[1], arr[2], arr[3]);
 }
@@ -585,24 +593,77 @@ function gmui_is_container_or_parent(container, hovered_container) {
     return false;
 }
 
+function gmui_cursor_set(x, y) {
+	if (global.gmui.current_container == undefined) { return; };
+	global.gmui.current_container.context.cursor_x = x;
+	global.gmui.current_container.context.cursor_y = y;
+};
 
+function gmui_cursor_set_x(x) {
+	if (global.gmui.current_container == undefined) { return; };
+	global.gmui.current_container.context.cursor_x = x;
+};
 
+function gmui_cursor_set_y(y) {
+	if (global.gmui.current_container == undefined) { return; };
+	global.gmui.current_container.context.cursor_x = y;
+};
 
+function gmui_cursor_get() {
+	if (global.gmui.current_container == undefined) { return; };
+	return {
+		x: global.gmui.current_container.context.cursor_x,
+		y: global.gmui.current_container.context.cursor_y,
+	};
+};
 
+function gmui_cursor_get_x() {
+	if (global.gmui.current_container == undefined) { return; };
+	return global.gmui.current_container.context.cursor_x;
+};
 
+function gmui_cursor_get_y() {
+	if (global.gmui.current_container == undefined) { return; };
+	return global.gmui.current_container.context.cursor_y;
+};
 
+function gmui_if(condition, func) {
+    if (condition) {
+        func();
+    }
+};
 
+function gmui_if_else(condition, if_func, else_func) {
+    if (condition) {
+        if_func();
+    } else {
+        else_func();
+    }
+};
 
+function gmui_debug_window(name, x, y, width, height, func) {
+    if (gmui_begin_window(name, x, y, width, height)) {
+        func();
+        gmui_end_window();
+        return true;
+    }
+    return false;
+};
 
+function gmui_debug_text(value, label = "", font = undefined) {
+    if (label != "") {
+        gmui_text_label(label, string(value), font);
+    } else {
+        gmui_text(string(value), font);
+    }
+};
 
+function gmui_debug_separator(font = undefined) {
+    gmui_separator();
+    gmui_text("--- DEBUG ---", font);
+    gmui_separator();
+};
 
-
-
-
-
-
-
-
-
-
-
+function gmui_debug_separator1() {
+	gmui_separator_text("--- DEBUG ---", font);
+};

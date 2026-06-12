@@ -13,7 +13,7 @@ function gmui_plot_lines(values, count, width = -1, height = 120, show_points = 
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_val = values[0];
         var max_val = values[0];
         for (var i = 1; i < count; i++) {
@@ -95,7 +95,7 @@ function gmui_plot_bars(values, count, width = -1, height = 120) {
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_val = 0;
         var max_val = 0;
         if (count > 0) {
@@ -157,7 +157,7 @@ function gmui_plot_histogram(values, count, width = -1, height = 120, bins = 10)
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_val = 0;
         var max_val = 0;
         if (count > 0) {
@@ -220,7 +220,7 @@ function gmui_plot_histogram_normalized(values, count, width = -1, height = 120,
     widget.height = plot_height;
     var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget) && count > 0) {
+    if (gmui_widget_is_callable(widget) && count > 0) {
         var min_val = values[0];
         var max_val = values[0];
         for (var i = 1; i < count; i++) {
@@ -289,7 +289,7 @@ function gmui_plot_scatter(x_values, y_values, count, width = -1, height = 120) 
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_x = x_values[0], max_x = x_values[0];
         var min_y = y_values[0], max_y = y_values[0];
         for (var i = 1; i < count; i++) {
@@ -338,7 +338,7 @@ function gmui_plot_stem(values, labels, count, width = -1, height = 120, radius 
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_val = values[0], max_val = values[0];
         for (var i = 1; i < count; i++) {
             min_val = min(min_val, values[i]);
@@ -384,7 +384,7 @@ function gmui_plot_stair(values, count, width = -1, height = 120, mode = "post")
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_val = values[0], max_val = values[0];
         for (var i = 1; i < count; i++) {
             min_val = min(min_val, values[i]);
@@ -456,7 +456,7 @@ function gmui_plot_pie(values, labels, count, width = -1, height = 200, show_leg
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var total = 0;
         for (var i = 0; i < count; i++) total += values[i];
         if (total == 0) total = 1;
@@ -614,7 +614,7 @@ function gmui_plot_pie_exploded(values, labels, count, width = -1, height = 200,
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var total = 0;
         for (var i = 0; i < count; i++) total += values[i];
         if (total == 0) total = 1;
@@ -756,7 +756,7 @@ function gmui_plot_area(series, series_count, values_per_series, width = -1, hei
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_val = series[0][0], max_val = series[0][0];
         for (var s = 0; s < series_count; s++) {
             for (var i = 0; i < values_per_series; i++) {
@@ -839,7 +839,7 @@ function gmui_plot_stacked_bars(series, series_count, values_per_series, width =
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         gmui_add_rectangle(widget.x, widget.y, widget.x + plot_width, widget.y + plot_height, false, style.plot_bg_color, 1);
         if (style.plot_border_size > 0) {
             gmui_add_rectangle(widget.x, widget.y, widget.x + plot_width, widget.y + plot_height, true, style.plot_border_color, 1);
@@ -896,7 +896,7 @@ function gmui_plot_grouped_bars(series, series_count, values_per_series, width =
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var max_val = 0;
         for (var s = 0; s < series_count; s++) {
             for (var i = 0; i < values_per_series; i++) {
@@ -965,7 +965,7 @@ function gmui_plot_heatmap(values, rows, cols, width = -1, height = -1, font = u
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_val = values[0][0], max_val = values[0][0];
         for (var r = 0; r < rows; r++) {
             for (var c = 0; c < cols; c++) {
@@ -1047,7 +1047,7 @@ function gmui_plot_radar(series, series_count, values_per_series, labels, size =
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var cx = widget.x + plot_size / 2;
         var cy = widget.y + plot_size / 2;
         var radius = plot_size / 2 - 30;
@@ -1173,7 +1173,7 @@ function gmui_plot_box(datasets, dataset_count, labels, width = -1, height = 200
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var global_min = infinity;
         var global_max = -infinity;
         for (var d = 0; d < dataset_count; d++) {
@@ -1271,7 +1271,7 @@ function gmui_plot_funnel(values, labels, count, width = -1, height = 200, font 
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var max_val = values[0];
         for (var i = 1; i < count; i++) max_val = max(max_val, values[i]);
         if (max_val == 0) max_val = 1;
@@ -1356,7 +1356,7 @@ function gmui_plot_waterfall(values, labels, count, width = -1, height = 200, fo
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var running = 0;
         var totals = array_create(count, 0);
         for (var i = 0; i < count; i++) {
@@ -1462,7 +1462,7 @@ function gmui_plot_bubble(x_values, y_values, size_values, count, width = -1, he
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_x = x_values[0], max_x = x_values[0];
         var min_y = y_values[0], max_y = y_values[0];
         var min_s = size_values[0], max_s = size_values[0];
@@ -1579,7 +1579,7 @@ function gmui_plot_gantt(tasks, task_count, start_times, end_times, colors, _tod
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         gmui_add_rectangle(widget.x, widget.y, widget.x + plot_width, widget.y + plot_height, false, style.plot_bg_color, 1);
         
         var header_x = widget.x + label_width;
@@ -1649,7 +1649,7 @@ function gmui_plot_error_bars(x_values, y_values, low_values, high_values, count
     widget.width = plot_width;
     widget.height = plot_height;
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var min_x = x_values[0], max_x = x_values[0];
         var min_y = low_values[0], max_y = high_values[0];
         
@@ -1715,7 +1715,7 @@ function gmui_plot_gauge(value, min_val, max_val, label = "", size = -1, font = 
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var cx = widget.x + radius;
         var cy = widget.y + radius;
         
@@ -1794,7 +1794,7 @@ function gmui_plot_table(headers, data, rows, cols, width = -1, font = undefined
 	
 	var _font = gmui_resolve_font(widget, font);
     
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var col_width = plot_width / cols;
         
         gmui_add_rectangle(widget.x, widget.y, widget.x + plot_width, widget.y + header_height, false, style.plot_table_header_bg, 1);
@@ -1874,7 +1874,7 @@ function gmui_plot_legend(labels, colors, count, columns = 1, width = -1) {
     widget.width = plot_w;
     widget.height = plot_h;
     
-    if (gmui_widget_is_visible(widget) && count > 0) {
+    if (gmui_widget_is_callable(widget) && count > 0) {
         gmui_add_roundrect(widget.x, widget.y, widget.x + plot_w, widget.y + plot_h, false, style.plot_legend_bg_color, 1, style.rounding_widget);
         gmui_add_roundrect(widget.x, widget.y, widget.x + plot_w, widget.y + plot_h, true, style.plot_border_color, 1, style.rounding_widget);
         

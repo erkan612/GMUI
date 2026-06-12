@@ -51,6 +51,7 @@ function gmui_container_get(name, parent = undefined) {
 			widgets: [ ],
 			focused_widget: undefined,
 			hovered_widget: undefined,
+			current_widget: undefined,
 			
 			is_active: false,
 			is_enabled: true,
@@ -605,17 +606,17 @@ function gmui_handle_container_calls(container) {
 };
 
 function gmui_container_early_exit_cleanup(container) {
-    container.calls = [ ];
-    container.late_calls = [ ];
     container.widgets = [ ];
+	container.calls = [ ];
+	container.late_calls = [ ];
+	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
+	if (variable_struct_exists(container, "_lb_counter")) { variable_struct_remove(container, "_lb_counter"); };
     for (var i = 0; i < array_length(container.containers_sorted); i++) {
         var c = container.containers_sorted[i];
         if (!c.is_active || !c.is_enabled) { continue; };
         gmui_container_early_exit_cleanup(c);
     };
     container.containers_sorted = [ ];
-    if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
-    if (variable_struct_exists(container, "_lb_counter")) { variable_struct_remove(container, "_lb_counter"); };
 };
 
 function gmui_draw_container(container) {
@@ -630,7 +631,6 @@ function gmui_draw_container(container) {
 	if (container.use_surface && container.surface_flag && !container.surface_dirty) {
 	    draw_surface(container.surface, container.x + container.x_origin, container.y + container.y_origin);
 	    gmui_container_early_exit_cleanup(container);
-		show_debug_message("early out_" + string(current_time));
 	    return;
 	};
 	
@@ -670,9 +670,11 @@ function gmui_draw_container(container) {
 	
 	gmui_handle_container_calls(container);
 	
+	container.widgets = [ ];
 	container.calls = [ ];
 	container.late_calls = [ ];
-	container.widgets = [ ];
+	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
+	if (variable_struct_exists(container, "_lb_counter")) { variable_struct_remove(container, "_lb_counter"); };
 	
 	gmui.current_container = undefined;
 	
@@ -698,14 +700,6 @@ function gmui_draw_container(container) {
 	};
 	
 	if (container.surface_flag) { container.surface_dirty = false; };
-	
-	if (variable_struct_exists(container, "_tb_counter")) {
-		variable_struct_remove(container, "_tb_counter");
-	};
-    
-    if (variable_struct_exists(container, "_lb_counter")) {
-		variable_struct_remove(container, "_lb_counter");
-    }
 };
 
 function gmui_get_container_screen_offset(container) {
@@ -1012,4 +1006,36 @@ function gmui_container_is_hovered(name, parent = undefined) {
     var container = gmui_container_get(name, parent);
     if (container == undefined) return false;
     return container.is_mouse_hovering;
+};
+
+function gmui_group(name, func) {
+    gmui_begin_container(name);
+    func();
+    gmui_end_container();
+};
+
+function gmui_group_ex(name, width, height, func) {
+    gmui_begin_container(name, undefined, undefined, width, height);
+    func();
+    gmui_end_container();
+};
+
+function gmui_child(name, width, height, func) {
+    if (gmui_begin_child(name, width, height)) {
+        func();
+        gmui_end_child();
+        return true;
+    }
+    return false;
+};
+
+function gmui_scrolling_child(name, width, height, func) {
+    if (gmui_begin_child(name, width, height)) {
+        var container = global.gmui.current_container;
+        container.scrolling_enabled = true;
+        func();
+        gmui_end_child();
+        return true;
+    }
+    return false;
 };

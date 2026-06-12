@@ -10,8 +10,11 @@ function gmui_window_get(name) {
 		window.mask_enabled = true;
 		window.z_interaction_enabled = true;
 		window.title_handler = gmui_default_window_title_handler;
+		window.border_handler = gmui_default_window_border_handler;
 		window.z_interaction_enabled = true;
+		window.content_container = gmui_container_get(name + "_content_container", window);
 	};
+	//window.background_draw_func = gmui_default_window_background_draw_call;
 	return window;
 };
 
@@ -30,9 +33,6 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	var has_border_resize = (flags & gmui_window_flags.NO_BORDER_RESIZE) == 0;
 	var has_auto_resize_horizontal = (flags & gmui_window_flags.AUTO_RESIZE_HORIZONTAL) != 0;
 	var has_auto_resize_vertical = (flags & gmui_window_flags.AUTO_RESIZE_VERTICAL) != 0;
-	
-	var can_resize_horizontal = has_border && !has_auto_resize_horizontal;
-	var can_resize_vertical = has_border && !has_auto_resize_vertical;
 	
 	// calculate window pos and size
 	var window = gmui_window_get(name);
@@ -68,12 +68,116 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	if (window_hovering && input.m_pressed) { window.last_clicked_pos = [ input.m_x, input.m_y ]; };
 	
 	// background
-	gmui_add_rectangle(0, 0, window.width, window.height, false, style.window_title_color_idle, 1);
+	//gmui_add_rectangle(0, 0, window.width, window.height, false, style.window_title_color_idle, 1);
 	
 	// title bar
 	window.title_handler(window);
 	
+	// border
+	window.border_handler(window);
+	
+	// update inputs
+	if (window.is_title_dragging) {
+		window.x = input.m_x - window.dragging_diff_pos[0];
+		window.y = input.m_y - window.dragging_diff_pos[1];
+	}
+	
+	// window content container
+	if (!window._win_collapsed) {
+		var window_border_width = has_border ? style.window_border_width : 0;
+		
+		window.context.cursor_x = window_border_width;
+		window.context.cursor_y = has_title ? style.window_title_height : window_border_width;
+		gmui_begin_container(name + "_content_container", undefined, undefined, ww - window_border_width * 2, wh - (has_title ? style.window_title_height + window_border_width : window_border_width * 2));
+		window.content_container = gmui.current_container;
+		var content_container = window.content_container;
+		content_container.use_scissor = true;
+		content_container.scrolling_enabled = has_scroll;
+		gmui.current_container = content_container;
+		
+		return true;
+	}
+	else {
+		return false;
+	}
+	
+};
+
+function gmui_end_window() {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	
+	var container = gmui.current_container;
+	var is_collapsed = variable_struct_exists(container, "_win_collapsed");
+	var window = container.parent;
+	var flags = window.flags;
+	
+	var has_title = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
+	var has_border = (flags & gmui_window_flags.NO_BORDERS) == 0;
+	var has_auto_resize_horizontal = (flags & gmui_window_flags.AUTO_RESIZE_HORIZONTAL) != 0;
+	var has_auto_resize_vertical = (flags & gmui_window_flags.AUTO_RESIZE_VERTICAL) != 0;
+	
+	if (!is_collapsed) {
+		container = container.parent;
+		gmui_end_container();
+		//gmui.current_container = container;
+	}
+	
+	gmui_end_container_plain();
+	
+	if (has_auto_resize_horizontal) { 
+	    var new_width = window.content_container.content_width;
+	    if (has_border) new_width += style.window_border_width * 2;
+	    gmui_container_set_width(window.name, new_width);
+	};
+	
+	if (has_auto_resize_vertical) {
+	    var new_height = window.content_container.content_height;
+	    if (has_title) new_height += style.window_title_height;
+	    if (has_border) new_height += style.window_border_width * 2;
+	    gmui_container_set_height(window.name, new_height);
+	};
+};
+
+function gmui_default_window_border_handler(window) {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var input = gmui.input;
+	
+	var wx = window.x;
+	var wy = window.y;
+	var ww = window.width;
+	var wh = window.height;
+	var flags = window.flags;
+	
+	// flags
+	var has_title = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
+	var has_close = (flags & gmui_window_flags.NO_CLOSE) == 0;
+	var has_collapse = (flags & gmui_window_flags.NO_COLLAPSE) == 0;
+	var can_move_with_mouse = (flags & gmui_window_flags.NO_MOVE_WITH_MOUSE) == 0;
+	var has_scroll = (flags & gmui_window_flags.NO_SCROLL) == 0;
+	var has_border = (flags & gmui_window_flags.NO_BORDERS) == 0;
+	var has_border_resize = (flags & gmui_window_flags.NO_BORDER_RESIZE) == 0;
+	var has_auto_resize_horizontal = (flags & gmui_window_flags.AUTO_RESIZE_HORIZONTAL) != 0;
+	var has_auto_resize_vertical = (flags & gmui_window_flags.AUTO_RESIZE_VERTICAL) != 0;
+	
+	var can_resize_horizontal = has_border && !has_auto_resize_horizontal;
+	var can_resize_vertical = has_border && !has_auto_resize_vertical;
+	
+	// window interaction
+	var window_hovering = array_contains(input.hovered_container_array, window);
+	
 	// borders
+	if (has_border) {
+		var border_width = style.window_border_width;
+		gmui_add_rectangle(0, has_title ? style.window_title_height : border_width, border_width, window.height - border_width, false, style.window_title_color_idle);
+		gmui_add_rectangle(window.width - border_width, has_title ? style.window_title_height : border_width, window.width, window.height - border_width, false, style.window_title_color_idle);
+		gmui_add_rectangle(0, window.height - border_width, window.width, window.height, false, style.window_title_color_idle);
+		if (!has_title) {
+			gmui_add_rectangle(0, 0, window.width, border_width, false, style.window_title_color_idle);
+		}
+	}
+	
 	if (has_border && has_border_resize && !window._win_collapsed && input.active_widget_id == undefined && window.is_title_dragging == false) {
 		var diff = 0;
 		
@@ -161,68 +265,6 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 			}
 		}
 	}
-	
-	// update inputs
-	if (window.is_title_dragging) {
-		window.x = input.m_x - window.dragging_diff_pos[0];
-		window.y = input.m_y - window.dragging_diff_pos[1];
-	}
-	
-	// window content container
-	if (!window._win_collapsed) {
-		var window_border_width = has_border ? style.window_border_width : 0;
-		
-		window.context.cursor_x = window_border_width;
-		window.context.cursor_y = has_title ? style.window_title_height : window_border_width;
-		gmui_begin_container(name + "_content_container", undefined, undefined, ww - window_border_width * 2, wh - (has_title ? style.window_title_height + window_border_width : window_border_width * 2));
-		window.content_container = gmui.current_container;
-		var content_container = window.content_container;
-		content_container.use_scissor = true;
-		content_container.scrolling_enabled = has_scroll;
-		gmui.current_container = content_container;
-		
-		return true;
-	}
-	else {
-		return false;
-	}
-	
-};
-
-function gmui_end_window() {
-	var gmui = global.gmui;
-	var style = gmui.style;
-	
-	var container = gmui.current_container;
-	var is_collapsed = variable_struct_exists(container, "_win_collapsed");
-	var window = container.parent;
-	var flags = window.flags;
-	
-	var has_title = (flags & gmui_window_flags.NO_TITLE_BAR) == 0;
-	var has_border = (flags & gmui_window_flags.NO_BORDERS) == 0;
-	var has_auto_resize_horizontal = (flags & gmui_window_flags.AUTO_RESIZE_HORIZONTAL) != 0;
-	var has_auto_resize_vertical = (flags & gmui_window_flags.AUTO_RESIZE_VERTICAL) != 0;
-	
-	if (!is_collapsed) {
-		container = container.parent;
-		gmui_end_container();
-		//gmui.current_container = container;
-	}
-	
-	gmui_end_container_plain();
-	
-	if (has_auto_resize_horizontal) { 
-	    var new_width = window.content_container.content_width;
-	    if (has_border) new_width += style.window_border_width * 2;
-	    gmui_container_set_width(window.name, new_width);
-	};
-	
-	if (has_auto_resize_vertical) {
-	    var new_height = window.content_container.content_height;
-	    if (has_title) new_height += style.window_title_height;
-	    if (has_border) new_height += style.window_border_width * 2;
-	    gmui_container_set_height(window.name, new_height);
-	};
 };
 
 function gmui_default_window_title_handler(window) {
@@ -346,4 +388,34 @@ function gmui_default_window_title_handler(window) {
 		                      collapse_color);
 		}
 	}
+};
+
+function gmui_center_window(name) {
+    var window = gmui_container_get(name, undefined);
+    if (window != undefined) {
+        var sw = surface_get_width(application_surface);
+        var sh = surface_get_height(application_surface);
+        window.x = (sw - window.width) / 2;
+        window.y = (sh - window.height) / 2;
+    }
+};
+
+function gmui_window_toggle(name) {
+    var window = gmui_container_get(name, undefined);
+    if (window != undefined) {
+        window.is_enabled = !window.is_enabled;
+    }
+    return window.is_enabled;
+};
+
+function gmui_window_is_open(name) {
+    var window = gmui_container_get(name, undefined);
+    return window != undefined && window.is_enabled;
+};
+
+function gmui_window_change_name(window, new_name) {
+	if (!ds_map_exists(global.gmui.containers, window.name)) { return; };
+	ds_map_delete(global.gmui.containers, window.name);
+	window.name = new_name;
+	global.gmui.containers[? new_name] = window;
 };

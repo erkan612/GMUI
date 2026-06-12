@@ -165,3 +165,7 @@ function _gmui_window_menu_find_idx(menu_array, label) {
     }
     return -1;
 }
+
+function gmui_menu_item(text, ctx_name) {
+    return [text, ctx_name];
+};

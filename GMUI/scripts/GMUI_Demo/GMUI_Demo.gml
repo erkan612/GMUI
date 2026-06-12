@@ -112,7 +112,7 @@ function gmui_demo() {
                 if (gmui_button_primary("Primary Button")) {
                     gmui_toast_push("Primary action!", "success");
                 }
-                gmui_sameline();
+				
                 if (gmui_button_success("Success Button")) {
                     gmui_toast_push("Success action!", "success");
                 }
@@ -120,9 +120,13 @@ function gmui_demo() {
                 if (gmui_button_danger("Danger Button")) {
                     gmui_toast_push("Dangerous action!", "error");
                 }
-                gmui_sameline();
+				
                 if (gmui_button_ghost("Ghost Button")) {
                     gmui_toast_push("Ghost button clicked!", "info");
+                }
+                gmui_sameline();
+                if (gmui_button_invisible("Invisible Button")) {
+                    gmui_toast_push("Invisible button clicked!", "info");
                 }
                 
                 gmui_text("Button click count: " + string(button_count));
@@ -150,17 +154,25 @@ function gmui_demo() {
                 gmui_end_collapsing_header();
             }
             
-            if (gmui_begin_collapsing_header_ex("Hold Button")) {
+            if (gmui_begin_collapsing_header_ex("Hold and Repeat Buttons")) {
                 static hold_triggered = false;
+                static repeat_triggered = false;
+                static repeat_count = 0;;
                 
-                if (gmui_button_hold("Hold to Confirm")) {
+                if (gmui_button_hold("Hold to reset")) {
                     hold_triggered = true;
                     gmui_toast_push("Hold confirmed!", "success");
                 }
                 
                 if (hold_triggered) {
-                    gmui_text_colored("Action confirmed!", make_color_rgb(100, 255, 100));
+                    gmui_text_colored("Repeat counter reset!", make_color_rgb(100, 255, 100));
                 }
+				
+				repeat_triggered = gmui_button_repeat("Hold to Repeat");
+				if (repeat_triggered) {
+					repeat_count++;
+                    gmui_text_colored($"Action count: {repeat_count}", make_color_rgb(100, 255, 100));
+				}
                 gmui_end_collapsing_header();
             }
             

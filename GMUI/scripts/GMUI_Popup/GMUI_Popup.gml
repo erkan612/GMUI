@@ -1,7 +1,7 @@
 
 
 // POPUP
-function gmui_begin_popup(name, is_modal = false, width = 320) {
+function gmui_begin_popup(name, is_modal = false, width = 320, height = 160, flags = gmui_window_flags.NONE) {
     var gmui = global.gmui;
     var input = gmui.input;
     
@@ -9,7 +9,7 @@ function gmui_begin_popup(name, is_modal = false, width = 320) {
 	var is_first_frame = !ds_map_exists(gmui.containers, name);
     window = gmui_container_get(name, undefined);
 	if (is_first_frame) {
-		gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - 160 / 2, width, 160, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE); // initialize first
+		gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - height / 2, width, height, flags); // initialize first
 		gmui_end_window();
 		window.is_enabled = false;
 		var bg_container = gmui_container_get(name + "_popup_background");
@@ -34,7 +34,7 @@ function gmui_begin_popup(name, is_modal = false, width = 320) {
 		gmui_container_bring_to_front(name + "_popup_background");
 	}
 	
-	var result = gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - 160 / 2, width, 160, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE);
+	var result = gmui_begin_window(name, surface_get_width(application_surface) / 2 - width / 2, surface_get_height(application_surface) / 2 - height / 2, width, height, flags);
 	gmui_container_bring_to_front(name);
 	
 	return result;
@@ -74,4 +74,42 @@ function gmui_popup_toggle(name) {
         if (window.is_enabled) { gmui_popup_open(name); } else { gmui_popup_close(name); };
     }
     return window.is_enabled;
+};
+
+function gmui_modal_popup(name, width, height, func) {
+    if (gmui_begin_popup(name, true, width, height)) {
+        func();
+        gmui_end_popup();
+        return true;
+    }
+    return false;
+};
+
+function gmui_modal_popup_auto(name, func) {
+    var style = global.gmui.style;
+    if (gmui_begin_popup(name, true, undefined, undefined, gmui_window_flags.AUTO_RESIZE_HORIZONTAL | gmui_window_flags.AUTO_RESIZE_VERTICAL)) {
+        func();
+        gmui_end_popup();
+        return true;
+    }
+    return false;
+};
+
+function gmui_popup(name, width, height, func) {
+    if (gmui_begin_popup(name, false, width, height)) {
+        func();
+        gmui_end_popup();
+        return true;
+    }
+    return false;
+};
+
+function gmui_popup_auto(name, func) {
+    var style = global.gmui.style;
+    if (gmui_begin_popup(name, false, undefined, undefined, gmui_window_flags.AUTO_RESIZE_HORIZONTAL | gmui_window_flags.AUTO_RESIZE_VERTICAL)) {
+        func();
+        gmui_end_popup();
+        return true;
+    }
+    return false;
 };

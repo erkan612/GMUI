@@ -2,24 +2,35 @@
 
 // WIDGETS
 function gmui_begin_widget(type = "unnamed") {
-	var context = global.gmui.current_container.context;
+	var gmui = global.gmui;
+	var container = gmui.current_container;
+	var context = container.context;
 	
 	gmui_container_cursor_advance();
     
     var widget_id = context.widget_counter;
     context.widget_counter++;
 	
-	return {
-		gmui: global.gmui,
-		container: global.gmui.current_container,
-		context: global.gmui.current_container.context,
-		x: global.gmui.current_container.context.cursor_x,
-		y: global.gmui.current_container.context.cursor_y,
+	var _id = "widget_" + type + "_id_" + container.name + "_" + string(widget_id);
+	
+	var widget = undefined;
+	
+	widget = {
+		gmui: gmui,
+		container: container,
+		context: container.context,
+		x: container.context.cursor_x,
+		y: container.context.cursor_y,
 		width: 0,
 		height: 0,
 		type: type,
-		id: "widget_" + type + "_id_" + global.gmui.current_container.name + "_" + string(widget_id),
+		id: _id,
 	};
+	array_push(container.widgets, widget);
+	
+	container.current_widget = widget;
+	
+	return widget;
 };
 
 //function gmui_end_widget(widget) {
@@ -64,25 +75,22 @@ function gmui_end_widget(widget, is_interactive = false) {
     
 	global.gmui.last_widget = widget;
 	
-	if (is_interactive && gmui_widget_is_visible(widget)) {
-	    var gmui = widget.gmui;
-	    var offset = gmui_get_container_screen_offset(widget.container);
-	    var hovered = gmui_widget_is_hovered(widget, offset);
+	var gmui = widget.gmui;
+	var offset = gmui_get_container_screen_offset(widget.container);
+	var hovered = gmui_widget_is_hovered(widget, offset);
     
-	    if (hovered) {
-	        gmui.input.hovered_widget_id = widget.id;
-	    }
-		
-	    array_push(widget.container.widgets, {
-	        id: widget.id,
-	        x: widget.x,
-	        y: widget.y,
-	        width: widget.width,
-	        height: widget.height,
-	        screen_x: widget.x + offset[0],
-	        screen_y: widget.y + offset[1],
-	    });
-	};
+	if (hovered) {
+	    gmui.input.hovered_widget_id = widget.id;
+	}
+	
+	widget.screen_x = widget.x + offset[0];
+	widget.screen_y = widget.y + offset[1];
+	
+	widget.container.current_widget = undefined;
+};
+
+function gmui_widget_is_callable(widget) {
+	return gmui_widget_is_visible(widget);
 };
 
 function gmui_widget_is_visible(widget) {
