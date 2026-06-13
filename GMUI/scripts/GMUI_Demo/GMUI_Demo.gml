@@ -496,40 +496,40 @@ function gmui_demo() {
         if (gmui_begin_collapsing_header("Tree View")) {
             static tree_selected = -1;
             
-            gmui_tree_begin("demo_tree");
+            gmui_begin_tree("demo_tree");
             
-            if (gmui_tree_node("Project Files")) {
+            if (gmui_begin_tree_node("Project Files")) {
                 gmui_tree_leaf("main.gml");
                 gmui_tree_leaf("player.gml");
                 gmui_tree_leaf("enemy.gml");
                 
-                if (gmui_tree_node("Assets")) {
+                if (gmui_begin_tree_node("Assets")) {
                     gmui_tree_leaf("player_sprite.png");
                     gmui_tree_leaf("background.png");
                     gmui_tree_leaf("tileset.png");
                     
-                    if (gmui_tree_node("Audio")) {
+                    if (gmui_begin_tree_node("Audio")) {
                         gmui_tree_leaf("music.ogg");
                         gmui_tree_leaf("sfx_jump.wav");
                         gmui_tree_leaf("sfx_coin.wav");
-                        gmui_tree_node_end();
+                        gmui_end_tree_node();
                     }
-                    gmui_tree_node_end();
+                    gmui_end_tree_node();
                 }
-                gmui_tree_node_end();
+                gmui_end_tree_node();
             }
             
-            if (gmui_tree_node("Settings")) {
+            if (gmui_begin_tree_node("Settings")) {
                 gmui_tree_leaf("config.ini");
                 gmui_tree_leaf("keybinds.json");
                 gmui_tree_leaf("graphics.ini");
-                gmui_tree_node_end();
+                gmui_end_tree_node();
             }
             
             gmui_tree_leaf("README.md");
             gmui_tree_leaf("LICENSE");
             
-            gmui_tree_end();
+            gmui_end_tree();
             
             gmui_end_collapsing_header();
         }

@@ -202,41 +202,34 @@ function gmui_end_child() {
 };
 
 function gmui_cleanup() {
-	var gmui = global.gmui;
-	
-	if (ds_map_exists(gmui.cache, "_detached_tab_visual")) {
-	    ds_map_delete(gmui.cache, "_detached_tab_visual");
-	}
-	
-	ds_map_destroy(gmui.containers);
-	ds_stack_destroy(gmui.container_stack);
-	ds_stack_destroy(gmui.scissor_stack);
-	ds_map_destroy(gmui.cache);
-	
-	global.gmui = { };
+    var gmui = global.gmui;
+    
+    var top_level = ds_map_keys_to_array(gmui.containers);
+    for (var i = 0; i < array_length(top_level); i++) {
+        var container = gmui.containers[? top_level[i]];
+        gmui_container_destroy(container);
+    }
+    ds_map_destroy(gmui.containers);
+    
+    ds_stack_destroy(gmui.container_stack);
+    ds_stack_destroy(gmui.scissor_stack);
+    
+    if (ds_map_exists(gmui.cache, "_style_stack")) {
+        var style_stack = gmui.cache[? "_style_stack"];
+        if (ds_map_exists(style_stack, style_stack)) { };
+        ds_map_destroy(style_stack);
+    }
+    
+    if (ds_map_exists(gmui.cache, "_tab_group_registry")) {
+        var registry = gmui.cache[? "_tab_group_registry"];
+        var group_keys = ds_map_keys_to_array(registry);
+        for (var i = 0; i < array_length(group_keys); i++) {
+            ds_map_destroy(registry[? group_keys[i]]);
+        }
+        ds_map_destroy(registry);
+    }
+    
+    ds_map_destroy(gmui.cache);
+    
+    global.gmui = { };
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

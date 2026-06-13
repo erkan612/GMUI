@@ -844,19 +844,32 @@ function gmui_container_cursor_advance(container = undefined) {
 };
 
 function gmui_container_destroy(container) {
-	var gmui = global.gmui;
-	gmui_container_surface_free(container);
-	container.calls = [ ];
-	if (container.parent == undefined) { ds_map_delete(gmui.containers, container.name); };
-	if (ds_map_size(container.containers) > 0) {
-		var e_a = ds_map_keys_to_array(container.containers);
-		for (var i = 0; i < array_length(e_a); i++) {
-			var c = container.containers[? e_a];
-			gmui_container_destroy(c);
-		};
-	};
-	ds_map_destroy(container.containers);
-	ds_map_destroy(container.state);
+    var gmui = global.gmui;
+    
+    if (surface_exists(container.surface)) { surface_free(container.surface); }
+    if (surface_exists(container.mask_surface)) { surface_free(container.mask_surface); }
+    
+    container.calls = [];
+    container.late_calls = [];
+    container.widgets = [];
+    container.containers_sorted = [];
+    
+    if (ds_map_exists(container.state, "_tree_open_nodes")) {
+        ds_map_destroy(container.state[? "_tree_open_nodes"]);
+    }
+    
+    if (container.parent == undefined) { ds_map_delete(gmui.containers, container.name); }
+    
+    if (ds_map_size(container.containers) > 0) {
+        var e_a = ds_map_keys_to_array(container.containers);
+        for (var i = 0; i < array_length(e_a); i++) {
+            var c = container.containers[? e_a[i]];
+            gmui_container_destroy(c);
+        }
+    }
+    
+    ds_map_destroy(container.containers);
+    ds_map_destroy(container.state);
 };
 
 function gmui_container_is_active(name, parent = undefined) {

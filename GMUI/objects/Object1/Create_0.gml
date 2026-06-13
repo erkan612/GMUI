@@ -20,32 +20,32 @@ middle_panel_idx = 0;
 handle_pane = function(label) {
 	switch (label) {
 	case "Hierarchy": {
-		gmui_tree_begin("hierarchy_tree");
+		gmui_begin_tree("hierarchy_tree");
 		
-		if (gmui_tree_node("Scene", true)) {
+		if (gmui_begin_tree_node("Scene", true)) {
 			gmui_tree_leaf("Cube");
 			gmui_tree_leaf("Plane");
 			gmui_tree_leaf("Sky");
-			if (gmui_tree_node("Player")) {
+			if (gmui_begin_tree_node("Player")) {
 				gmui_tree_leaf("Weapon");
 				gmui_tree_leaf("Armor");
 				
-				gmui_tree_node_end();
+				gmui_end_tree_node();
 			}
 			
-			gmui_tree_node_end();
+			gmui_end_tree_node();
 		}
 		
-		gmui_tree_end();
+		gmui_end_tree();
 	} break;
 	case "Materials": {
-		gmui_tree_begin("materials_tree");
+		gmui_begin_tree("materials_tree");
 		
 		gmui_tree_leaf("Default_Material");
 		gmui_tree_leaf("Sky_Material");
 		gmui_tree_leaf("Character_Material");
 		
-		gmui_tree_end();
+		gmui_end_tree();
 	} break;
 	case "Inspector": {
 		gmui_text("Name:");
@@ -54,9 +54,9 @@ handle_pane = function(label) {
 		gmui_separator();
 		var columns = gmui_auto_column(
 			[
-				[ [ { widget: "text", params: [ "Position" ] } ], [ { widget: "input_float", params: [ "220.4275", undefined, undefined, undefined, 120, c_red ] }, { widget: "input_float", params: [ "12.1121", undefined, undefined, undefined, 120, c_green ] }, { widget: "input_float", params: [ "322.5431", undefined, undefined, undefined, 120, c_blue ] } ] ], 
-				[ [ { widget: "text", params: [ "Rotation" ] } ], [ { widget: "input_float", params: [ "0", undefined, undefined, undefined, 120, c_red        ] }, { widget: "input_float", params: [ "90", undefined, undefined, undefined, 120, c_green      ] }, { widget: "input_float", params: [ "180", undefined, undefined, undefined, 120, c_blue      ] } ] ], 
-				[ [ { widget: "text", params: [ "Scale"    ] } ], [ { widget: "input_float", params: [ "1", undefined, undefined, undefined, 120, c_red        ] }, { widget: "input_float", params: [ "1", undefined, undefined, undefined, 120, c_green       ] }, { widget: "input_float", params: [ "1", undefined, undefined, undefined, 120, c_blue        ] } ] ], 
+				[ [ { widget: "text", params: [ "Position" ] } ], [ { widget: "input_float", params: [ 220.4275, undefined, undefined, undefined, 120, c_red ] }, { widget: "input_float", params: [ 12.1121, undefined, undefined, undefined, 120, c_green ] }, { widget: "input_float", params: [ 322.5431, undefined, undefined, undefined, 120, c_blue ] } ] ], 
+				[ [ { widget: "text", params: [ "Rotation" ] } ], [ { widget: "input_float", params: [ 0, undefined, undefined, undefined, 120, c_red        ] }, { widget: "input_float", params: [ 90, undefined, undefined, undefined, 120, c_green      ] }, { widget: "input_float", params: [ 180, undefined, undefined, undefined, 120, c_blue      ] } ] ], 
+				[ [ { widget: "text", params: [ "Scale"    ] } ], [ { widget: "input_float", params: [ 1, undefined, undefined, undefined, 120, c_red        ] }, { widget: "input_float", params: [ 1, undefined, undefined, undefined, 120, c_green       ] }, { widget: "input_float", params: [ 1, undefined, undefined, undefined, 120, c_blue        ] } ] ], 
 			],
 			2,
 			[ 0.2, 0.6 ]

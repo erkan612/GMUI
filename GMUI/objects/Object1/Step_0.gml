@@ -42,6 +42,17 @@ if (gmui_begin_context_menu("Ctx_Edit", 300)) {
 	gmui_end_context_menu();
 }
 
+if (gmui_begin_context_menu("Ctx_Windows", 300)) {
+	gmui_context_menu_item_disabled("item disabled", "Ctrl+Ctrl");
+	gmui_context_menu_item_checkbox_disabled("checkbox disabled", true);
+	gmui_context_menu_item_checkbox_disabled("checkbox disabled", false);
+	gmui_context_menu_item_radio_disabled("radio disabled", true);
+	gmui_context_menu_item_radio_disabled("radio disabled", false);
+	gmui_begin_context_menu_sub_disabled("sub disabled");
+	
+	gmui_end_context_menu();
+}
+
 if (gmui_begin_context_menu("Ctx_Help", 300)) {
 	gmui_context_menu_item("Open Manual", "F1");
 	gmui_context_menu_item("Open Welcome Tab");
@@ -71,6 +82,7 @@ if (gmui_begin_container("editor", 0, 0, surface_get_width(application_surface),
 	gmui_window_menu([
 		gmui_menu_item("File", "Ctx_File"),
 		gmui_menu_item("Edit", "Ctx_Edit"),
+		gmui_menu_item("Windows", "Ctx_Windows"),
 		gmui_menu_item("Help", "Ctx_Help"),
 	]);
 	

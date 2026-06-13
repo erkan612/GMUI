@@ -9,7 +9,7 @@ function gmui_begin_context_menu(name, width = 160) {
     var is_first_frame = !ds_map_exists(gmui.containers, name);
     window = gmui_container_get(name, undefined);
     if (is_first_frame) {
-        gmui_begin_window(name, 0, 0, width, 320, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR);
+        gmui_begin_window(name, 0, 0, width, 20, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR);
         gmui_end_window();
         window.is_enabled = false;
         window.layer = gmui_layer.POPUP;
@@ -20,7 +20,7 @@ function gmui_begin_context_menu(name, width = 160) {
     
     if (!window.is_enabled) { return false; };
     
-    var result = gmui_begin_window(name, 0, 0, width, 320, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS);
+    var result = gmui_begin_window(name, 0, 0, width, 20, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS);
     gmui_container_bring_to_front(name);
     
     gmui_style_push_multi({
@@ -252,6 +252,40 @@ function gmui_context_menu_item(text, short_cut = undefined, font = undefined) {
     return released;
 };
 
+function gmui_context_menu_item_disabled(text, short_cut = undefined, font = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("context_menu_item");
+    var container = widget.container;
+    
+    var _font = gmui_resolve_font(widget, font);
+    var item_height = style.context_menu_item_height;
+    
+    widget.width = container.width;
+    widget.height = item_height;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var bg_color = make_color_rgb(40, 40, 40);
+        var text_color = style.text_disabled_color;
+        
+        gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + item_height, false, bg_color, 1);
+        
+        var text_size = gmui_calculate_text_size(text, _font);
+        var text_y = widget.y + (item_height - text_size[1]) / 2;
+        gmui_add_text(text, widget.x + style.context_menu_padding_h, text_y, text_color, 1, _font);
+        
+        if (short_cut != undefined) {
+            var sc_size = gmui_calculate_text_size(short_cut, _font);
+            var sc_x = widget.x + widget.width - sc_size[0] - style.context_menu_padding_h;
+            var sc_y = widget.y + (item_height - sc_size[1]) / 2;
+            gmui_add_text(short_cut, sc_x, sc_y, text_color, 1, _font);
+        }
+    }
+    
+    gmui_end_widget(widget, true);
+    return false;
+}
+
 function gmui_context_menu_item_checkbox(text, checked) {
     var gmui = global.gmui;
     var style = gmui.style;
@@ -302,6 +336,48 @@ function gmui_context_menu_item_checkbox(text, checked) {
     return checked;
 };
 
+function gmui_context_menu_item_checkbox_disabled(text, checked) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("context_menu_checkbox");
+    var container = widget.container;
+    
+    var item_height = style.context_menu_item_height;
+    var check_size = 12;
+    var check_spacing = 6;
+    
+    widget.width = container.width;
+    widget.height = item_height;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var bg_color = make_color_rgb(40, 40, 40);
+        var text_color = style.text_disabled_color;
+        
+        gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + item_height, false, bg_color, 1);
+        
+        var cbx = widget.x + style.context_menu_padding_h;
+        var cby = widget.y + (item_height - check_size) / 2;
+        
+        gmui_add_rectangle(cbx, cby, cbx + check_size, cby + check_size, false, checked ? make_color_rgb(60, 60, 80) : make_color_rgb(40, 40, 40), 1);
+        gmui_add_rectangle(cbx, cby, cbx + check_size, cby + check_size, true, make_color_rgb(60, 60, 60), 1);
+        
+        if (checked) {
+            var mx = cbx + check_size / 2;
+            var my = cby + check_size / 2;
+            gmui_add_line(cbx + 2, my, mx, cby + check_size - 2, make_color_rgb(100, 100, 100), 1.5);
+            gmui_add_line(mx, cby + check_size - 2, cbx + check_size - 2, cby + 2, make_color_rgb(100, 100, 100), 1.5);
+        }
+        
+        var text_x = cbx + check_size + check_spacing;
+        var text_size = gmui_calculate_text_size(text);
+        var text_y = widget.y + (item_height - text_size[1]) / 2;
+        gmui_add_text(text, text_x, text_y, text_color, 1);
+    }
+    
+    gmui_end_widget(widget, true);
+    return checked;
+}
+
 function gmui_context_menu_item_radio(text, selected) {
     var gmui = global.gmui;
     var style = gmui.style;
@@ -350,6 +426,45 @@ function gmui_context_menu_item_radio(text, selected) {
     gmui_end_widget(widget, true);
     return clicked;
 };
+
+function gmui_context_menu_item_radio_disabled(text, selected) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("context_menu_radio");
+    var container = widget.container;
+    
+    var item_height = style.context_menu_item_height;
+    var radio_size = 12;
+    var radio_spacing = 6;
+    
+    widget.width = container.width;
+    widget.height = item_height;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var bg_color = make_color_rgb(40, 40, 40);
+        var text_color = style.text_disabled_color;
+        
+        gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + item_height, false, bg_color, 1);
+        
+        var rx = widget.x + style.context_menu_padding_h + radio_size / 2;
+        var ry = widget.y + item_height / 2;
+        
+        gmui_add_circle(rx, ry, radio_size / 2, false, make_color_rgb(40, 40, 40), 1);
+        gmui_add_circle(rx, ry, radio_size / 2, true, make_color_rgb(60, 60, 60), 1);
+        
+        if (selected) {
+            gmui_add_circle(rx, ry, radio_size / 4, false, make_color_rgb(100, 100, 100), 1);
+        }
+        
+        var text_x = widget.x + style.context_menu_padding_h + radio_size + radio_spacing;
+        var text_size = gmui_calculate_text_size(text);
+        var text_y = widget.y + (item_height - text_size[1]) / 2;
+        gmui_add_text(text, text_x, text_y, text_color, 1);
+    }
+    
+    gmui_end_widget(widget, true);
+    return false;
+}
 
 function gmui_begin_context_menu_sub(text) {
     var gmui = global.gmui;
@@ -424,6 +539,37 @@ function gmui_begin_context_menu_sub(text) {
     
     return open;
 };
+
+function gmui_begin_context_menu_sub_disabled(text) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("context_menu_sub");
+    var container = widget.container;
+    
+    var item_height = style.context_menu_item_height;
+    
+    widget.width = container.width;
+    widget.height = item_height;
+    
+    if (gmui_widget_is_visible(widget)) {
+        var bg_color = make_color_rgb(40, 40, 40);
+        var text_color = style.text_disabled_color;
+        
+        gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + item_height, false, bg_color, 1);
+        
+        var text_size = gmui_calculate_text_size(text);
+        var text_y = widget.y + (item_height - text_size[1]) / 2;
+        gmui_add_text(text, widget.x + style.context_menu_padding_h, text_y, text_color, 1);
+        
+        var arrow_size = 8;
+        var arrow_x = widget.x + widget.width - arrow_size - 8;
+        var arrow_y = widget.y + item_height / 2;
+        gmui_add_triangle(arrow_x, arrow_y - arrow_size / 2, arrow_x + arrow_size, arrow_y, arrow_x, arrow_y + arrow_size / 2, make_color_rgb(100, 100, 100));
+    }
+    
+    gmui_end_widget(widget, true);
+    return false;
+}
 
 function gmui_end_context_menu_sub() {
     gmui_end_context_menu();

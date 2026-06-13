@@ -503,8 +503,8 @@ function gmui_style_apply_ruler
         // context menu
         context_menu_item_height: 22,
         context_menu_item_color: _bg_sec,
-        context_menu_item_color_hover: _widget_base,
-        context_menu_item_color_active: _widget_active,
+        context_menu_item_color_hover: _accent_hover,
+        context_menu_item_color_active: _accent_pressed,
         context_menu_text_color: _text_primary,
         context_menu_shortcut_color: _text_secondary,
         context_menu_arrow_color: _arrow,

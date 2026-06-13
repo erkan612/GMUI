@@ -3444,35 +3444,45 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     return value;
 };
 
-// tree view begin
-function gmui_tree_begin(name) {
+// tree view
+function gmui_begin_tree(name) {
     var gmui = global.gmui;
     var container = gmui.current_container;
 	
 	gmui_container_cursor_advance();
 	gmui_style_push("element_spacing_v", 0);
     
-    if (!ds_map_exists(container.state, "_tree_stack")) {
-        container.state[? "_tree_stack"] = [];
-        container.state[? "_tree_selected"] = undefined;
-        container.state[? "_tree_open_nodes"] = ds_map_create();
+    var sel_key    = "_tree_selected_" + name;
+    var stack_key  = "_tree_stack_" + name;
+    var nodes_key  = "_tree_open_nodes_" + name;
+
+    if (!ds_map_exists(container.state, stack_key)) {
+        container.state[? stack_key]  = [];
+        container.state[? sel_key]    = undefined;
+        container.state[? nodes_key]  = ds_map_create();
     }
     
-    var stack = container.state[? "_tree_stack"];
-    array_push(stack, { depth: 0 });
-    container.state[? "_tree_stack"] = stack;
+    var stack = container.state[? stack_key];
+    array_push(stack, { depth: 0, tree_name: name });
+    container.state[? stack_key] = stack;
+    
+    container.state[? "_tree_active"] = name;
     
     return true;
 };
 
-// tree node
-function gmui_tree_node(label, default_open = false, font = -5) {
+function gmui_begin_tree_node(label, default_open = false, font = -5) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("tree_node");
     var container = widget.container;
     
-    var stack = container.state[? "_tree_stack"];
+    var tree_name  = container.state[? "_tree_active"];
+    var stack_key  = "_tree_stack_" + tree_name;
+    var sel_key    = "_tree_selected_" + tree_name;
+    var nodes_key  = "_tree_open_nodes_" + tree_name;
+
+    var stack = container.state[? stack_key];
     if (array_length(stack) == 0) {
         gmui_end_widget(widget);
         return false;
@@ -3481,7 +3491,7 @@ function gmui_tree_node(label, default_open = false, font = -5) {
     var node_state = stack[array_length(stack) - 1];
     var _depth = node_state.depth;
     var node_id = label + "_d" + string(_depth);
-    var open_nodes = container.state[? "_tree_open_nodes"];
+    var open_nodes = container.state[? nodes_key];
     
     var open = default_open;
     if (ds_map_exists(open_nodes, node_id)) {
@@ -3514,42 +3524,32 @@ function gmui_tree_node(label, default_open = false, font = -5) {
 		var screen_arrow_x = offset[0] + arrow_x;
 		var arrow_hover = hovered && gmui.input.m_x >= screen_arrow_x && gmui.input.m_x <= screen_arrow_x + arrow_size + 4;
         
-		if (arrow_hover && gmui_input_mouse_pressed()) {
-		    container.state[? "_tree_arrow_pressed"] = node_id;
-		}
+		var arrow_press_key = "_tree_arrow_pressed_" + tree_name;
+		var label_press_key = "_tree_label_pressed_" + tree_name;
 
-		if (gmui_input_mouse_released() && container.state[? "_tree_arrow_pressed"] == node_id && arrow_hover) {
+		if (arrow_hover && gmui_input_mouse_pressed()) {
+		    container.state[? arrow_press_key] = node_id;
+		}
+		if (gmui_input_mouse_released() && container.state[? arrow_press_key] == node_id && arrow_hover) {
 		    open = !open;
 		    open_nodes[? node_id] = open;
-		    container.state[? "_tree_arrow_pressed"] = undefined;
+		    container.state[? arrow_press_key] = undefined;
 		}
-
-		if (gmui_input_mouse_released() && container.state[? "_tree_arrow_pressed"] == node_id && !arrow_hover) {
-		    container.state[? "_tree_arrow_pressed"] = undefined;
+		if (gmui_input_mouse_released() && container.state[? arrow_press_key] == node_id && !arrow_hover) {
+		    container.state[? arrow_press_key] = undefined;
 		}
 		
-        //if (arrow_hover && released) {
-        //    open = !open;
-        //    open_nodes[? node_id] = open;
-        //}
-        
-        //if (hovered && !arrow_hover && released) {
-        //    clicked = true;
-        //    container.state[? "_tree_selected"] = node_id;
-        //}
-        
 		if (hovered && !arrow_hover && gmui_input_mouse_pressed()) {
-		    container.state[? "_tree_label_pressed"] = node_id;
+		    container.state[? label_press_key] = node_id;
 		}
-
-		if (gmui_input_mouse_released() && container.state[? "_tree_label_pressed"] == node_id && hovered && !arrow_hover) {
+		if (gmui_input_mouse_released() && container.state[? label_press_key] == node_id && hovered && !arrow_hover) {
 		    clicked = true;
-		    container.state[? "_tree_selected"] = node_id;
-		    container.state[? "_tree_label_pressed"] = undefined;
+		    container.state[? sel_key] = node_id;
+		    container.state[? label_press_key] = undefined;
 		}
 		
         var bg_color = style.tree_item_color;
-        var is_selected = (container.state[? "_tree_selected"] == node_id);
+        var is_selected = (container.state[? sel_key] == node_id);
         if (is_selected) {
             bg_color = style.tree_item_selected_color;
         } else if (hovered) {
@@ -3574,24 +3574,26 @@ function gmui_tree_node(label, default_open = false, font = -5) {
     
     gmui_end_widget(widget);
     
-    //array_push(stack, { depth: _depth + 1, node_id: node_id, open: open });
 	if (open) {
-	    array_push(stack, { depth: _depth + 1, node_id: node_id, open: open });
-	    container.state[? "_tree_stack"] = stack;
+	    array_push(stack, { depth: _depth + 1, node_id: node_id, open: open, tree_name: tree_name });
+	    container.state[? stack_key] = stack;
 	}
-    container.state[? "_tree_stack"] = stack;
+    container.state[? stack_key] = stack;
     
     return open;
 };
 
-// tree leaf
 function gmui_tree_leaf(label, font = -5) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("tree_leaf");
     var container = widget.container;
     
-    var stack = container.state[? "_tree_stack"];
+    var tree_name  = container.state[? "_tree_active"];
+    var stack_key  = "_tree_stack_" + tree_name;
+    var sel_key    = "_tree_selected_" + tree_name;
+
+    var stack = container.state[? stack_key];
     if (array_length(stack) == 0) {
         gmui_end_widget(widget);
         return false;
@@ -3614,26 +3616,22 @@ function gmui_tree_leaf(label, font = -5) {
     if (gmui_widget_is_callable(widget)) {
         var hovered = gmui_widget_is_hovered(widget);
         gmui_widget_is_pressed(widget);
-        //var released = hovered && gmui_input_mouse_released();
         
+        var leaf_press_key = "_tree_leaf_pressed_" + tree_name;
+
 		if (hovered && gmui_input_mouse_pressed()) {
-		    container.state[? "_tree_leaf_pressed"] = node_id;
+		    container.state[? leaf_press_key] = node_id;
 		}
 
-		var released = gmui_input_mouse_released() && container.state[? "_tree_leaf_pressed"] == node_id && hovered;
+		var released = gmui_input_mouse_released() && container.state[? leaf_press_key] == node_id && hovered;
 
 		if (released) {
 		    clicked = true;
-		    container.state[? "_tree_selected"] = node_id;
-		    container.state[? "_tree_leaf_pressed"] = undefined;
+		    container.state[? sel_key] = node_id;
+		    container.state[? leaf_press_key] = undefined;
 		}
 		
-        //if (released) {
-        //    clicked = true;
-        //    container.state[? "_tree_selected"] = node_id;
-        //}
-        
-        var is_selected = (container.state[? "_tree_selected"] == node_id);
+        var is_selected = (container.state[? sel_key] == node_id);
         var bg_color = is_selected ? style.tree_item_selected_color : (hovered ? style.tree_item_hover_color : style.tree_item_color);
         var text_color = is_selected ? style.tree_item_selected_text_color : style.tree_item_text_color;
         
@@ -3649,22 +3647,39 @@ function gmui_tree_leaf(label, font = -5) {
     return clicked;
 };
 
-// tree node end
-function gmui_tree_node_end() {
+function gmui_end_tree_node() {
     var container = global.gmui.current_container;
-    var stack = container.state[? "_tree_stack"];
+    var tree_name = container.state[? "_tree_active"];
+    var stack_key = "_tree_stack_" + tree_name;
+    var stack = container.state[? stack_key];
     if (array_length(stack) > 1) {
         array_pop(stack);
-        container.state[? "_tree_stack"] = stack;
+        container.state[? stack_key] = stack;
     }
 };
 
-// tree end
-function gmui_tree_end() {
+function gmui_end_tree() {
     var container = global.gmui.current_container;
-    container.state[? "_tree_stack"] = [];
+    var tree_name = container.state[? "_tree_active"];
+    container.state[? "_tree_stack_" + tree_name] = [];
+    container.state[? "_tree_active"] = undefined;
 	gmui_style_pop("element_spacing_v");
 };
+
+function gmui_tree_get_selected() {
+    var container = global.gmui.current_container;
+    var tree_name = container.state[? "_tree_active"];
+    var selected_id = container.state[? "_tree_selected_" + tree_name];
+    
+    if (selected_id != undefined) {
+        var last_underscore = string_pos("_d", selected_id);
+        if (last_underscore > 0) {
+            return string_copy(selected_id, 1, last_underscore - 1);
+        }
+        return selected_id;
+    }
+    return undefined;
+}
 
 // combo box
 function gmui_combo(selected_index, items, item_count, placeholder = "Select...", width = 200) {
@@ -4907,7 +4922,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
     if (selected_index >= 0 && selected_index < array_length(tabs)) sel = selected_index;
     tab_data.selected = sel;
 	
-	if (leave_one && array_length(tab_data.labels) < 2) { enable_close = false; };
+	if (leave_one && array_length(tab_data.labels) < 2) { enable_close = false; detachable = false; enable_move = false; };
 
 	gmui_style_push_multi({
 		container_padding_h: 0,

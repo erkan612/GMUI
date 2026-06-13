@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"GMUI_Demo",
   "parent":{
-    "name":"Core",
-    "path":"folders/GMUI/Core.yy",
+    "name":"Features",
+    "path":"folders/GMUI/Features.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
