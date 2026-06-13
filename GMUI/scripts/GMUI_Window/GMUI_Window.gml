@@ -45,6 +45,7 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 		wy = y < 0 ? 0 : y;
 		ww = max(width, style.window_min_width);
 		wh = max(height, style.window_min_height);
+		gmui_container_bring_to_front(window.name);
 	};
 	
 	if (!window.is_enabled) { return false; };
@@ -83,21 +84,21 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	}
 	
 	// window content container
+	var window_border_width = has_border ? style.window_border_width : 0;
+	window.context.cursor_x = window_border_width;
+	window.context.cursor_y = has_title ? style.window_title_height : window_border_width;
+	gmui_begin_container(name + "_content_container", undefined, undefined, ww - window_border_width * 2, wh - (has_title ? style.window_title_height + window_border_width : window_border_width * 2));
+	window.content_container = gmui.current_container;
+	var content_container = window.content_container;
+	content_container.use_scissor = true;
+	content_container.scrolling_enabled = has_scroll;
+	gmui.current_container = content_container;
+	
 	if (!window._win_collapsed) {
-		var window_border_width = has_border ? style.window_border_width : 0;
-		
-		window.context.cursor_x = window_border_width;
-		window.context.cursor_y = has_title ? style.window_title_height : window_border_width;
-		gmui_begin_container(name + "_content_container", undefined, undefined, ww - window_border_width * 2, wh - (has_title ? style.window_title_height + window_border_width : window_border_width * 2));
-		window.content_container = gmui.current_container;
-		var content_container = window.content_container;
-		content_container.use_scissor = true;
-		content_container.scrolling_enabled = has_scroll;
-		gmui.current_container = content_container;
-		
 		return true;
 	}
 	else {
+		gmui_end_window();
 		return false;
 	}
 	
@@ -108,7 +109,6 @@ function gmui_end_window() {
 	var style = gmui.style;
 	
 	var container = gmui.current_container;
-	var is_collapsed = variable_struct_exists(container, "_win_collapsed");
 	var window = container.parent;
 	var flags = window.flags;
 	
@@ -117,11 +117,7 @@ function gmui_end_window() {
 	var has_auto_resize_horizontal = (flags & gmui_window_flags.AUTO_RESIZE_HORIZONTAL) != 0;
 	var has_auto_resize_vertical = (flags & gmui_window_flags.AUTO_RESIZE_VERTICAL) != 0;
 	
-	if (!is_collapsed) {
-		container = container.parent;
-		gmui_end_container();
-		//gmui.current_container = container;
-	}
+	gmui_end_container();
 	
 	gmui_end_container_plain();
 	

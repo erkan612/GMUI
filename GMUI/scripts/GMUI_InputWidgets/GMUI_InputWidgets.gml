@@ -3263,7 +3263,7 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     widget.width = sb_thickness + sb_padding * 2;
     widget.height = length;
     
-    var track_x = widget.x + sb_padding;
+    var track_x = widget.x;
     var track_y = widget.y;
     var track_width = sb_thickness;
     var track_height = length;
@@ -3362,7 +3362,7 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     widget.height = sb_thickness + sb_padding * 2;
     
     var track_x = widget.x;
-    var track_y = widget.y + sb_padding;
+    var track_y = widget.y;
     var track_width = length;
     var track_height = sb_thickness;
     
@@ -3657,13 +3657,13 @@ function gmui_tree_node_end() {
         array_pop(stack);
         container.state[? "_tree_stack"] = stack;
     }
-	gmui_style_pop("element_spacing_v");
 };
 
 // tree end
 function gmui_tree_end() {
     var container = global.gmui.current_container;
     container.state[? "_tree_stack"] = [];
+	gmui_style_pop("element_spacing_v");
 };
 
 // combo box
@@ -4898,6 +4898,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
     var drag_threshold = 4;
     var enable_move = (flags & gmui_tab_flags.NO_MOVE) == 0;
     var enable_close = (flags & gmui_tab_flags.NO_CLOSE) == 0;
+	var leave_one = (flags & gmui_tab_flags.LEAVE_ONE) != 0;
     var actual_close_size = enable_close ? close_size : 0;
     
     var detachable = (group != "");
@@ -4905,20 +4906,43 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
     var sel = clamp(tab_data.selected, 0, max(0, array_length(tabs) - 1));
     if (selected_index >= 0 && selected_index < array_length(tabs)) sel = selected_index;
     tab_data.selected = sel;
+	
+	if (leave_one && array_length(tab_data.labels) < 2) { enable_close = false; };
 
+	gmui_style_push_multi({
+		container_padding_h: 0,
+		container_padding_v: 0,
+		element_spacing_v: 0,
+		element_spacing_h: 0,
+		scrollbar_width: 3,
+		scrollbar_padding: 0,
+	});
+	var tabs_container = gmui_container_get(container.name + "_tabs_" + name, container);
+	if (!tabs_container.initialized) {
+	    tabs_container.scrolling_enabled = true;
+	    tabs_container.use_surface = false;
+	    tabs_container.use_scissor = true;
+	    tabs_container.background_enabled = false;
+	}
     if (gmui_begin_container(container.name + "_tabs_" + name, undefined, undefined, _width, _height)) {
-        var tabs_container = gmui.current_container;
-        tabs_container.use_surface = false;
-        tabs_container.use_scissor = true;
-        tabs_container.scrolling_enabled = false;
-        tabs_container.background_enabled = false;
         tabs_container.context.cursor_x = 0;
         tabs_container.context.cursor_y = 0;
+		
+        var _font = gmui_resolve_font({ type: "tabs" }, font);
+		
+		var pre_tab_count = array_length(tabs);
+		var pre_total_width = 0;
+		for (var i = 0; i < pre_tab_count; i++) {
+		    var text_size = gmui_calculate_text_size(tabs[i], _font);
+		    var tw = max(style.tab_item_min_width, text_size[0] + style.tab_item_padding_h * 2 + actual_close_size + 8);
+		    pre_total_width += tw + style.tab_item_spacing;
+		}
+		if (pre_tab_count > 0) pre_total_width -= style.tab_item_spacing;
+
         
         var widget = gmui_begin_widget("tabs");
-        widget.width = _width;
+        widget.width = max(_width, pre_total_width);
         widget.height = _height;
-        var _font = gmui_resolve_font(widget, font);
         var tab_count = array_length(tabs);
         var drag_idx = tab_data.dragging;
 
@@ -5173,7 +5197,8 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
                         }
                         gmui_end_widget(widget, true);
                         gmui_end_container();
-                        return sel;
+                        gmui_style_pop_multi([ "container_padding_h", "container_padding_v", "element_spacing_h", "element_spacing_v", "scrollbar_width", "scrollbar_padding" ]);
+						return sel;
                     }
                 }
             }
@@ -5263,6 +5288,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
                     tab_data.close_pressed = -1;
                     gmui_end_widget(widget, true);
                     gmui_end_container();
+					gmui_style_pop_multi([ "container_padding_h", "container_padding_v", "element_spacing_h", "element_spacing_v", "scrollbar_width", "scrollbar_padding" ]);
                     return sel;
                 }
             }
@@ -5277,6 +5303,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
         if (tab_count == 0) {
             gmui_end_widget(widget, true);
             gmui_end_container();
+			gmui_style_pop_multi([ "container_padding_h", "container_padding_v", "element_spacing_h", "element_spacing_v", "scrollbar_width", "scrollbar_padding" ]);
             return sel;
         }
 
@@ -5374,12 +5401,27 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
         }
         
         gmui_add_rectangle(0, _height - 1, _width, _height, false, style.color_border_dark, 1);
-        tabs_container.content_width = total_width;
+        //tabs_container.content_width = total_width;
+		if (gmui.input.hovered_container == tabs_container && gmui.input.m_wheel != 0) {
+		    var max_scroll = max(0, total_width - _width);
+		    tabs_container.scroll_x = clamp(
+		        tabs_container.scroll_x - gmui.input.m_wheel * tabs_container.scroll_speed,
+		        0, max_scroll
+		    );
+		    gmui.input.m_wheel = 0;
+		}
         gmui_end_widget(widget, true);
         gmui_end_container();
+		gmui_style_pop_multi([ "container_padding_h", "container_padding_v", "element_spacing_h", "element_spacing_v", "scrollbar_width", "scrollbar_padding" ]);
     }
     return sel;
 }
+
+function gmui_tab_get_data(name) {
+    var gmui = global.gmui;
+    var cache_key = "_tabs_data_" + name;
+	return gmui.cache[? cache_key];
+};
 
 function gmui_tab_get_label(name, index) {
     var gmui = global.gmui;
@@ -5425,6 +5467,7 @@ function gmui_tab_add(name, label) {
             drag_start_tab_x: 0,
         };
     }
+	if (array_contains(gmui.cache[? cache_key].labels, label)) { return; };
     array_push(gmui.cache[? cache_key].labels, label);
 }
 

@@ -368,34 +368,34 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
         var need_horizontal = container.content_width > container.width;
         
         if (need_vertical || need_horizontal) {
-            var sb_thickness = gmui.style.scrollbar_width + gmui.style.scrollbar_padding * 2;
+            var sb_thickness = gmui.style.scrollbar_width;
             var saved_cursor_x = container.context.cursor_x;
             var saved_cursor_y = container.context.cursor_y;
             var saved_newline = container.context.new_line_requested;
             
             if (need_vertical) {
-                container.context.cursor_x = container.width - sb_thickness - gmui.style.container_padding_h;
-                container.context.cursor_y = gmui.style.container_padding_v;
+                container.context.cursor_x = container.width - sb_thickness - gmui.style.scrollbar_padding;
+                container.context.cursor_y = gmui.style.container_padding_v + gmui.style.scrollbar_padding;
                 container.context.new_line_requested = false;
                 
                 container.scroll_y = gmui_scrollbar_vertical(
                     container.scroll_y,
                     0,
                     max(0, container.content_height - container.height),
-                    container.height - gmui.style.container_padding_v * 2
+                    container.height - gmui.style.container_padding_v * 2 - gmui.style.scrollbar_padding * 2
                 );
             }
             
             if (need_horizontal) {
-                container.context.cursor_x = gmui.style.container_padding_h;
-                container.context.cursor_y = container.height - sb_thickness - gmui.style.container_padding_v;
+                container.context.cursor_x = gmui.style.container_padding_h + gmui.style.scrollbar_padding;
+                container.context.cursor_y = container.height - sb_thickness - gmui.style.scrollbar_padding;
                 container.context.new_line_requested = false;
                 
                 container.scroll_x = gmui_scrollbar_horizontal(
                     container.scroll_x,
                     0,
                     max(0, container.content_width - container.width),
-                    container.width - gmui.style.container_padding_h * 2
+                    container.width - gmui.style.container_padding_h * 2 - gmui.style.scrollbar_padding * 2
                 );
             }
             
@@ -493,32 +493,34 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
         var need_horizontal = container.content_width > container.width;
         
         if (need_vertical || need_horizontal) {
-            var sb_thickness = gmui.style.scrollbar_width + gmui.style.scrollbar_padding * 2;
+            var sb_thickness = gmui.style.scrollbar_width;
             var saved_cursor_x = container.context.cursor_x;
             var saved_cursor_y = container.context.cursor_y;
             var saved_newline = container.context.new_line_requested;
             
             if (need_vertical) {
-                container.context.cursor_x = container.width - sb_thickness - gmui.style.container_padding_h;
-                container.context.cursor_y = gmui.style.container_padding_v;
+                container.context.cursor_x = container.width - sb_thickness - gmui.style.scrollbar_padding;
+                container.context.cursor_y = gmui.style.container_padding_v + gmui.style.scrollbar_padding;
                 container.context.new_line_requested = false;
                 
                 container.scroll_y = gmui_scrollbar_vertical(
-                    container.scroll_y, 0,
+                    container.scroll_y,
+                    0,
                     max(0, container.content_height - container.height),
-                    container.height - gmui.style.container_padding_v * 2
+                    container.height - gmui.style.container_padding_v * 2 - gmui.style.scrollbar_padding * 2
                 );
             }
             
             if (need_horizontal) {
-                container.context.cursor_x = gmui.style.container_padding_h;
-                container.context.cursor_y = container.height - sb_thickness - gmui.style.container_padding_v;
+                container.context.cursor_x = gmui.style.container_padding_h + gmui.style.scrollbar_padding;
+                container.context.cursor_y = container.height - sb_thickness - gmui.style.scrollbar_padding;
                 container.context.new_line_requested = false;
                 
                 container.scroll_x = gmui_scrollbar_horizontal(
-                    container.scroll_x, 0,
+                    container.scroll_x,
+                    0,
                     max(0, container.content_width - container.width),
-                    container.width - gmui.style.container_padding_h * 2
+                    container.width - gmui.style.container_padding_h * 2 - gmui.style.scrollbar_padding * 2
                 );
             }
             
@@ -952,8 +954,8 @@ function gmui_container_get_bounds(name, parent = undefined) {
     return [pos[0], pos[1], size[0], size[1]];
 };
 
-function gmui_container_bring_to_front(name) {
-    var container = gmui_container_get(name, undefined);
+function gmui_container_bring_to_front(name, parent = undefined) {
+    var container = gmui_container_get(name, parent);
     if (container == undefined) return;
     
     if (container.layer == 2 || container.layer == 0) return;

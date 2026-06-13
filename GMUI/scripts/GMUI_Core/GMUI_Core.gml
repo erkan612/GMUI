@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						            Version 2.2.11					                     *
+*   						            Version 2.2.41					                     *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -87,6 +87,10 @@ function gmui_init() {
 	gmui_style_init();
 	
 	global.gmui.cache[? "_last_detached_tab"] = undefined;
+};
+
+function gmui_get() {
+	return global.gmui;
 };
 
 function gmui_update() {

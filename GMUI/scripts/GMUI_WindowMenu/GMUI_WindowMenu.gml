@@ -155,6 +155,30 @@ function gmui_window_menu(menu_array) {
             gmui_add_text(label, text_x, text_y, text_color, 1);
         }
     }
+	
+	if (menu_state.any_open && input.m_pressed) {
+	    var clicked_menu_bar = point_in_rectangle(
+	        input.m_x, input.m_y,
+	        origin_sx + widget.x,
+	        origin_sy + widget.y,
+	        origin_sx + widget.x + widget.width,
+	        origin_sy + widget.y + widget.height
+	    );
+    
+	    if (!clicked_menu_bar) {
+	        var active_idx = _gmui_window_menu_find_idx(menu_array, menu_state.active_menu);
+	        if (active_idx >= 0 && menu_array[active_idx][1] != "") {
+	            var ctx_name = menu_array[active_idx][1];
+	            var ctx_win = gmui_container_get(ctx_name, undefined);
+	            var clicked_ctx = (ctx_win != undefined && ctx_win.is_mouse_hovering);
+	            if (!clicked_ctx) {
+	                gmui_context_menu_close(ctx_name);
+	                menu_state.active_menu = undefined;
+	                menu_state.any_open    = false;
+	            }
+	        }
+	    }
+	}
 
     gmui_end_widget(widget);
 }

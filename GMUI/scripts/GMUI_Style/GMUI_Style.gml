@@ -356,7 +356,7 @@ function gmui_style_apply_ruler
         scrollbar_thumb_hovered_color: _widget_hover,
         scrollbar_thumb_active_color: _accent_alt,
         scrollbar_width: 8,
-        scrollbar_padding: -8,
+        scrollbar_padding: 2,
         scrollbar_min_thumb_size: 30,
         scrollbar_rounding: _round_large,
         scroll_speed: _ruler.scroll_speed,

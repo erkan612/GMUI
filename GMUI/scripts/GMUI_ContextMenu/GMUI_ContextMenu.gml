@@ -1,7 +1,7 @@
 
 
 // CONTEXT MENU
-function gmui_begin_context_menu(name, width = 160, height = 320) {
+function gmui_begin_context_menu(name, width = 160) {
     var gmui = global.gmui;
     var input = gmui.input;
     
@@ -9,7 +9,7 @@ function gmui_begin_context_menu(name, width = 160, height = 320) {
     var is_first_frame = !ds_map_exists(gmui.containers, name);
     window = gmui_container_get(name, undefined);
     if (is_first_frame) {
-        gmui_begin_window(name, 0, 0, width, height, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR);
+        gmui_begin_window(name, 0, 0, width, 320, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR);
         gmui_end_window();
         window.is_enabled = false;
         window.layer = gmui_layer.POPUP;
@@ -20,7 +20,7 @@ function gmui_begin_context_menu(name, width = 160, height = 320) {
     
     if (!window.is_enabled) { return false; };
     
-    var result = gmui_begin_window(name, 0, 0, width, height, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS);
+    var result = gmui_begin_window(name, 0, 0, width, 320, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS);
     gmui_container_bring_to_front(name);
     
     gmui_style_push_multi({
@@ -151,14 +151,17 @@ function gmui_context_menu_get_order(ctx) {
 };
 
 function gmui_context_menu_get_order_a_to_b_forward_reversed(a, b) {
-	var order = [ ];
-	
-	var current = a;
-	while (current.state[? "ctx_sub"] != b) {
-		array_push(order, current.state[? "ctx_sub"]);
-		current = current.state[? "ctx_sub"];
-	};
-	array_push(order, current);
+    var order = [];
+    if (a == b) { return order; }
+    
+    var current = a;
+    while (current.state[? "ctx_sub"] != b) {
+        array_push(order, current.state[? "ctx_sub"]);
+        current = current.state[? "ctx_sub"];
+        if (current == undefined) { break; }
+    }
+    array_push(order, current);
+    return order;
 };
 
 function gmui_context_menu_get_order_a_to_b_backward_reversed(a, b) {
@@ -398,16 +401,25 @@ function gmui_begin_context_menu_sub(text) {
     gmui_end_widget(widget, true);
     
     if (open) {
-		var sub_menu = gmui_container_get(text, undefined); // initialize it first so it doesnt fall
-		sub_menu.state[? "ctx_previous"] = widget.container.parent;
-		var parent_window = widget.container.parent;
-		if (parent_window.state[? "ctx_sub"] != undefined && parent_window.state[? "ctx_sub"] != sub_menu) { gmui_context_menu_close_forward(sub_menu.name); };
-		sub_menu.is_enabled = true;
+        var sub_menu = gmui_container_get(text, undefined);
+        sub_menu.state[? "ctx_previous"] = widget.container.parent;
+        var parent_window = widget.container.parent;
+        
+		var current_sub = parent_window.state[? "ctx_sub"];
+		if (current_sub != undefined && current_sub != sub_menu) {
+		    var old_state_key = parent_window.state[? "ctx_sub_state_key"];
+		    if (old_state_key != undefined) {
+		        parent_window.state[? old_state_key] = false;
+		    }
+		    gmui_context_menu_close_forward(current_sub.name);
+		}
+        
+        sub_menu.is_enabled = true;
         gmui_begin_context_menu(text, widget.container.parent.width);
-		sub_menu.is_enabled = false;
-		gmui_context_menu_open(text, parent_window.x + parent_window.width, parent_window.y + widget.y);
-		parent_window.state[? "ctx_sub"] = sub_menu;
-		parent_window.state[? "ctx_sub_state_key"] = state_key;
+        sub_menu.is_enabled = false;
+        gmui_context_menu_open(text, parent_window.x + parent_window.width, parent_window.y + widget.y);
+        parent_window.state[? "ctx_sub"] = sub_menu;
+        parent_window.state[? "ctx_sub_state_key"] = state_key;
     }
     
     return open;

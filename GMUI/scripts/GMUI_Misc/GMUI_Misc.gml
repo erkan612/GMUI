@@ -606,7 +606,7 @@ function gmui_cursor_set_x(x) {
 
 function gmui_cursor_set_y(y) {
 	if (global.gmui.current_container == undefined) { return; };
-	global.gmui.current_container.context.cursor_x = y;
+	global.gmui.current_container.context.cursor_y = y;
 };
 
 function gmui_cursor_get() {
@@ -667,3 +667,11 @@ function gmui_debug_separator(font = undefined) {
 function gmui_debug_separator1() {
 	gmui_separator_text("--- DEBUG ---", font);
 };
+
+function gmui_cursor_get_line_height() {
+    return global.gmui.current_container.context.line_height;
+}
+
+function gmui_cursor_set_line_height(height) {
+    global.gmui.current_container.context.line_height = height;
+}

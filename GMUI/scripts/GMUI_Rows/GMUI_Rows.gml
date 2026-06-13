@@ -84,9 +84,11 @@ function gmui_set_row(idx) {
         row.scrolling_enabled  = true;
     }
     gmui_begin_container("_row_" + frame.state_key + "_" + string(idx), 0, 0, frame.width, row_h);
+	//global.gmui.current_container.context.cursor_x = 0;
+	//global.gmui.current_container.context.cursor_y = 0;
 }
 
-function gmui_end_rows() {
+function gmui_end_rows(resize_enabled = true) {
     var gmui  = global.gmui;
     var stack = gmui[$ "_row_stack"];
     var frame = stack[array_length(stack) - 1];
@@ -108,20 +110,24 @@ function gmui_end_rows() {
     var hovered_sep = -1;
     var y_cursor    = frame.origin_y;
 
-    for (var i = 0; i < frame.count - 1; i++) {
-        y_cursor += floor(frame.avail_h * state.ratios[i]);
-        var sx1 = offset[0] + frame.origin_x - frame.parent.scroll_x;
-        var sx2 = sx1 + frame.width;
-        var sy = offset[1] + y_cursor - frame.parent.scroll_y;
-        if (point_in_rectangle(input.m_x, input.m_y, sx1, sy - grab_pad, sx2, sy + sep_h + grab_pad) && array_contains(gmui.input.hovered_container_array, frame.parent.parent) && gmui.input.active_widget_id == undefined) {
-            hovered_sep = i;
-            if (input.m_pressed) {
-                state.drag_sep   = i;
-                state.drag_start = input.m_y;
-            }
-        }
-        y_cursor += sep_h;
-    }
+	if (resize_enabled) {
+	    for (var i = 0; i < frame.count - 1; i++) {
+	        y_cursor += floor(frame.avail_h * state.ratios[i]);
+	        var sx1 = offset[0] + frame.origin_x - frame.parent.scroll_x;
+	        var sx2 = sx1 + frame.width;
+	        var sy = offset[1] + y_cursor - frame.parent.scroll_y;
+	        if (point_in_rectangle(input.m_x, input.m_y, sx1, sy - grab_pad, sx2, sy + sep_h + grab_pad) && (frame.parent.parent == undefined
+	        ? array_contains(gmui.input.hovered_container_array, frame.parent)
+	        : array_contains(gmui.input.hovered_container_array, frame.parent.parent)) && gmui.input.active_widget_id == undefined) {
+	            hovered_sep = i;
+	            if (input.m_pressed) {
+	                state.drag_sep   = i;
+	                state.drag_start = input.m_y;
+	            }
+	        }
+	        y_cursor += sep_h;
+	    }
+	}
 
     if (state.drag_sep >= 0 && input.m_held) {
         var delta    = (input.m_y - state.drag_start) / frame.avail_h;
@@ -161,8 +167,13 @@ function gmui_end_rows() {
     frame.parent.content_width = max(frame.parent.content_width, frame.origin_x + frame.width + style.container_padding_h);
 }
 
-function gmui_auto_row(columns, row_count, row_ratios = undefined, col_width = 24) {
+function gmui_auto_row(columns, row_count, row_ratios = undefined, col_width = 28, show_separators = false, resize_enable = true) {
+    gmui_container_cursor_advance();
+    
     var rows = [];
+    var old_container_padding = global.gmui.style.container_padding_v;
+    
+    gmui_style_push("container_padding_h", 0);
     
     for (var r = 0; r < row_count; r++) {
         rows[r] = [];
@@ -201,38 +212,54 @@ function gmui_auto_row(columns, row_count, row_ratios = undefined, col_width = 2
         for (var c = 0; c < array_length(row); c++) {
             if (c > 0) gmui_sameline();
             
-            var cell = row[c];
-            if (cell == undefined) continue;
+            var cell_widgets = row[c];
+            if (cell_widgets == undefined) continue;
             
-            var widget_name = "gmui_" + cell.widget;
-            var widget_function = real(asset_get_index(widget_name));
-            
-            if (widget_function < 0) {
-                show_debug_message("auto row: unknown widget - " + widget_name);
-                continue;
+            if (show_separators && c > 0) {
+                var sep_x = global.gmui.style.container_padding_h + col_width * c - global.gmui.style.element_spacing_h / 2;
+                gmui_add_line(sep_x, 0, sep_x, row_container.height, global.gmui.style.separator_color, 1);
             }
             
-            var call_params = [];
-            if (variable_struct_exists(cell, "params")) {
-                for (var i = 0; i < array_length(cell.params); i++) {
-                    array_push(call_params, cell.params[i]);
-                }
-            }
-            
-            if (variable_struct_exists(cell, "variable_owner") && 
-                variable_struct_exists(cell, "variable_name")) {
-                var current_value = cell.variable_owner[$ cell.variable_name];
-                array_push(call_params, current_value);
+            for (var w = 0; w < array_length(cell_widgets); w++) {
+                if (w > 0) gmui_newline();
                 
-                var result = method_call(widget_function, call_params);
-                cell.variable_owner[$ cell.variable_name] = result;
-            } else {
-                method_call(widget_function, call_params);
+                var cell = cell_widgets[w];
+                
+                var widget_name = "gmui_" + cell.widget;
+                var widget_function = real(asset_get_index(widget_name));
+                
+                if (widget_function < 0) {
+                    show_debug_message("auto row: unknown widget - " + widget_name);
+                    continue;
+                }
+                
+                var call_params = [];
+                if (variable_struct_exists(cell, "params")) {
+                    for (var i = 0; i < array_length(cell.params); i++) {
+                        array_push(call_params, cell.params[i]);
+                    }
+                }
+                
+                gmui_container_cursor_advance();
+                gmui_cursor_set_x(global.gmui.style.container_padding_h + col_width * c);
+                
+                if (variable_struct_exists(cell, "variable_owner") && 
+                    variable_struct_exists(cell, "variable_name")) {
+                    var current_value = cell.variable_owner[$ cell.variable_name];
+                    array_push(call_params, current_value);
+                    
+                    var result = method_call(widget_function, call_params);
+                    cell.variable_owner[$ cell.variable_name] = result;
+                } else {
+                    method_call(widget_function, call_params);
+                }
             }
         }
     }
     
-    gmui_end_rows();
+    gmui_end_rows(resize_enable);
+    
+    gmui_style_pop("container_padding_h");
     
     return row_containers;
 }

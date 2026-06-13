@@ -32,6 +32,7 @@ enum gmui_tab_flags {
 	NONE							= 0,
 	NO_MOVE							= 1 << 0,
 	NO_CLOSE						= 1 << 1,
+	LEAVE_ONE						= 1 << 2,
 };
 
 enum gmui_layer {
