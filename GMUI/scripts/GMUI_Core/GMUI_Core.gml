@@ -39,7 +39,7 @@
 *********************************************************************************************/
 
 // CORE
-function gmui_init() {
+function gmui_init(init_profile = gmui_get_default_profile()) {
 	global.gmui = {
 		containers: ds_map_create(),
 		containers_sorted: [ ],
@@ -56,6 +56,7 @@ function gmui_init() {
 	        popup:      { base: 2500,	highest: 2500,	},
 	    },
 		window_tab_connection_counter: 0,
+		profile: init_profile,
 		
 		input: {
 			// mouse
@@ -92,6 +93,47 @@ function gmui_init() {
 
 function gmui_get() {
 	return global.gmui;
+};
+
+function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
+	var profile = undefined;
+	switch (type) {
+	case gmui_default_profile.ANIMATION: {
+		profile = {
+			column_row_properties: {
+				background_enabled: false,
+				use_surface: false,
+				use_scissor: true,
+			},
+		};
+	} break;
+	case gmui_default_profile.CACHED1: {
+		profile = {
+			column_row_properties: {
+				background_enabled: false,
+				use_surface: true,
+				surface_flag: true,
+				use_scissor: false,
+			},
+		};
+	} break;
+	case gmui_default_profile.CACHED2: {
+		profile = {
+			column_row_properties: {
+				background_enabled: true,
+				use_surface: true,
+				surface_flag: true,
+				surface_sleep: true,
+				use_scissor: false,
+			},
+		};
+	} break;
+	};
+	return profile;
+};
+
+function gmui_set_profile(profile) {
+	global.gmui.profile = profile;
 };
 
 function gmui_update() {

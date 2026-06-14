@@ -46,3 +46,8 @@ enum gmui_split_dir {
 	HORIZONTAL						= 0,
 	VERTICAL						= 1,
 };
+enum gmui_default_profile {
+	ANIMATION						= 0,
+	CACHED1							= 1,
+	CACHED2							= 2,
+};

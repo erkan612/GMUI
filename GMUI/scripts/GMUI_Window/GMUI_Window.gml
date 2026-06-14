@@ -205,7 +205,6 @@ function gmui_default_window_border_handler(window) {
 			    diff = input.m_x - window.dragging_diff_pos[0];
 			    var new_width = ww + diff;
 			    window.dragging_diff_pos = [ input.m_x, input.m_y ];
-				show_debug_message($"resizing window: {window.name} into {new_width} from {window.width}");
 			    gmui_container_set_size(window.name, new_width, wh, window.parent);
 			}
 		

@@ -22,12 +22,10 @@ function gmui_begin_wins(name, direction, ratios = undefined) {
     array_push(stack, name);
     
     if (direction == gmui_split_dir.VERTICAL) {
-        gmui_begin_columns(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1);
+        return gmui_begin_columns(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1);
     } else {
-        gmui_begin_rows(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1);
+        return gmui_begin_rows(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1);
     }
-    
-    return true;
 }
 
 function gmui_begin_wins_pane(index, properties = undefined) {
@@ -42,13 +40,27 @@ function gmui_begin_wins_pane(index, properties = undefined) {
     state.current_pane = index;
     
     if (state.direction == gmui_split_dir.VERTICAL) {
-        return gmui_set_column(index, properties);
+        return gmui_begin_column(index, properties);
     } else {
-        return gmui_set_row(index, properties);
+        return gmui_begin_row(index, properties);
     }
 }
 
 function gmui_end_wins_pane() {
+    var gmui = global.gmui;
+    var cache = gmui.cache;
+    var stack = cache[? "__split_stack"];
+    if (array_length(stack) == 0) return false;
+    
+    var last_name = stack[array_length(stack) - 1];
+    var split_id = "__split_" + last_name;
+    var state = cache[? split_id];
+    
+    if (state.direction == gmui_split_dir.VERTICAL) {
+        gmui_end_column();
+    } else {
+        gmui_end_row();
+    }
 }
 
 function gmui_end_wins() {

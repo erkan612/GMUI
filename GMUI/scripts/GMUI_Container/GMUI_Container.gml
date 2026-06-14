@@ -359,10 +359,11 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	container.context.cursor_y = style.container_padding_v;
 	container.context.line_height = 0;
 	container.context.new_line_requested = false;
-	
+    container.context.ignore_cursor_advance_once = false;
 	container.context.widget_counter = 0;
 	container.context.columns_counter = 0;
 	container.context.rows_counter = 0;
+    container.context.indent_level = 0;
 	
 	container.is_active = true;
 	
@@ -494,8 +495,6 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     container.content_width = 0;
     container.content_height = 0;
     container.is_active = true;
-    container.scrolling_enabled = true;
-    container.use_scissor = true;
     
     gmui.current_container = container;
     ds_stack_push(gmui.container_stack, container);
@@ -672,6 +671,13 @@ function gmui_draw_container(container) {
 	    } else {
 	        gmui_begin_scissor(scissor_x, scissor_y, scissor_w, scissor_h);
 	    }
+	} else if (container.use_surface) {
+	    var scissor_x = container.use_surface ? 0 : container.x + container.x_origin;
+	    var scissor_y = container.use_surface ? 0 : container.y + container.y_origin;
+	    var scissor_w = container.width;
+	    var scissor_h = container.height;
+		
+	    gmui_push_scissor_isolated(scissor_x, scissor_y, scissor_w, scissor_h);
 	};
 	
 	var use_scroll = container.scrolling_enabled;
@@ -706,7 +712,7 @@ function gmui_draw_container(container) {
 	
 	gmui.current_container = undefined;
 	
-	if (container.use_scissor) {
+	if (container.use_scissor || container.use_surface) {
 		gmui_end_scissor();
 	};
 	
@@ -944,7 +950,17 @@ function gmui_container_get_screen_pos(name, parent = undefined) {
 };
 
 function gmui_container_set_size(name, w, h, parent = undefined) {
-    var container = gmui_container_get(name, parent ?? global.gmui.current_container);
+    var container = gmui_container_get(name, parent);
+    if (container != undefined && (w != container.width || h != container.height)) {
+        container.width = max(w, 1);
+        container.height = max(h, 1);
+        if (container.use_surface) {
+			gmui_container_surface_create(container, undefined, true);
+        }
+    }
+};
+
+function gmui_container_set_size_literal(container, w, h) { // a bug seemed to occur with gml where it would reset the changes applied to the container when it goes back to the scope where it was called
     if (container != undefined && (w != container.width || h != container.height)) {
         container.width = max(w, 1);
         container.height = max(h, 1);

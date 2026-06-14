@@ -1,4 +1,4 @@
-gmui_init();
+gmui_init(gmui_get_default_profile(gmui_default_profile.CACHED2));
 
 color = c_red;
 str = "";
@@ -69,11 +69,13 @@ handle_pane = function(label) {
 			2,
 			[ 0.2, 0.6 ]
 		);
-		columns[0].background_enabled = true;
-		columns[0].background_draw_func = function(c, x1, y1, x2, y2) {
-			draw_set_color(make_color_rgb(40, 40, 40));
-			draw_rectangle(x1, y1, x2 - global.gmui.style.container_padding_h, y2, false);
-			draw_set_color(c_white);
+		if (array_length(columns) > 0) {
+			columns[0].background_enabled = true;
+			columns[0].background_draw_func = function(c, x1, y1, x2, y2) {
+				draw_set_color(make_color_rgb(40, 40, 40));
+				draw_rectangle(x1, y1, x2 - global.gmui.style.container_padding_h, y2, false);
+				draw_set_color(c_white);
+			}
 		}
 	} break;
 	case "Assets": {
