@@ -675,3 +675,7 @@ function gmui_cursor_get_line_height() {
 function gmui_cursor_set_line_height(height) {
     global.gmui.current_container.context.line_height = height;
 }
+
+function gmui_is_widget_hovering_at(widget, x, y) {
+	return point_in_rectangle(x, y, widget.screen_x, widget.screen_y, widget.screen_x + widget.width, widget.screen_y + widget.height) && array_contains(global.gmui.input.hovered_container_array, widget.container);
+};

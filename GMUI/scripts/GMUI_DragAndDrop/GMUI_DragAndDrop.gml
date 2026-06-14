@@ -105,7 +105,8 @@ function gmui_drag(info = undefined, handlers = undefined, widget = undefined) {
 		drag_info = undefined;
 	}
 	
-	if (is_clicked && (click_pos[0] != input.m_x || click_pos[1] != input.m_y) && state != "dragging") {
+	var drag_threshold = 4;
+	if (is_clicked && (abs(click_pos[0] - input.m_x) >= drag_threshold || abs(click_pos[1] - input.m_y) >= drag_threshold) && state != "dragging") {
 		state = "dragging";
 		drag_widget = _widget;
 		drag_info = info ?? drag_widget.id;
@@ -206,8 +207,9 @@ function gmui_end_drag() {
         drag_info = undefined;
     }
     
+	var drag_threshold = 4;
     var pending_widget = gmui.cache[? "__drop_pending_widget"];
-    if (is_clicked && pending_widget != undefined && (click_pos[0] != input.m_x || click_pos[1] != input.m_y) && state != "dragging") {
+    if (is_clicked && pending_widget != undefined && (abs(click_pos[0] - input.m_x) >= drag_threshold || abs(click_pos[1] - input.m_y) >= drag_threshold) && state != "dragging") {
         state = "dragging";
         drag_widget = pending_widget;
         drag_info = info ?? drag_widget.id;
@@ -239,11 +241,7 @@ function gmui_begin_drag_drop_source(widget = undefined) {
     
     var _widget = widget ?? gmui_widget_get_last();
     
-    var is_hovering = point_in_rectangle(
-        input.m_x, input.m_y,
-        _widget.screen_x, _widget.screen_y,
-        _widget.screen_x + _widget.width, _widget.screen_y + _widget.height
-    );
+    var is_hovering = gmui_is_widget_hovering_at(_widget, input.m_x, input.m_y);
     
     var is_clicked  = gmui.cache[? key_clicked];
     var click_pos   = gmui.cache[? key_click_pos];

@@ -93,6 +93,9 @@ handle_pane = function(label) {
 				    gmui_end_drag_drop_target();
 				}
 				
+				gmui_button("Drag Me!");
+				gmui_drag("Dragging Button");
+				
 				gmui_end_wins_pane();
 			}
 			

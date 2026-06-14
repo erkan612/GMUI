@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"GMUI_Drag",
+  "%Name":"GMUI_DragAndDrop",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"GMUI_Drag",
+  "name":"GMUI_DragAndDrop",
   "parent":{
     "name":"Features",
     "path":"folders/GMUI/Features.yy",
