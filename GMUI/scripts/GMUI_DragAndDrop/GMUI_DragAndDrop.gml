@@ -327,7 +327,7 @@ function gmui_begin_drag_drop_target(widget = undefined) {
         gmui_add_rectangle(
             _widget.x, _widget.y,
             _widget.x + _widget.width, _widget.y + _widget.height,
-            true, style.drag_preview_border_color, 1
+            true, style.color_accent_hover, 1
         );
     }
     
