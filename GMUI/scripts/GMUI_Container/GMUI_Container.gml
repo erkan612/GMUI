@@ -21,14 +21,14 @@ function gmui_container_get(name, parent = undefined) {
 			z_index: 0,
 			z_interaction_enabled: false,
 		
-			use_surface: false,
+			use_surface: gmui.profile.container_properties.use_surface,
 			surface: -1,
-			surface_flag: false,
+			surface_flag: gmui.profile.container_properties.surface_flag,
 			ignore_surface_flag_once: false,
 			surface_dirty: true,
-			surface_sleep: false,
+			surface_sleep: gmui.profile.container_properties.surface_sleep,
 			
-			use_scissor: true,
+			use_scissor: gmui.profile.container_properties.use_scissor,
 		
 			containers: ds_map_create(),
 			containers_sorted: [ ],

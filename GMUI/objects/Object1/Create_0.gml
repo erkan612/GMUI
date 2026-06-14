@@ -6,7 +6,7 @@ val = 0.5;
 va = 50;
 vb = 50.1234;
 
-math_set_epsilon(0.00000000);
+math_set_epsilon(0.00000001);
 
 gmui_tab_add("left_panel", "Hierarchy");
 gmui_tab_add("left_panel", "Materials");

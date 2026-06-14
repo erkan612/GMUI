@@ -5,7 +5,6 @@ function gmui_window_get(name) {
 	var window = gmui_container_get(name, undefined);
 	if (!window.initialized) {
 		window.scrolling_enabled = false;
-		window.use_scissor = false;
 		window.use_surface = true;
 		window.mask_enabled = true;
 		window.z_interaction_enabled = true;

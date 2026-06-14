@@ -4856,6 +4856,8 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
     var enable_close = (flags & gmui_tab_flags.NO_CLOSE) == 0;
 	var leave_one = (flags & gmui_tab_flags.LEAVE_ONE) != 0;
     var actual_close_size = enable_close ? close_size : 0;
+	var is_dragging_tab = false;
+	var is_detached_dragging = false;
     
     var detachable = (group != "");
     
@@ -4864,7 +4866,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
     tab_data.selected = sel;
 	
 	if (leave_one && array_length(tab_data.labels) < 2) { enable_close = false; detachable = false; enable_move = false; };
-
+	
 	gmui_style_push_multi({
 		container_padding_h: 0,
 		container_padding_v: 0,
@@ -4877,6 +4879,8 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 	if (!tabs_container.initialized) {
 	    tabs_container.scrolling_enabled = true;
 	    tabs_container.use_surface = false;
+	    tabs_container.surface_flag = false;
+	    tabs_container.surface_sleep = false;
 	    tabs_container.use_scissor = true;
 	    tabs_container.background_enabled = false;
 	}
@@ -5147,6 +5151,13 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
                         tab_data.selected = sel;
                         live_attached = true;
 						if (is_method(_handlers.on_bar_attach)) { _handlers.on_bar_attach(tab_data, other_data); };
+						//tabs_container.ignore_surface_flag_once = true;
+						//tabs_container.parent.ignore_surface_flag_once = true;
+						var current_container = tabs_container;
+						while (current_container != undefined) {
+							current_container.ignore_surface_flag_once = true;
+							current_container = current_container.parent;
+						};
                         
                         if (ds_map_exists(gmui.cache, "_detached_tab_visual")) {
                             ds_map_delete(gmui.cache, "_detached_tab_visual");
@@ -5219,6 +5230,19 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
             var new_tab_screen_x = container_screen_offset_x + tab_positions[drag_target];
             tab_data.drag_mouse_offset = gmui.input.m_x - new_tab_screen_x;
         }
+		
+		is_dragging_tab = (drag_idx >= 0 && drag_idx < tab_count && gmui.input.m_held);
+		is_detached_dragging = (ds_map_exists(gmui.cache, "_detached_tab_visual") && 
+		                        !is_undefined(gmui.cache[? "_detached_tab_visual"]) && 
+		                        gmui.cache[? "_detached_tab_visual"].active);
+
+		if (is_dragging_tab || is_detached_dragging) {
+			var current_container = tabs_container;
+			while (current_container != undefined) {
+				current_container.ignore_surface_flag_once = true;
+				current_container = current_container.parent;
+			};
+		}
 
         if (gmui.input.m_released && drag_idx >= 0) {
             if (detachable && ds_map_exists(gmui.cache, "_detached_tab_visual")) {
@@ -5368,8 +5392,8 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 		}
         gmui_end_widget(widget, true);
         gmui_end_container();
-		gmui_style_pop_multi([ "container_padding_h", "container_padding_v", "element_spacing_h", "element_spacing_v", "scrollbar_width", "scrollbar_padding" ]);
     }
+	gmui_style_pop_multi([ "container_padding_h", "container_padding_v", "element_spacing_h", "element_spacing_v", "scrollbar_width", "scrollbar_padding" ]);
     return sel;
 }
 

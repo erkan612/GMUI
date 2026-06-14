@@ -105,6 +105,12 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				use_surface: false,
 				use_scissor: true,
 			},
+			container_properties: {
+				use_surface: true,
+				surface_flag: false,
+				surface_sleep: false,
+				use_scissor: true,
+			},
 		};
 	} break;
 	case gmui_default_profile.CACHED1: {
@@ -115,16 +121,28 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				surface_flag: true,
 				use_scissor: false,
 			},
+			container_properties: {
+				use_surface: false,
+				surface_flag: true,
+				surface_sleep: false,
+				use_scissor: true,
+			},
 		};
 	} break;
 	case gmui_default_profile.CACHED2: {
 		profile = {
 			column_row_properties: {
-				background_enabled: true,
+				background_enabled: false,
 				use_surface: true,
 				surface_flag: true,
 				surface_sleep: true,
 				use_scissor: false,
+			},
+			container_properties: {
+				use_surface: false,
+				surface_flag: true,
+				surface_sleep: true,
+				use_scissor: true,
 			},
 		};
 	} break;

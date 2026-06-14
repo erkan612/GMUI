@@ -116,6 +116,9 @@ if (gmui_begin("editor", 100, 100, 1280, 720)) {
 		gmui_cursor_set_y(2);
 		
 		gmui_get().current_container.scrolling_enabled = false;
+		gmui_get().current_container.use_surface = false;
+		gmui_get().current_container.surface_flag = false;
+		gmui_get().current_container.surface_sleep = false;
 		
 		gmui_button_icon1(GMUI_Icon);
 		gmui_sameline();
