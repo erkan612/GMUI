@@ -25,6 +25,7 @@ function gmui_container_get(name, parent = undefined) {
 			surface: -1,
 			surface_flag: false,
 			surface_dirty: true,
+			surface_sleep: false,
 			
 			use_scissor: true,
 		
@@ -52,8 +53,6 @@ function gmui_container_get(name, parent = undefined) {
 			focused_widget: undefined,
 			hovered_widget: undefined,
 			current_widget: undefined,
-			widget_flag: false,
-			widget_map: ds_map_create(),
 			
 			is_active: false,
 			is_enabled: true,
@@ -309,6 +308,8 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	var container = gmui_container_get(name, gmui.current_container);
 	var style = gmui.style;
 	
+	if (container.surface_flag && array_contains(gmui.input.hovered_container_array, container)) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
+	
 	if (!container.is_enabled) { return false; };
 	
 	container.parent = gmui.current_container;
@@ -411,10 +412,10 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
         }
     }
 	
+	if (container.surface_flag && container.surface_sleep && !container.surface_dirty) { gmui_end_container(); return false; };
+	
 	container.content_width = 0;
 	container.content_height = 0;
-	
-	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
 	
 	return true;
 };
@@ -449,6 +450,8 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     var style = gmui.style;
 	
 	if (!container.is_enabled) { return false; };
+	
+	if (container.surface_flag && array_contains(gmui.input.hovered_container_array, container)) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
 	
     container.parent = undefined;
 	
@@ -539,12 +542,12 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
             container.context.new_line_requested = saved_newline;
         }
     }
+	
+	if (container.surface_flag && container.surface_sleep && !container.surface_dirty) { gmui_end_container_plain(); return false; };
     
     container.content_width = 0;
     container.content_height = 0;
 	
-	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
-    
     return true;
 };
 
@@ -595,27 +598,6 @@ function gmui_handle_container_calls(container) {
 		gmui_handle_call(call, origin_x, origin_y);
 	};
 	
-	for (var i = 0; i < array_length(container.widgets); i++) {
-		var widget = container.widgets[i];
-		if (!gmui_widget_is_visible(widget)) { continue; }
-		for (var j = 0; j < array_length(widget.calls); j++) {
-			var call = widget.calls[j];
-			var origin_x = 0;
-			var origin_y = 0;
-	
-			if (!surface_exists(container.surface)) {
-			    origin_x = container.x + container.x_origin;
-			    origin_y = container.y + container.y_origin;
-			}
-			if (container.scrolling_enabled) {
-			    origin_x -= container.scroll_x;
-			    origin_y -= container.scroll_y;
-			}
-	
-			gmui_handle_call(call, origin_x, origin_y);
-		};
-	};
-	
 	gmui.current_container = undefined;
 	
 	for (var i = 0; i < array_length(container.containers_sorted); i++) {
@@ -646,7 +628,7 @@ function gmui_handle_container_calls(container) {
 };
 
 function gmui_container_early_exit_cleanup(container) {
-    if (!container.widget_flag) { container.widgets = [ ]; };
+    container.widgets = [ ];
 	container.calls = [ ];
 	container.late_calls = [ ];
 	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
@@ -671,10 +653,8 @@ function gmui_draw_container(container) {
 	if (container.use_surface && container.surface_flag && !container.surface_dirty) {
 	    draw_surface(container.surface, container.x + container.x_origin, container.y + container.y_origin);
 	    gmui_container_early_exit_cleanup(container);
-		show_debug_message($"early exit accepted by {container.name}");
 	    return;
 	};
-	show_debug_message($"early exit declined by {container.name}");
 	
 	if (container.parent != undefined && container.parent.use_surface && container.use_surface) { surface_reset_target(); };
 	if (surface_exists(container.surface)) { surface_set_target(container.surface); draw_clear_alpha(c_black, 0); };
@@ -716,7 +696,7 @@ function gmui_draw_container(container) {
 	
 	gmui_handle_container_calls(container);
 	
-	if (!container.widget_flag) { container.widgets = [ ]; };
+	container.widgets = [ ];
 	container.calls = [ ];
 	container.late_calls = [ ];
 	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
@@ -913,7 +893,6 @@ function gmui_container_destroy(container) {
     }
     
     ds_map_destroy(container.containers);
-    ds_map_destroy(container.widget_map);
     ds_map_destroy(container.state);
 };
 
@@ -962,7 +941,7 @@ function gmui_container_get_screen_pos(name, parent = undefined) {
 };
 
 function gmui_container_set_size(name, w, h, parent = undefined) {
-    var container = gmui_container_get(name, parent);
+    var container = gmui_container_get(name, parent ?? global.gmui.current_container);
     if (container != undefined && (w != container.width || h != container.height)) {
         container.width = max(w, 1);
         container.height = max(h, 1);

@@ -3036,7 +3036,7 @@ function gmui_input_int_disabled(value, width = 120, font = undefined) {
 };
 
 // collapsing header
-function gmui_begin_collapsing_header(label, default_open = false, font = undefined) {
+function gmui_begin_collapsing_header_height(label, height, default_open = false, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("collapsing_header");
@@ -3050,7 +3050,7 @@ function gmui_begin_collapsing_header(label, default_open = false, font = undefi
     var open = container.state[? state_key];
     
     var header_width = container.width - style.container_padding_h * 2 - container.context.indent_level;
-    var header_height = style.collapsing_header_height;
+    var header_height = height;
     
     widget.width = header_width;
     widget.height = header_height;
@@ -3130,98 +3130,21 @@ function gmui_begin_collapsing_header(label, default_open = false, font = undefi
     return open;
 };
 
+function gmui_begin_collapsing_header(label, default_open = false, font = undefined) {
+	return gmui_begin_collapsing_header_height(label, global.gmui.style.collapsing_header_height);
+};
 function gmui_begin_collapsing_header_ex(label, default_open = false, font = undefined) {
-    var gmui = global.gmui;
-    var style = gmui.style;
-    var widget = gmui_begin_widget("collapsing_header");
-    var container = widget.container;
-    
-    var state_key = label + "_open";
-    if (container.state[? state_key] == undefined) {
-        container.state[? state_key] = default_open;
-    }
-    
-    var open = container.state[? state_key];
-    
-    var header_width = container.width - style.container_padding_h * 2 - container.context.indent_level;
-    var header_height = style.collapsing_header_height_ex;
-    
-    widget.width = header_width;
-    widget.height = header_height;
-	
-	var _font = gmui_resolve_font(widget, font);
-    
-	if (gmui_widget_is_callable(widget)) {
-		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
-		
-	    var hovered = mouse_interaction.is_hovering;
-	    var active = mouse_interaction.is_active;
-	    var released = mouse_interaction.is_pressed;
-    
-	    if (released) {
-	        open = !open;
-	        container.state[? state_key] = open;
-	    }
-    
-	    var bg_color = style.collapsing_header_color;
-	    if (active) {
-	        bg_color = style.collapsing_header_active_color;
-	    } else if (hovered) {
-	        bg_color = style.collapsing_header_hovered_color;
-	    }
-    
-	    gmui_add_roundrect(
-	        widget.x, widget.y,
-	        widget.x + header_width, widget.y + header_height,
-	        false,
-	        bg_color, 1,
-	        style.collapsing_header_rounding
-	    );
-    
-	    gmui_add_roundrect(
-	        widget.x, widget.y,
-	        widget.x + header_width, widget.y + header_height,
-	        true,
-	        style.collapsing_header_border_color, 1,
-	        style.collapsing_header_rounding
-	    );
-    
-		var arrow_padding = style.collapsing_header_padding;
-		var arrow_size = style.collapsing_header_arrow_size;
-		var arrow_x = widget.x + arrow_padding;
-		var arrow_y = widget.y + header_height / 2;
-		var arrow_color = style.collapsing_header_arrow_color;
-		var half = arrow_size / 2;
+	return gmui_begin_collapsing_header_height(label, global.gmui.style.collapsing_header_height_ex);
+};
 
-		if (open) {
-		    gmui_add_triangle(
-		        arrow_x, arrow_y - half,				// top-left
-		        arrow_x + arrow_size, arrow_y - half,	// top-right
-		        arrow_x + half, arrow_y + half,			// bottom-center
-		        arrow_color
-		    );
-		} else {
-		    gmui_add_triangle(
-		        arrow_x, arrow_y - half,				// top
-		        arrow_x + arrow_size, arrow_y,			// right-center
-		        arrow_x, arrow_y + half,				// bottom
-		        arrow_color
-		    );
+function gmui_sleeper_header(label, body, default_open = false, font = undefined) {
+	if (gmui_begin_collapsing_header(label, default_open)) {
+		if (gmui_begin_sleeper("sleeper_body_collapsing_header_" + label)) {
+			body();
+			gmui_end_sleeper();
 		}
-    
-	    var text_x = arrow_x + arrow_size + arrow_padding;
-	    var text_size = gmui_calculate_text_size(label);
-	    var text_y = widget.y + (header_height - text_size[1]) / 2;
-	    gmui_add_text(label, text_x, text_y, style.collapsing_header_text_color, 1, _font);
-	};
-    
-    gmui_end_widget(widget, true);
-    
-    if (open) {
-        gmui_indent(style.collapsing_header_indent);
-    }
-    
-    return open;
+		gmui_end_collapsing_header();
+	}
 };
 
 function gmui_end_collapsing_header() {
@@ -3253,15 +3176,9 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
 	
     var gmui = global.gmui;
     var style = gmui.style;
-	var container = gmui.current_container;
+    var widget = gmui_begin_widget("scrollbar_vertical");
 	
-    var widget = gmui_begin_widget("scrollbar_vertical", "main_scrollbar_" + container.name + "_vertical");
-	
-	var old_widget_flag = container.widget_flag;
-	var old_late_calls = container.late_calls_enabled;
-	
-	container.widget_flag = false;
-	container.late_calls_enabled = true;
+	widget.container.late_calls_enabled = true;
     
     var sb_thickness = thickness == undefined ? style.scrollbar_width : thickness;
     var sb_padding = style.scrollbar_padding;
@@ -3347,8 +3264,7 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     
     gmui_end_widget(widget);
 	
-	container.late_calls_enabled = old_late_calls;
-	container.widget_flag = old_widget_flag;
+	widget.container.late_calls_enabled = false;
     
     return value;
 };
@@ -3358,15 +3274,9 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
 	
     var gmui = global.gmui;
     var style = gmui.style;
-	var container = gmui.current_container;
+    var widget = gmui_begin_widget("scrollbar_horizontal");
 	
-    var widget = gmui_begin_widget("scrollbar_horizontal", "main_scrollbar_" + container.name + "_horizontal");
-	
-	var old_widget_flag = container.widget_flag;
-	var old_late_calls = container.late_calls_enabled;
-	
-	container.widget_flag = false;
-	container.late_calls_enabled = true;
+	widget.container.late_calls_enabled = true;
     
     var sb_thickness = thickness == undefined ? style.scrollbar_width : thickness;
     var sb_padding = style.scrollbar_padding;
@@ -3452,8 +3362,7 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     
     gmui_end_widget(widget);
 	
-	container.late_calls_enabled = old_late_calls;
-	container.widget_flag = old_widget_flag;
+	widget.container.late_calls_enabled = false;
     
     return value;
 };

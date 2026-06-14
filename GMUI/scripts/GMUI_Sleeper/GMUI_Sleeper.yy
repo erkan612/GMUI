@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"GMUI_Sleeper",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"GMUI_Sleeper",
+  "parent":{
+    "name":"Features",
+    "path":"folders/GMUI/Features.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

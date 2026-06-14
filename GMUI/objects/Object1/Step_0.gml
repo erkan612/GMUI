@@ -1,17 +1,24 @@
 gmui_update();
-//gmui_demo();
+gmui_demo();
 
-if (gmui_begin("test window", 100, 100, 360, 180)) {
-	gmui_get().current_container.parent.surface_flag = true;
-	gmui_get().current_container.parent.surface_sleep = true;
-	gmui_get().current_container.widget_flag = true;
-	repeat(1000) {
-		gmui_button("Click Me!");
-	}
+if (gmui_begin("test window", 100, 100, 500, 500)) {
+	//if (gmui_begin_collapsing_header("test header")) {
+	//	if (gmui_begin_sleeper("optimized zone")) {
+	//		repeat (100) { gmui_button("Click Me!"); };
+	//		gmui_end_sleeper();
+	//	}
+	//	gmui_end_collapsing_header();
+	//}
+	gmui_sleeper_header(
+		"test sleeper header", 
+		function() {
+			repeat (50) { gmui_button("Click Me!"); };
+		}
+	);
 	gmui_end();
 }
 
-/*
+
 if (gmui_begin_context_menu("Ctx_File", 300)) {
 	gmui_context_menu_item("New Project", "Ctrl+N");
 	gmui_context_menu_item("Open Project", "Ctrl+O");
@@ -89,7 +96,7 @@ if (gmui_begin_context_menu("Ctx_Help", 300)) {
 	gmui_end_context_menu();
 }
 
-if (gmui_begin_container("editor", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface))) {
+if (gmui_begin("editor", 100, 100, 1280, 720)) {
 	gmui_window_menu([
 		gmui_menu_item("File", "Ctx_File"),
 		gmui_menu_item("Edit", "Ctx_Edit"),
@@ -119,21 +126,21 @@ if (gmui_begin_container("editor", 0, 0, surface_get_width(application_surface),
 	if (gmui_begin_wins("main_split", gmui_split_dir.HORIZONTAL, [ 0.7, 0.3 ])) {
 		if (gmui_begin_wins_pane(0)) {
 			if (gmui_begin_wins("top_split", gmui_split_dir.VERTICAL, [ 0.2, 0.5, 0.3 ])) {
-				if (gmui_begin_wins_pane(0)) {
+				if (gmui_begin_wins_pane(0, { use_surface: true, surface_flag: true, surface_sleep: true })) {
 					left_panel_idx = gmui_tabs("left_panel", left_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
 					handle_pane(gmui_tab_get_label("left_panel", left_panel_idx));
 					
 					gmui_end_wins_pane();
 				}
 		
-				if (gmui_begin_wins_pane(1)) {
+				if (gmui_begin_wins_pane(1, { use_surface: true, surface_flag: true, surface_sleep: true })) {
 					middle_panel_idx = gmui_tabs("middle_panel", middle_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
 					handle_pane(gmui_tab_get_label("middle_panel", middle_panel_idx));
 					
 					gmui_end_wins_pane();
 				}
 		
-				if (gmui_begin_wins_pane(2)) {
+				if (gmui_begin_wins_pane(2, { use_surface: true, surface_flag: true, surface_sleep: true })) {
 					right_panel_idx = gmui_tabs("right_panel", right_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
 					handle_pane(gmui_tab_get_label("right_panel", right_panel_idx));
 					
@@ -146,7 +153,7 @@ if (gmui_begin_container("editor", 0, 0, surface_get_width(application_surface),
 			gmui_end_wins_pane();
 		}
 		
-		if (gmui_begin_wins_pane(1)) {
+		if (gmui_begin_wins_pane(1, { use_surface: true, surface_flag: true, surface_sleep: true })) {
 			bottom_panel_idx = gmui_tabs("bottom_panel", bottom_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
 			handle_pane(gmui_tab_get_label("bottom_panel", bottom_panel_idx));
 			
@@ -156,5 +163,5 @@ if (gmui_begin_container("editor", 0, 0, surface_get_width(application_surface),
 		gmui_end_wins();
 	}
 	
-	gmui_end_container();
+	gmui_end();
 }

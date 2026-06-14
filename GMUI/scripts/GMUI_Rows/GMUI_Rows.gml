@@ -86,11 +86,11 @@ function gmui_set_row(idx, properties = undefined) {
 		if (properties != undefined) {
 			var keys = variable_struct_get_names(properties);
 			for (var i = 0; i < array_length(keys); i++) {
-				col[$ keys[i]] = properties[$ keys[i]];
+				row[$ keys[i]] = properties[$ keys[i]];
 			};
 		}
     }
-    gmui_begin_container("_row_" + frame.state_key + "_" + string(idx), 0, 0, frame.width, row_h);
+    return gmui_begin_container("_row_" + frame.state_key + "_" + string(idx), 0, 0, frame.width, row_h);
 	//global.gmui.current_container.context.cursor_x = 0;
 	//global.gmui.current_container.context.cursor_y = 0;
 }
