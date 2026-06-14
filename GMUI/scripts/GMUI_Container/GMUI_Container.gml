@@ -53,6 +53,8 @@ function gmui_container_get(name, parent = undefined) {
 			focused_widget: undefined,
 			hovered_widget: undefined,
 			current_widget: undefined,
+			widget_flag: false,
+			widget_map: ds_map_create(),
 			
 			is_active: false,
 			is_enabled: true,
@@ -598,6 +600,27 @@ function gmui_handle_container_calls(container) {
 		gmui_handle_call(call, origin_x, origin_y);
 	};
 	
+	for (var i = 0; i < array_length(container.widgets); i++) {
+		var widget = container.widgets[i];
+		if (!gmui_widget_is_visible(widget)) { continue; }
+		for (var j = 0; j < array_length(widget.calls); j++) {
+			var call = widget.calls[j];
+			var origin_x = 0;
+			var origin_y = 0;
+	
+			if (!surface_exists(container.surface)) {
+			    origin_x = container.x + container.x_origin;
+			    origin_y = container.y + container.y_origin;
+			}
+			if (container.scrolling_enabled) {
+			    origin_x -= container.scroll_x;
+			    origin_y -= container.scroll_y;
+			}
+	
+			gmui_handle_call(call, origin_x, origin_y);
+		};
+	};
+	
 	gmui.current_container = undefined;
 	
 	for (var i = 0; i < array_length(container.containers_sorted); i++) {
@@ -628,7 +651,7 @@ function gmui_handle_container_calls(container) {
 };
 
 function gmui_container_early_exit_cleanup(container) {
-    container.widgets = [ ];
+    if (!container.widget_flag) { container.widgets = [ ]; };
 	container.calls = [ ];
 	container.late_calls = [ ];
 	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
@@ -653,8 +676,10 @@ function gmui_draw_container(container) {
 	if (container.use_surface && container.surface_flag && !container.surface_dirty) {
 	    draw_surface(container.surface, container.x + container.x_origin, container.y + container.y_origin);
 	    gmui_container_early_exit_cleanup(container);
+		show_debug_message($"early exit accepted by {container.name}");
 	    return;
 	};
+	show_debug_message($"early exit declined by {container.name}");
 	
 	if (container.parent != undefined && container.parent.use_surface && container.use_surface) { surface_reset_target(); };
 	if (surface_exists(container.surface)) { surface_set_target(container.surface); draw_clear_alpha(c_black, 0); };
@@ -696,7 +721,7 @@ function gmui_draw_container(container) {
 	
 	gmui_handle_container_calls(container);
 	
-	container.widgets = [ ];
+	if (!container.widget_flag) { container.widgets = [ ]; };
 	container.calls = [ ];
 	container.late_calls = [ ];
 	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
@@ -893,6 +918,7 @@ function gmui_container_destroy(container) {
     }
     
     ds_map_destroy(container.containers);
+    ds_map_destroy(container.widget_map);
     ds_map_destroy(container.state);
 };
 

@@ -3253,9 +3253,15 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
 	
     var gmui = global.gmui;
     var style = gmui.style;
-    var widget = gmui_begin_widget("scrollbar_vertical");
+	var container = gmui.current_container;
 	
-	widget.container.late_calls_enabled = true;
+    var widget = gmui_begin_widget("scrollbar_vertical", "main_scrollbar_" + container.name + "_vertical");
+	
+	var old_widget_flag = container.widget_flag;
+	var old_late_calls = container.late_calls_enabled;
+	
+	container.widget_flag = false;
+	container.late_calls_enabled = true;
     
     var sb_thickness = thickness == undefined ? style.scrollbar_width : thickness;
     var sb_padding = style.scrollbar_padding;
@@ -3341,7 +3347,8 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     
     gmui_end_widget(widget);
 	
-	widget.container.late_calls_enabled = false;
+	container.late_calls_enabled = old_late_calls;
+	container.widget_flag = old_widget_flag;
     
     return value;
 };
@@ -3351,9 +3358,15 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
 	
     var gmui = global.gmui;
     var style = gmui.style;
-    var widget = gmui_begin_widget("scrollbar_horizontal");
+	var container = gmui.current_container;
 	
-	widget.container.late_calls_enabled = true;
+    var widget = gmui_begin_widget("scrollbar_horizontal", "main_scrollbar_" + container.name + "_horizontal");
+	
+	var old_widget_flag = container.widget_flag;
+	var old_late_calls = container.late_calls_enabled;
+	
+	container.widget_flag = false;
+	container.late_calls_enabled = true;
     
     var sb_thickness = thickness == undefined ? style.scrollbar_width : thickness;
     var sb_padding = style.scrollbar_padding;
@@ -3439,7 +3452,8 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     
     gmui_end_widget(widget);
 	
-	widget.container.late_calls_enabled = false;
+	container.late_calls_enabled = old_late_calls;
+	container.widget_flag = old_widget_flag;
     
     return value;
 };

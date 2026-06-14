@@ -1,6 +1,17 @@
 gmui_update();
 //gmui_demo();
 
+if (gmui_begin("test window", 100, 100, 360, 180)) {
+	gmui_get().current_container.parent.surface_flag = true;
+	gmui_get().current_container.parent.surface_sleep = true;
+	gmui_get().current_container.widget_flag = true;
+	repeat(1000) {
+		gmui_button("Click Me!");
+	}
+	gmui_end();
+}
+
+/*
 if (gmui_begin_context_menu("Ctx_File", 300)) {
 	gmui_context_menu_item("New Project", "Ctrl+N");
 	gmui_context_menu_item("Open Project", "Ctrl+O");

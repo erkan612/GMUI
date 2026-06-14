@@ -6,11 +6,11 @@ function gmui_add_call(type, params) {
 	if (current_container == undefined) {
 		calls_array = gmui.calls;
 	}
-	//else if (current_container.widget_flag && current_container.current_widget != undefined) {
-	//	calls_array = current_container.current_widget.calls;
-	//}
 	else if (current_container.late_calls_enabled) {
 		calls_array = current_container.late_calls;
+	}
+	else if (current_container.widget_flag && current_container.current_widget != undefined) {
+		calls_array = current_container.current_widget.calls;
 	}
 	else {
 		calls_array = current_container.calls;
@@ -29,8 +29,8 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
     
     if (!is_struct(params)) { return; };
 	
-	if (variable_struct_exists(params, "x")) { params.x += origin_x; };
-	if (variable_struct_exists(params, "y")) { params.y += origin_y; };
+	if (variable_struct_exists(params, "x"))  { params.x += origin_x; };
+	if (variable_struct_exists(params, "y"))  { params.y += origin_y; };
 	
 	if (variable_struct_exists(params, "x1")) { params.x1 += origin_x; };
 	if (variable_struct_exists(params, "y1")) { params.y1 += origin_y; };
@@ -242,8 +242,8 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 	} break;
 	};
 	
-	if (variable_struct_exists(params, "x")) { params.x -= origin_x; };
-	if (variable_struct_exists(params, "y")) { params.y -= origin_y; };
+	if (variable_struct_exists(params, "x"))  { params.x -= origin_x; };
+	if (variable_struct_exists(params, "y"))  { params.y -= origin_y; };
 	
 	if (variable_struct_exists(params, "x1")) { params.x1 -= origin_x; };
 	if (variable_struct_exists(params, "y1")) { params.y1 -= origin_y; };
