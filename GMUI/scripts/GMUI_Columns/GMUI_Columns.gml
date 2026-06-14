@@ -90,7 +90,7 @@ function gmui_set_column(idx, properties = undefined) {
 			};
 		}
 	}
-    gmui_begin_container("_col_" + frame.state_key + "_" + string(idx), 0, 0, col_w, frame.height);
+    return gmui_begin_container("_col_" + frame.state_key + "_" + string(idx), 0, 0, col_w, frame.height);
 	//global.gmui.current_container.context.cursor_x = 0;
 	//global.gmui.current_container.context.cursor_y = 0;
 }

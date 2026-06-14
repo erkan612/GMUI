@@ -78,7 +78,12 @@ if (gmui_begin_context_menu("Ctx_Help", 300)) {
 	gmui_end_context_menu();
 }
 
-if (gmui_begin_container("editor", 0, 0, surface_get_width(application_surface), surface_get_height(application_surface))) {
+if (gmui_begin("editor", 100, 100, 1280, 720)) {
+	var editor = gmui_get().current_container.parent;
+	editor.use_surface = true;
+	editor.surface_flag = true;
+	editor.surface_sleep = true;
+	
 	gmui_window_menu([
 		gmui_menu_item("File", "Ctx_File"),
 		gmui_menu_item("Edit", "Ctx_Edit"),
@@ -145,5 +150,5 @@ if (gmui_begin_container("editor", 0, 0, surface_get_width(application_surface),
 		gmui_end_wins();
 	}
 	
-	gmui_end_container();
+	gmui_end();
 }
