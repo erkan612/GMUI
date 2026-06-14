@@ -42,10 +42,12 @@ function gmui_begin_wins_pane(index, properties = undefined) {
     state.current_pane = index;
     
     if (state.direction == gmui_split_dir.VERTICAL) {
-        return gmui_set_column(index, properties);
+        gmui_set_column(index, properties);
     } else {
-        return gmui_set_row(index, properties);
+        gmui_set_row(index, properties);
     }
+    
+    return true;
 }
 
 function gmui_end_wins_pane() {

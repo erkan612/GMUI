@@ -25,7 +25,6 @@ function gmui_container_get(name, parent = undefined) {
 			surface: -1,
 			surface_flag: false,
 			surface_dirty: true,
-			surface_sleep: false,
 			
 			use_scissor: true,
 		
@@ -310,8 +309,6 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	var container = gmui_container_get(name, gmui.current_container);
 	var style = gmui.style;
 	
-	if (container.surface_flag && array_contains(gmui.input.hovered_container_array, container)) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
-	
 	if (!container.is_enabled) { return false; };
 	
 	container.parent = gmui.current_container;
@@ -414,10 +411,10 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
         }
     }
 	
-	if (container.surface_flag && container.surface_sleep && !container.surface_dirty) { gmui_end_container(); return false; };
-	
 	container.content_width = 0;
 	container.content_height = 0;
+	
+	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
 	
 	return true;
 };
@@ -452,8 +449,6 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     var style = gmui.style;
 	
 	if (!container.is_enabled) { return false; };
-	
-	if (container.surface_flag && array_contains(gmui.input.hovered_container_array, container)) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
 	
     container.parent = undefined;
 	
@@ -544,12 +539,12 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
             container.context.new_line_requested = saved_newline;
         }
     }
-	
-	if (container.surface_flag && container.surface_sleep && !container.surface_dirty) { gmui_end_container_plain(); return false; };
     
     container.content_width = 0;
     container.content_height = 0;
 	
+	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
+    
     return true;
 };
 
