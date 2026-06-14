@@ -3137,11 +3137,16 @@ function gmui_begin_collapsing_header_ex(label, default_open = false, font = und
 	return gmui_begin_collapsing_header_height(label, global.gmui.style.collapsing_header_height_ex);
 };
 
-function gmui_sleeper_header(label, body, default_open = false, font = undefined) {
+function gmui_sleeper_header(label, body, default_open = false, is_sleeper = true, font = undefined) {
 	if (gmui_begin_collapsing_header(label, default_open)) {
-		if (gmui_begin_sleeper("sleeper_body_collapsing_header_" + label)) {
+		if (is_sleeper) {
+			if (gmui_begin_sleeper("sleeper_body_collapsing_header_" + label)) {
+				body();
+				gmui_end_sleeper();
+			}
+		}
+		else {
 			body();
-			gmui_end_sleeper();
 		}
 		gmui_end_collapsing_header();
 	}
