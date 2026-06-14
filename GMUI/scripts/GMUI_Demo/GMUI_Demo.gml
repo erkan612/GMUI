@@ -1013,6 +1013,7 @@ function gmui_style_editor() {
             tooltip_delay: 500,
             toast_duration: 3000,
             toast_position: "top-center",
+			color_deepest: c_black,
         };
     }
     
@@ -1063,6 +1064,7 @@ function gmui_style_editor() {
             tooltip_delay: 500,
             toast_duration: 3000,
             toast_position: "top-center",
+			color_deepest: c_white,
         };
     }
     

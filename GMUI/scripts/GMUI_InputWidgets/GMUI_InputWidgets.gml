@@ -3241,7 +3241,7 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
 	//    value = clamp(value, min_val, max_val);
     //}
     
-    if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held) {
+    if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held && (variable_struct_exists(widget.container, "_sb_drag_start_x") && variable_struct_exists(widget.container, "_sb_drag_start_value"))) {
         var dy = gmui.input.m_y - widget.container._sb_drag_start_y;
         var thumb_range = track_height - thumb_height;
         if (thumb_range > 0) {
@@ -3339,7 +3339,7 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     //    value = clamp(value, min_val, max_val);
     //}
     
-    if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held) {
+    if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held && (variable_struct_exists(widget.container, "_sb_drag_start_x") && variable_struct_exists(widget.container, "_sb_drag_start_value"))) {
         var dx = gmui.input.m_x - widget.container._sb_drag_start_x;
         var thumb_range = track_width - thumb_width;
         if (thumb_range > 0) {

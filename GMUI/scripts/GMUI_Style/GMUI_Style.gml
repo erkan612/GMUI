@@ -50,6 +50,9 @@ function gmui_style_apply_ruler
 		toast_error: make_color_rgb(210, 80, 80),
 		toast_info: make_color_rgb(80, 130, 220),
 		toast_warning: make_color_rgb(220, 180, 70),
+		
+		color_deepest: c_black,
+		color_highest: c_white,
 
 		/*
 		color_bg_dominant: make_color_rgb(20, 20, 26),
@@ -147,7 +150,7 @@ function gmui_style_apply_ruler
 	};
 	
     if (is_undefined(_ruler)) {
-        _ruler = default_ruler;
+        _ruler = variable_clone(default_ruler);
     }
     
     var ruler_keys = variable_struct_get_names(_ruler);
@@ -255,6 +258,9 @@ function gmui_style_apply_ruler
 		color_border:			_ruler.color_border,
 		color_border_light:		_ruler.color_border_light,
 		color_border_dark:		_ruler.color_border_dark,
+		
+		color_deepest:			_ruler.color_deepest,
+		color_highest:			_ruler.color_highest,
 		
 		spacing_tiny:			_ruler.spacing_tiny,
 		spacing_small:			_ruler.spacing_small,
@@ -459,6 +465,7 @@ function gmui_style_apply_ruler
         window_close_button_color_idle: make_color_rgb(150, 150, 150),
         window_close_button_hover_color: make_color_rgb(220, 100, 100),
         window_close_button_active_color: make_color_rgb(180, 80, 80),
+		window_close_button_color_bg: _ruler.color_deepest,
         window_collapse_button_size: 6,
         window_collapse_button_color_idle: _arrow,
         window_collapse_button_hover_color: _arrow_hover,

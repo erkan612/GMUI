@@ -205,6 +205,7 @@ function gmui_default_window_border_handler(window) {
 			    diff = input.m_x - window.dragging_diff_pos[0];
 			    var new_width = ww + diff;
 			    window.dragging_diff_pos = [ input.m_x, input.m_y ];
+				show_debug_message($"resizing window: {window.name} into {new_width} from {window.width}");
 			    gmui_container_set_size(window.name, new_width, wh, window.parent);
 			}
 		
@@ -333,8 +334,9 @@ function gmui_default_window_title_handler(window) {
 	// close button
 	if (has_close) {
 		var close_hover = window_hovering && point_in_rectangle(input.m_x, input.m_y, wx + close_x, wy + close_y, wx + close_x + close_size, wy + close_y + close_size);
+		var close_active = close_hover && input.m_held && point_in_rectangle(window.last_clicked_pos[0], window.last_clicked_pos[1], wx + close_x, wy + close_y, wx + close_x + close_size, wy + close_y + close_size);
 		var close_clicked = close_hover && input.m_released && point_in_rectangle(window.last_clicked_pos[0], window.last_clicked_pos[1], wx + close_x, wy + close_y, wx + close_x + close_size, wy + close_y + close_size);
-		var close_bg_color = make_color_rgb(0, 0, 0);
+		var close_bg_color = style.window_close_button_color_bg;
 		var cross_pad = 4;
 		
 		if (close_hover && input.m_pressed) { window.is_title_dragging = false; };
@@ -343,8 +345,9 @@ function gmui_default_window_title_handler(window) {
 			return false;
 		}
 		
-		var close_color = style.window_title_text_color;
-		if (close_hover) close_color = make_color_rgb(255, 100, 100);
+		var close_color = style.window_close_button_color_idle;
+		if (close_hover) close_color = style.window_close_button_hover_color;
+		if (close_active) close_color = style.window_close_button_active_color;
 		
 		gmui_add_roundrect(close_x, close_y, close_x + close_size, close_y + close_size, false, close_bg_color, 1, 0);
 		gmui_add_line_width(close_x + cross_pad, close_y + cross_pad, close_x + close_size - cross_pad, close_y + close_size - cross_pad, 2, close_color, 1);
