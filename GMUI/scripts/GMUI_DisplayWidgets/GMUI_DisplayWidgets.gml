@@ -641,6 +641,72 @@ function gmui_tooltip_on_hover(widget, text, width = -1, font = undefined) {
     gmui_tooltip(text, widget, width, font);
 };
 
+function gmui_set_tooltip(text, x = -1, y = -1, width = -1, font = undefined) { // immediate variationn
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var input = gmui.input;
+    var container = gmui.current_container;
+    
+    var text_size = gmui_calculate_text_size(text);
+    var tooltip_width = width > style.tooltip_min_width ? min(width, text_size[0]) : style.tooltip_min_width;
+    var tooltip_height = 0;
+    
+    gmui.current_container = undefined;
+    
+    var _font = font == -5 ? gmui.style.font : (font == undefined ? gmui.style.font_text : font);
+    var wrap_width = tooltip_width;
+    
+    var lines = [];
+    var words = string_split(text, " ");
+    var current_line = "";
+    var total_height = 0;
+    var max_line_width = 0;
+    var line_height = text_size[1];
+    
+    for (var i = 0; i < array_length(words); i++) {
+        var test_line = current_line == "" ? words[i] : current_line + " " + words[i];
+        var test_width = gmui_calculate_text_size(test_line, _font)[0];
+        
+        if (test_width <= wrap_width || current_line == "") {
+            current_line = test_line;
+        } else {
+            array_push(lines, current_line);
+            max_line_width = max(max_line_width, gmui_calculate_text_size(current_line, _font)[0]);
+            total_height += line_height + style.element_spacing_v;
+            current_line = words[i];
+        }
+    }
+    
+    if (current_line != "") {
+        array_push(lines, current_line);
+        max_line_width = max(max_line_width, gmui_calculate_text_size(current_line, _font)[0]);
+    }
+    total_height += line_height;
+    
+    tooltip_height = string_replace_all(string_replace_all(text, "\n", ""), "\r", "") == "" ? style.tooltip_padding_v * 2 : total_height;
+    
+    var tx = x < 0 || x == undefined ? input.m_x : x;
+    var ty = y < 0 || y == undefined ? input.m_y : y;
+    var sw = surface_get_width(application_surface);
+    var sh = surface_get_height(application_surface);
+    
+    if (tx + tooltip_width  > sw) { tx -= tooltip_width  + style.tooltip_mouse_padding_h; } else { tx += style.tooltip_mouse_padding_v; };
+    if (ty + tooltip_height > sh) { ty -= tooltip_height + style.tooltip_mouse_padding_v; } else { ty += style.tooltip_mouse_padding_h; };
+    
+    gmui_add_roundrect(tx, ty, tx + tooltip_width + style.tooltip_padding_h * 2, ty + tooltip_height + style.tooltip_padding_v * 2,
+                      false, style.tooltip_background_color, 1, style.tooltip_rounding);
+    gmui_add_roundrect(tx, ty, tx + tooltip_width + style.tooltip_padding_h * 2, ty + tooltip_height + style.tooltip_padding_v * 2,
+                      true, style.tooltip_border_color, 1, style.tooltip_rounding);
+    
+    var line_y = ty + style.tooltip_padding_v;
+    for (var i = 0; i < array_length(lines); i++) {
+        gmui_add_text(lines[i], tx + style.tooltip_padding_h, line_y, style.text_color, style.text_alpha, _font);
+        line_y += line_height + style.element_spacing_v;
+    }
+    
+    gmui.current_container = container;
+};
+
 // toast notification
 function gmui_toast_push(message, type = "info", duration = -1) {
     var gmui = global.gmui;

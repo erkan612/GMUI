@@ -566,6 +566,16 @@ function gmui_style_apply_ruler
         progress_circular_fill_color: _accent_alt,
         progress_circular_text_color: _text_primary,
 		progress_circular_segments: 16,
+		
+		// drag
+		drag_preview_bg_color:     _widget_active,
+		drag_preview_border_color: _ruler.color_border,
+		drag_preview_text_color:   _text_primary,
+		drag_preview_padding_h:    8,
+		drag_preview_padding_v:    4,
+		drag_preview_offset_x:     12,
+		drag_preview_offset_y:     12,
+		drag_preview_alpha:        0.85,
         
         // combo box
         combo_height: 24,

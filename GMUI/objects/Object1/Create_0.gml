@@ -69,6 +69,35 @@ handle_pane = function(label) {
 		}
 	} break;
 	case "Assets": {
+		if (gmui_begin_wins("bottom_split", gmui_split_dir.VERTICAL, [ 0.2, 0.8 ])) {
+			if (gmui_begin_wins_pane(0)) {
+				gmui_end_wins_pane();
+			}
+			
+			if (gmui_begin_wins_pane(1)) {
+				// source
+				gmui_selectable("abc.txt", false);
+				if (gmui_begin_drag_drop_source()) {
+				    gmui_set_drag_drop_payload("FILE_ITEM", "C:/");
+					gmui_set_tooltip("abc.txt");
+				    gmui_end_drag_drop_source();
+				}
+
+				// target
+				gmui_selectable("def.txt", false);
+				if (gmui_begin_drag_drop_target()) {
+				    var payload = gmui_accept_drag_drop_payload("FILE_ITEM");
+				    if (payload != undefined) {
+						show_debug_message($"dropped payload: {payload}");
+				    }
+				    gmui_end_drag_drop_target();
+				}
+				
+				gmui_end_wins_pane();
+			}
+			
+			gmui_end_wins();
+		}
 	} break;
 	case "Output": {
 	} break;

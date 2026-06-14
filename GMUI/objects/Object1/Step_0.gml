@@ -139,18 +139,6 @@ if (gmui_begin_container("editor", 0, 0, surface_get_width(application_surface),
 			bottom_panel_idx = gmui_tabs("bottom_panel", bottom_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
 			handle_pane(gmui_tab_get_label("bottom_panel", bottom_panel_idx));
 			
-			if (gmui_begin_wins("bottom_split", gmui_split_dir.VERTICAL, [ 0.2, 0.8 ])) {
-				if (gmui_begin_wins_pane(0)) {
-					gmui_end_wins_pane();
-				}
-				
-				if (gmui_begin_wins_pane(1)) {
-					gmui_end_wins_pane();
-				}
-				
-				gmui_end_wins();
-			}
-			
 			gmui_end_wins_pane();
 		}
 		

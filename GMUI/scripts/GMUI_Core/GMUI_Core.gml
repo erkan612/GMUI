@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						            Version 2.2.41					                     *
+*   						            Version 2.3.55					                     *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -153,6 +153,14 @@ function gmui_draw_gui() {
 	
 	_gmui_draw_detached_tab();
 	
+	var widget_drag_state = gmui.cache[? "__widget_drag_state"];
+	var widget_drag_draw = gmui.cache[? "__widget_drag_draw"];
+	var widget_drag_widget = gmui.cache[? "__widget_drag_widget"];
+	var widget_drag_info = gmui.cache[? "__widget_drag_info"];
+	if (widget_drag_state != undefined && widget_drag_state == "dragging" && widget_drag_draw != undefined && widget_drag_widget != undefined) {
+		widget_drag_draw(widget_drag_info, widget_drag_widget);
+	}
+	
 	for (var i = 0; i < array_length(gmui.calls); i++) {
 		var call = gmui.calls[i];
 		gmui_handle_call(call);
@@ -174,6 +182,19 @@ function gmui_draw_gui() {
 	
 	if (input.m_released) {
 		input.active_widget_id = undefined;
+	}
+	
+	var dnd_state = gmui.cache[? "__dnd_state"];
+	if (dnd_state == "dropped") {
+	    if (gmui.cache[? "__dnd_consumed"] == true || true) {
+	        gmui.cache[? "__dnd_state"] = "";
+	        gmui.cache[? "__dnd_widget"] = undefined;
+	        gmui.cache[? "__dnd_target_widget"] = undefined;
+	        gmui.cache[? "__dnd_payload_type"] = undefined;
+	        gmui.cache[? "__dnd_payload_data"] = undefined;
+	        gmui.cache[? "__dnd_consumed"] = false;
+	        gmui.cache[? "__dnd_pending_widget"] = undefined;
+	    }
 	}
 };
 

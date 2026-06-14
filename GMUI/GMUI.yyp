@@ -39,6 +39,7 @@
     {"id":{"name":"GMUI_Demo","path":"scripts/GMUI_Demo/GMUI_Demo.yy",},},
     {"id":{"name":"GMUI_DisplayWidgets","path":"scripts/GMUI_DisplayWidgets/GMUI_DisplayWidgets.yy",},},
     {"id":{"name":"GMUI_Docking","path":"scripts/GMUI_Docking/GMUI_Docking.yy",},},
+    {"id":{"name":"GMUI_Drag","path":"scripts/GMUI_Drag/GMUI_Drag.yy",},},
     {"id":{"name":"GMUI_Enums","path":"scripts/GMUI_Enums/GMUI_Enums.yy",},},
     {"id":{"name":"GMUI_Input","path":"scripts/GMUI_Input/GMUI_Input.yy",},},
     {"id":{"name":"GMUI_InputWidgets","path":"scripts/GMUI_InputWidgets/GMUI_InputWidgets.yy",},},
