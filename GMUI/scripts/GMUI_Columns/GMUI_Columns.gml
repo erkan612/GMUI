@@ -50,7 +50,7 @@ function gmui_begin_columns(count, ratios = undefined, height = 200) {
     });
 }
 
-function gmui_set_column(idx) {
+function gmui_set_column(idx, properties = undefined) {
     var gmui  = global.gmui;
     var frame = gmui[$ "_col_stack"][array_length(gmui[$ "_col_stack"]) - 1];
     var state = frame.state;
@@ -82,6 +82,13 @@ function gmui_set_column(idx) {
 	    col.use_surface        = false;
 	    col.use_scissor        = true;
 	    col.scrolling_enabled  = true;
+		
+		if (properties != undefined) {
+			var keys = variable_struct_get_names(properties);
+			for (var i = 0; i < array_length(keys); i++) {
+				col[$ keys[i]] = properties[$ keys[i]];
+			};
+		}
 	}
     gmui_begin_container("_col_" + frame.state_key + "_" + string(idx), 0, 0, col_w, frame.height);
 	//global.gmui.current_container.context.cursor_x = 0;

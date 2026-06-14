@@ -308,7 +308,7 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	var style = gmui.style;
 	
 	if (!container.is_enabled) { return false; };
-    
+	
 	container.parent = gmui.current_container;
 	
 	//if (array_contains(gmui.input.hovered_container_array, container) && container.parent == undefined && gmui.input.m_pressed && container.z_interaction_enabled && ds_map_size(gmui.containers) > 0) {
@@ -337,8 +337,12 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	
 	container.x = _x;
 	container.y = _y;
-	container.width = width;
-	container.height = height;
+	if (container.width != width || container.height != height) {
+	    container.width = width;
+	    container.height = height;
+		gmui_container_surface_create(container, undefined, true);
+		if (container.surface_flag) { container.surface_dirty = true; };
+	};
 	
 	if (!container.initialized) { container.initialized = true; };
 	
@@ -408,7 +412,7 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	container.content_width = 0;
 	container.content_height = 0;
 	
-	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; };
+	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
 	
 	return true;
 };
@@ -452,8 +456,12 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     
     container.x = x;
     container.y = y;
-    container.width = width;
-    container.height = height;
+	if (container.width != width || container.height != height) {
+	    container.width = width;
+	    container.height = height;
+		gmui_container_surface_create(container, undefined, true);
+		if (container.surface_flag) { container.surface_dirty = true; };
+	};
 	
 	if (!container.initialized) { container.initialized = true; };
 	
@@ -533,7 +541,7 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
     container.content_width = 0;
     container.content_height = 0;
 	
-	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; };
+	if (container.surface_flag && container.is_mouse_hovering) { container.surface_dirty = true; if (variable_struct_exists(container, "content_container") && container.content_container.surface_flag) { container.content_container.surface_dirty = true; }; };
     
     return true;
 };
@@ -547,7 +555,14 @@ function gmui_end_container_plain() {
 };
 
 function gmui_container_surface_create(container, format = surface_rgba8unorm, refresh = false) {
-	if (surface_exists(container.surface)) { if (refresh) { surface_free(container.surface); } else { return; }; };
+	if (surface_exists(container.surface)) {
+		if (refresh) {
+			surface_free(container.surface);
+		}
+		else {
+			return;
+		};
+	};
 	container.surface = surface_create(container.width, container.height, format);
 };
 
@@ -640,12 +655,16 @@ function gmui_draw_container(container) {
 	if (surface_exists(container.surface)) { surface_set_target(container.surface); draw_clear_alpha(c_black, 0); };
 	
 	if (container.use_scissor) {
-		var scissor_x = container.use_surface ? 0 : container.x + container.x_origin;
-		var scissor_y = container.use_surface ? 0 : container.y + container.y_origin;
-		var scissor_w = container.width;
-		var scissor_h = container.height;
-		
-		gmui_begin_scissor(scissor_x, scissor_y, scissor_w, scissor_h);
+	    var scissor_x = container.use_surface ? 0 : container.x + container.x_origin;
+	    var scissor_y = container.use_surface ? 0 : container.y + container.y_origin;
+	    var scissor_w = container.width;
+	    var scissor_h = container.height;
+    
+	    if (container.use_surface) {
+	        gmui_push_scissor_isolated(scissor_x, scissor_y, scissor_w, scissor_h);
+	    } else {
+	        gmui_begin_scissor(scissor_x, scissor_y, scissor_w, scissor_h);
+	    }
 	};
 	
 	var use_scroll = container.scrolling_enabled;

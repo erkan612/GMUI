@@ -30,7 +30,7 @@ function gmui_begin_wins(name, direction, ratios = undefined) {
     return true;
 }
 
-function gmui_begin_wins_pane(index) {
+function gmui_begin_wins_pane(index, properties = undefined) {
     var gmui = global.gmui;
     var cache = gmui.cache;
     var stack = cache[? "__split_stack"];
@@ -42,9 +42,9 @@ function gmui_begin_wins_pane(index) {
     state.current_pane = index;
     
     if (state.direction == gmui_split_dir.VERTICAL) {
-        gmui_set_column(index);
+        gmui_set_column(index, properties);
     } else {
-        gmui_set_row(index);
+        gmui_set_row(index, properties);
     }
     
     return true;

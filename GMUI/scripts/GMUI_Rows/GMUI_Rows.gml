@@ -50,7 +50,7 @@ function gmui_begin_rows(count, ratios = undefined, width = 200) {
     });
 }
 
-function gmui_set_row(idx) {
+function gmui_set_row(idx, properties = undefined) {
     var gmui  = global.gmui;
     var frame = gmui[$ "_row_stack"][array_length(gmui[$ "_row_stack"]) - 1];
     var state = frame.state;
@@ -82,6 +82,13 @@ function gmui_set_row(idx) {
         row.use_surface        = false;
         row.use_scissor        = true;
         row.scrolling_enabled  = true;
+		
+		if (properties != undefined) {
+			var keys = variable_struct_get_names(properties);
+			for (var i = 0; i < array_length(keys); i++) {
+				col[$ keys[i]] = properties[$ keys[i]];
+			};
+		}
     }
     gmui_begin_container("_row_" + frame.state_key + "_" + string(idx), 0, 0, frame.width, row_h);
 	//global.gmui.current_container.context.cursor_x = 0;

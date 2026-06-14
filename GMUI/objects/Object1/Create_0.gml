@@ -34,6 +34,8 @@ handle_pane = function(label) {
 			}
 			
 			gmui_end_tree_node();
+			
+			gmui_spinner();
 		}
 		
 		gmui_end_tree();

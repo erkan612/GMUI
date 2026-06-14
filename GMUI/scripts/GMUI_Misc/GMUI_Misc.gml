@@ -110,6 +110,15 @@ function gmui_begin_scissor(x, y, w, h) {
 	);
 }
 
+function gmui_push_scissor_isolated(x, y, w, h) {
+    var gmui = global.gmui;
+    
+    var final_scissor = { x: x, y: y, w: w, h: h };
+    ds_stack_push(gmui.scissor_stack, final_scissor);
+    
+    gpu_set_scissor(x, y, w, h);
+}
+
 function gmui_end_scissor() {
 	var gmui = global.gmui;
 	
