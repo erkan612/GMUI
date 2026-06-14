@@ -86,7 +86,9 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	var window_border_width = has_border ? style.window_border_width : 0;
 	window.context.cursor_x = window_border_width;
 	window.context.cursor_y = has_title ? style.window_title_height : window_border_width;
-	if (!gmui_begin_container(name + "_content_container", undefined, undefined, ww - window_border_width * 2, wh - (has_title ? style.window_title_height + window_border_width : window_border_width * 2))) { gmui_end_container_plain(); return false; };
+	var nested_width = ww - window_border_width * 2;
+	var nested_height = wh - (has_title ? style.window_title_height + window_border_width : window_border_width * 2);
+	if (window._win_collapsed || !gmui_begin_container(name + "_content_container", undefined, undefined, nested_width, nested_height)) { gmui_end_container_plain(); return false; };
 	window.content_container = gmui.current_container;
 	var content_container = window.content_container;
 	content_container.use_scissor = true;

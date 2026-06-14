@@ -15,6 +15,11 @@
     {"$GMFolder":"","%Name":"Features","folderPath":"folders/GMUI/Features.yy","name":"Features","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Shaders","folderPath":"folders/GMUI/Shaders.yy","name":"Shaders","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Widgets","folderPath":"folders/GMUI/Widgets.yy","name":"Widgets","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"Samples","folderPath":"folders/Samples.yy","name":"Samples","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"A-BasicDemos","folderPath":"folders/Samples/A-BasicDemos.yy","name":"A-BasicDemos","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"1-BasicDebug","folderPath":"folders/Samples/A-BasicDemos/1-BasicDebug.yy","name":"1-BasicDebug","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"2-BasicDemo","folderPath":"folders/Samples/A-BasicDemos/2-BasicDemo.yy","name":"2-BasicDemo","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"Template","folderPath":"folders/Samples/Template.yy","name":"Template","resourceType":"GMFolder","resourceVersion":"2.0",},
   ],
   "ForcedPrefabProjectReferences":[],
   "IncludedFiles":[
@@ -30,7 +35,13 @@
   "resources":[
     {"id":{"name":"Font1","path":"fonts/Font1/Font1.yy",},},
     {"id":{"name":"Object1","path":"objects/Object1/Object1.yy",},},
+    {"id":{"name":"SampleBasicDebug","path":"objects/SampleBasicDebug/SampleBasicDebug.yy",},},
+    {"id":{"name":"SampleBasicDemo","path":"objects/SampleBasicDemo/SampleBasicDemo.yy",},},
+    {"id":{"name":"SampleTemplate","path":"objects/SampleTemplate/SampleTemplate.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
+    {"id":{"name":"SampleBasicDebugRoom","path":"rooms/SampleBasicDebugRoom/SampleBasicDebugRoom.yy",},},
+    {"id":{"name":"SampleBasicDemoRoom","path":"rooms/SampleBasicDemoRoom/SampleBasicDemoRoom.yy",},},
+    {"id":{"name":"SampleRoomTemplate","path":"rooms/SampleRoomTemplate/SampleRoomTemplate.yy",},},
     {"id":{"name":"GMUI_Calls","path":"scripts/GMUI_Calls/GMUI_Calls.yy",},},
     {"id":{"name":"GMUI_Columns","path":"scripts/GMUI_Columns/GMUI_Columns.yy",},},
     {"id":{"name":"GMUI_Container","path":"scripts/GMUI_Container/GMUI_Container.yy",},},
@@ -64,7 +75,10 @@
   "resourceType":"GMProject",
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
+    {"roomId":{"name":"SampleBasicDemoRoom","path":"rooms/SampleBasicDemoRoom/SampleBasicDemoRoom.yy",},},
+    {"roomId":{"name":"SampleBasicDebugRoom","path":"rooms/SampleBasicDebugRoom/SampleBasicDebugRoom.yy",},},
     {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
+    {"roomId":{"name":"SampleRoomTemplate","path":"rooms/SampleRoomTemplate/SampleRoomTemplate.yy",},},
   ],
   "templateType":"game",
   "TextureGroups":[

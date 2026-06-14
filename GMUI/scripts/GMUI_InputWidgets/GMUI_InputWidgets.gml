@@ -1294,6 +1294,13 @@ function gmui_slider(value, min_val, max_val, width = 200) {
     return value;
 };
 
+function gmui_slider_label(value, label, min_val, max_val, width = 200) {
+	value = gmui_slider(value, min_val, max_val, width);
+	gmui_sameline();
+	gmui_text(label);
+	return value;
+}
+
 function gmui_slider_disabled(value, min_val, max_val, width = 200) {
     var gmui = global.gmui;
     var style = gmui.style;
@@ -2400,6 +2407,13 @@ function gmui_textbox(text, placeholder = "", width = 200, is_password = false, 
     return text;
 };
 
+function gmui_textbox_label(text, label, placeholder = "", width = 200, is_password = false, font = undefined) {
+	text = gmui_textbox(text, placeholder, width, is_password, font);
+	gmui_sameline();
+	gmui_text(label);
+	return text;
+};
+
 function gmui_textbox_disabled(text, placeholder = "", width = 200, is_password = false, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
@@ -2439,7 +2453,7 @@ function gmui_textbox_disabled_password(text, placeholder = "", width = 200, fon
 	return gmui_textbox_disabled(text, placeholder, width, true, font);
 };
 
-function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000, width = 120, color_identifier = undefined, dec = 8, font = undefined) {
+function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000, width = 150, color_identifier = undefined, dec = 8, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("input_float");
@@ -2482,7 +2496,9 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         cursor = string_length(text);
     }
 	
-	if (!is_focused && !is_dragging) { variable_struct_set(container, state_prefix + "text", string_format(value, 1, dec)); };
+	variable_struct_set(container, state_prefix + "text", string_format(value, 1, dec));
+	value = clamp(value, min_val, max_val);
+    text = string(value);
     
     if (gmui_widget_is_callable(widget)) {
         var hovered = gmui_widget_is_hovered(widget);
@@ -2716,7 +2732,14 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
     return value;
 };
 
-function gmui_input_float_disabled(value, width = 120, font = undefined) {
+function gmui_input_float_label(value, label, step = 1, min_val = -1000000, max_val = 1000000, width = 150, color_identifier = undefined, dec = 4, font = undefined) {
+	value = gmui_input_float(value, step, min_val, max_val, width, color_identifier, dec, font);
+	gmui_sameline();
+	gmui_text(label);
+	return value;
+};
+
+function gmui_input_float_disabled(value, width = 150, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("input_float");
@@ -2740,7 +2763,7 @@ function gmui_input_float_disabled(value, width = 120, font = undefined) {
     return value;
 };
 
-function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, width = 120, color_identifier = undefined, font = undefined) {
+function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, width = 150, color_identifier = undefined, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("input_int");
@@ -2783,7 +2806,9 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
         cursor = string_length(text);
     }
 	
-	if (!is_focused && !is_dragging) { variable_struct_set(container, state_prefix + "text", string(value)); };
+	variable_struct_set(container, state_prefix + "text", string(value));
+	value = clamp(value, min_val, max_val);
+    text = string(value);
     
     if (gmui_widget_is_callable(widget)) {
         var hovered = gmui_widget_is_hovered(widget);
@@ -3021,7 +3046,14 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
     return value;
 };
 
-function gmui_input_int_disabled(value, width = 120, font = undefined) {
+function gmui_input_int_label(value, label, step = 1, min_val = -1000000, max_val = 1000000, width = 150, color_identifier = undefined, font = undefined) {
+	value = gmui_input_int(value, step, min_val, max_val, width, color_identifier, font);
+	gmui_sameline();
+	gmui_text(label);
+	return value;
+};
+
+function gmui_input_int_disabled(value, width = 150, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("input_int");
@@ -3220,6 +3252,13 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     var offset = gmui_get_container_screen_offset(widget.container);
     var screen_thumb_x = offset[0] + widget.x + sb_padding;
     var screen_thumb_y = offset[1] + widget.y + (track_height - thumb_height) * thumb_ratio;
+    var screen_x = offset[0] + widget.x;
+    var screen_y = offset[1] + widget.y;
+	hovered = point_in_rectangle(
+        gmui.input.m_x, gmui.input.m_y,
+        screen_x, screen_y,
+        screen_x + track_width, screen_y + track_height
+    ) && gmui_is_container_or_parent(widget.container, gmui.input.hovered_container);
     var thumb_hovered = point_in_rectangle(
         gmui.input.m_x, gmui.input.m_y,
         screen_thumb_x, screen_thumb_y,
@@ -3227,21 +3266,21 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     ) && gmui_is_container_or_parent(widget.container, gmui.input.hovered_container);
 	
 	if (hovered || thumb_hovered) { gmui.input.hovered_widget_id = scrollbar_id; }
-    
+	
     if (thumb_hovered && gmui_input_mouse_pressed()) {
         gmui.input.active_widget_id = scrollbar_id;
         widget.container._sb_drag_start_y = gmui.input.m_y;
         widget.container._sb_drag_start_value = value;
     }
     
-    //if (hovered && gmui_input_mouse_pressed() && !thumb_hovered) {
-	//    var click_y = gmui.input.m_y - (offset[1] + widget.y);
-	//    var new_ratio = (click_y - thumb_height / 2) / (track_height - thumb_height);
-	//    value = min_val + new_ratio * range;
-	//    value = clamp(value, min_val, max_val);
-    //}
+    if (hovered && gmui_input_mouse_pressed() && !thumb_hovered) {
+	    var click_y = gmui.input.m_y - (offset[1] + widget.y);
+	    var new_ratio = (click_y - thumb_height / 2) / (track_height - thumb_height);
+	    value = min_val + new_ratio * range;
+	    value = clamp(value, min_val, max_val);
+    }
     
-    if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held && (variable_struct_exists(widget.container, "_sb_drag_start_x") && variable_struct_exists(widget.container, "_sb_drag_start_value"))) {
+    if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held && (variable_struct_exists(widget.container, "_sb_drag_start_y") && variable_struct_exists(widget.container, "_sb_drag_start_value"))) {
         var dy = gmui.input.m_y - widget.container._sb_drag_start_y;
         var thumb_range = track_height - thumb_height;
         if (thumb_range > 0) {
@@ -3318,6 +3357,13 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     var offset = gmui_get_container_screen_offset(widget.container);
     var screen_thumb_x = offset[0] + widget.x + (track_width - thumb_width) * thumb_ratio;
     var screen_thumb_y = offset[1] + widget.y + sb_padding;
+    var screen_x = offset[0] + widget.x;
+    var screen_y = offset[1] + widget.y;
+	hovered = point_in_rectangle(
+        gmui.input.m_x, gmui.input.m_y,
+        screen_x, screen_y,
+        screen_x + track_width, screen_y + track_height
+    ) && gmui_is_container_or_parent(widget.container, gmui.input.hovered_container);
     var thumb_hovered = point_in_rectangle(
         gmui.input.m_x, gmui.input.m_y,
         screen_thumb_x, screen_thumb_y,
@@ -3332,12 +3378,12 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
         widget.container._sb_drag_start_value = value;
     }
     
-    //if (hovered && gmui_input_mouse_pressed() && !thumb_hovered) {
-    //    var click_x = gmui.input.m_x - (offset[0] + widget.x);
-    //    var new_ratio = (click_x - thumb_width / 2) / (track_width - thumb_width);
-    //    value = min_val + new_ratio * range;
-    //    value = clamp(value, min_val, max_val);
-    //}
+    if (hovered && gmui_input_mouse_pressed() && !thumb_hovered) {
+        var click_x = gmui.input.m_x - (offset[0] + widget.x);
+        var new_ratio = (click_x - thumb_width / 2) / (track_width - thumb_width);
+        value = min_val + new_ratio * range;
+        value = clamp(value, min_val, max_val);
+    }
     
     if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held && (variable_struct_exists(widget.container, "_sb_drag_start_x") && variable_struct_exists(widget.container, "_sb_drag_start_value"))) {
         var dx = gmui.input.m_x - widget.container._sb_drag_start_x;
@@ -4377,38 +4423,28 @@ function gmui_color_picker_3(color) {
 function gmui_color_edit_3(color, label = "", font_label = undefined, font_input = undefined) {
     var new_color = color;
     
-    if (label != "") {
-        gmui_text(label, font_label);
-        gmui_sameline();
-    }
-	
-	new_color = gmui_color_picker_3(new_color);
-    gmui_sameline();
-    
     var rgb = gmui_color_rgb_to_array(new_color);
-    gmui_sameline();
     rgb[0] = gmui_input_int(rgb[0], 1, 0, 255, 40, c_red, font_input);
     gmui_sameline();
     rgb[1] = gmui_input_int(rgb[1], 1, 0, 255, 40, c_green, font_input);
     gmui_sameline();
     rgb[2] = gmui_input_int(rgb[2], 1, 0, 255, 40, c_blue, font_input);
+	
+    gmui_sameline();
+	new_color = gmui_color_picker_3(make_color_rgb(rgb[0], rgb[1], rgb[2]));
     
-    return make_color_rgb(rgb[0], rgb[1], rgb[2]);
+    if (label != "") {
+        gmui_sameline();
+        gmui_text(label, font_label);
+    }
+    
+    return new_color;
 };
 
 function gmui_color_edit_4(color, label = "", font_label = undefined, font_input = undefined) {
     var new_color = color;
-    
-    if (label != "") {
-        gmui_text(label, font_label);
-        gmui_sameline();
-    }
 	
-	new_color = gmui_color_picker_4(new_color);
-    gmui_sameline();
-    
     var rgba = gmui_color_rgba_to_array(new_color);
-    gmui_sameline();
     rgba[0] = gmui_input_int(rgba[0], 1, 0, 255, 40, c_red, font_input);
     gmui_sameline();
     rgba[1] = gmui_input_int(rgba[1], 1, 0, 255, 40, c_green, font_input);
@@ -4416,8 +4452,16 @@ function gmui_color_edit_4(color, label = "", font_label = undefined, font_input
     rgba[2] = gmui_input_int(rgba[2], 1, 0, 255, 40, c_blue, font_input);
     gmui_sameline();
     rgba[3] = gmui_input_int(rgba[3], 1, 0, 255, 40, c_white, font_input);
+	
+    gmui_sameline();
+	new_color = gmui_color_picker_4(gmui_color_rgba_from_array(rgba));
     
-    return gmui_color_rgba_from_array(rgba);
+    if (label != "") {
+        gmui_sameline();
+        gmui_text(label, font_label);
+    }
+    
+    return new_color;
 };
 
 // date picker [year, month, day]

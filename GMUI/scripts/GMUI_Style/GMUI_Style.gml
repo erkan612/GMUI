@@ -310,8 +310,8 @@ function gmui_style_apply_ruler
         container_background_color: _bg_dom,
         container_outline_color: _border,
         container_rounding: _round_container,
-        container_padding_v: _sp_medium,
         container_padding_h: _sp_medium,
+        container_padding_v: _sp_medium,
         element_spacing_h: _sp_medium,
         element_spacing_v: _sp_small,
         

@@ -538,14 +538,24 @@ function _gmui_format_float(val, dec = 4) {
     return text;
 };
 
-function gmui_get_available_width() {
+function gmui_get_available_width(container = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
-	var container = gmui.current_container;
+	var _container = container ?? gmui.current_container;
 	
-	if (container == undefined) { return -1; }
+	if (_container == undefined) { return -1; }
 	
-	return container.width - style.container_padding_h * 2 - container.context.indent_level - (container.context.new_line_requested ? 0 : container.context.cursor_x - style.element_spacing_h);
+	return _container.width - style.container_padding_h * 2 - _container.context.indent_level - (_container.context.new_line_requested ? 0 : _container.context.cursor_x - style.element_spacing_h);
+};
+
+function gmui_get_available_height(container = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+	var _container = container ?? gmui.current_container;
+	
+	if (_container == undefined) { return -1; }
+	
+	return _container.height - gmui.style.container_padding_v * 2 - gmui.style.element_spacing_v * 2 - _container.context.cursor_y - 8;
 };
 
 function gmui_default_background_draw_call(container, x1, y1, x2, y2) {
@@ -687,4 +697,8 @@ function gmui_cursor_set_line_height(height) {
 
 function gmui_is_widget_hovering_at(widget, x, y) {
 	return point_in_rectangle(x, y, widget.screen_x, widget.screen_y, widget.screen_x + widget.width, widget.screen_y + widget.height) && array_contains(global.gmui.input.hovered_container_array, widget.container);
+};
+
+function gmui_get_current_container() {
+	return global.gmui.current_container;
 };
