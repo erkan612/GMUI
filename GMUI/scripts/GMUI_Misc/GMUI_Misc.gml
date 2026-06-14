@@ -529,8 +529,8 @@ function _gmui_draw_rounded_rectangle_directional(x1, y1, x2, y2, radius, direct
     draw_primitive_end();
 };
 
-function _gmui_format_float(val) {
-    var text = string_format(val, 1, 4);
+function _gmui_format_float(val, dec = 4) {
+    var text = string_format(val, 1, dec);
     while (string_length(text) > 1 && string_char_at(text, string_length(text)) == "0" && string_pos(".", text) > 0) {
         text = string_copy(text, 1, string_length(text) - 1);
     }

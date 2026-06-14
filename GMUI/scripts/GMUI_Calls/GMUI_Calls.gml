@@ -77,6 +77,10 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		gmui_begin_scissor(params.x, params.y, params.w, params.h);
 	} break;
 
+	case "scissor_isolated": {
+		gmui_push_scissor_isolated(params.x, params.y, params.w, params.h);
+	} break;
+
 	case "scissor_end": {
 		gmui_end_scissor();
 	} break;
@@ -296,6 +300,10 @@ function gmui_add_scrolling_enable() {
 
 function gmui_add_scissor_begin(x, y = -1, w = -1, h = -1) {
 	gmui_add_call("scissor_begin", { x: x, y: y, w: w, h: h });
+};
+
+function gmui_add_scissor_begin_isolated(x, y = -1, w = -1, h = -1) {
+	gmui_add_call("scissor_isolated", { x: x, y: y, w: w, h: h });
 };
 
 function gmui_add_scissor_end() {

@@ -12,7 +12,11 @@ if (gmui_begin("test window", 100, 100, 500, 500)) {
 	gmui_sleeper_header(
 		"test sleeper header", 
 		function() {
-			repeat (50) { gmui_button("Click Me!"); };
+			str = gmui_textbox(str);
+			va = gmui_input_int(va);
+			vb = gmui_input_float(vb, 0.00000001, undefined, undefined, undefined, undefined, 8);
+			color = gmui_color_picker_3(color);
+			if (gmui_button("Click Me!")) { show_debug_message("Hello World!"); }
 		}
 	);
 	gmui_end();

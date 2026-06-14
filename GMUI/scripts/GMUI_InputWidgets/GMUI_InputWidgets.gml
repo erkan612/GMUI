@@ -2206,6 +2206,7 @@ function gmui_textbox(text, placeholder = "", width = 200, is_password = false, 
         }
         
         if (is_focused) {
+			container.ignore_surface_flag_once = true;
 			if (gmui_input_key_pressed()) {
 			    var char = gmui_input_lastchar();
 			    var key = gmui_input_key();
@@ -2362,7 +2363,12 @@ function gmui_textbox(text, placeholder = "", width = 200, is_password = false, 
         var clip_w = width - padding_h * 2;
         var clip_h = textbox_height - padding_v * 2;
         
-        gmui_add_scissor_begin(clip_x, clip_y, clip_w, clip_h);
+		if (container.use_surface) {
+			gmui_add_scissor_begin_isolated(clip_x, clip_y, clip_w, clip_h);
+		}
+		else {
+			gmui_add_scissor_begin(clip_x, clip_y, clip_w, clip_h);
+		}
         
         var display_text = text;
         var display_color = style.textbox_text_color;
@@ -2433,7 +2439,7 @@ function gmui_textbox_disabled_password(text, placeholder = "", width = 200, fon
 	return gmui_textbox_disabled(text, placeholder, width, true, font);
 };
 
-function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000, width = 120, color_identifier = undefined, font = undefined) {
+function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000, width = 120, color_identifier = undefined, dec = 8, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("input_float");
@@ -2460,7 +2466,7 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         variable_struct_set(container, state_prefix + "cursor", 0);
         variable_struct_set(container, state_prefix + "cursor_start", 0);
         variable_struct_set(container, state_prefix + "scroll_x", 0);
-        variable_struct_set(container, state_prefix + "text", string_format(value, 1, 4));
+        variable_struct_set(container, state_prefix + "text", string_format(value, 1, dec));
     }
     
     var cursor = variable_struct_get(container, state_prefix + "cursor");
@@ -2476,7 +2482,7 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         cursor = string_length(text);
     }
 	
-	if (!is_focused && !is_dragging) { variable_struct_set(container, state_prefix + "text", string_format(value, 1, 4)); };
+	if (!is_focused && !is_dragging) { variable_struct_set(container, state_prefix + "text", string_format(value, 1, dec)); };
     
     if (gmui_widget_is_callable(widget)) {
         var hovered = gmui_widget_is_hovered(widget);
@@ -2498,10 +2504,11 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         }
         
         if (is_dragging && gmui.input.m_held) {
+			container.ignore_surface_flag_once = true;
             var dx = gmui.input.m_x - container._if_drag_start_mx;
             value = container._if_drag_start_value + dx * style.drag_textbox_sensitivity * step;
             value = clamp(value, min_val, max_val);
-            text = _gmui_format_float(value);
+            text = _gmui_format_float(value, dec);
         }
         
         if (is_dragging && gmui.input.m_released) {
@@ -2528,13 +2535,14 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
             is_focused = false;
             if (text != "" && text != "-" && text != ".") {
                 value = clamp(real(text), min_val, max_val);
-                text = _gmui_format_float(value);
+                text = _gmui_format_float(value, dec);
             } else {
-                text = _gmui_format_float(value);
+                text = _gmui_format_float(value, dec);
             }
         }
         
         if (is_focused) {
+		container.ignore_surface_flag_once = true;
             if (gmui_input_ctrl() && gmui_input_key_pressed()) {
                 var key = gmui_input_key();
                 var s = min(cursor, cursor_start);
@@ -2604,7 +2612,7 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
                         gmui.input.focused_widget_id = undefined;
                         is_focused = false;
                         if (text != "" && text != "-" && text != ".") value = clamp(real(text), min_val, max_val);
-                        text = _gmui_format_float(value);
+                        text = _gmui_format_float(value, dec);
                         break;
                 }
                 
@@ -2797,6 +2805,7 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
         }
         
         if (is_dragging && gmui.input.m_held) {
+			container.ignore_surface_flag_once = true;
             var dx = gmui.input.m_x - container._ii_drag_start_mx;
             value = container._ii_drag_start_value + round(dx * style.drag_textbox_sensitivity) * step;
             value = clamp(value, min_val, max_val);
@@ -2836,6 +2845,7 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
         }
         
         if (is_focused) {
+		container.ignore_surface_flag_once = true;
             if (gmui_input_ctrl() && gmui_input_key_pressed()) {
                 var key = gmui_input_key();
                 var s = min(cursor, cursor_start);
@@ -4203,6 +4213,7 @@ function gmui_color_pick(color, id = "") {
 	}
     
     if (open) {
+		container.ignore_surface_flag_once = true;
         var offset = gmui_get_container_screen_offset(container);
         var picker_padding = style.color_picker_padding;
         var picker_w = style.color_picker_width + picker_padding * 2;
@@ -4286,6 +4297,7 @@ function gmui_color_pick_rgb(color, id = "") {
 		if (pc != undefined) {
 			pc.is_enabled = true;
 		};
+		is_focused = true;
     }
 	
 	if (!open) {
@@ -4295,6 +4307,7 @@ function gmui_color_pick_rgb(color, id = "") {
 	}
     
     if (open) {
+		container.ignore_surface_flag_once = true;
         var offset = gmui_get_container_screen_offset(container);
         var picker_padding = style.color_picker_padding;
         var picker_w = style.color_picker_width + picker_padding * 2;

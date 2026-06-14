@@ -68,6 +68,7 @@ function gmui_init() {
 			hovered_widget_id: undefined,
 			focused_widget_id: undefined,
 			active_widget_id: undefined, // for pressed state tracking
+			dont_clear_active_widget_id: false,
 			hovered_container: undefined,
 			hovered_container_array: [ ],
 			hovered_window: undefined,
@@ -180,7 +181,7 @@ function gmui_draw_gui() {
 		input.active_widget_id = undefined;
 	}
 	
-	if (input.m_released) {
+	if (input.m_released && !input.dont_clear_active_widget_id) {
 		input.active_widget_id = undefined;
 	}
 	
