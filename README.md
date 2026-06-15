@@ -6,16 +6,6 @@ Native GML implementation of immediate-mode UI paradigm. No extensions. No DLLs.
 
 ---
 
-```gml
-// One window. Two buttons. Three lines of code.
-if (gmui_begin_window("Demo", 100, 100, 300, 200)) {
-    if (gmui_button("Click me")) { /* action */ }
-    gmui_end_window();
-}
-```
-
----
-
 ## What is GMUI?
 
 GMUI brings the immediate-mode GUI paradigm to GameMaker. Instead of retaining UI state between frames, you declare your UI every frame. This eliminates callback hell, simplifies dynamic interfaces, and makes UI code as straightforward as drawing primitives.
@@ -36,25 +26,59 @@ GMUI brings the immediate-mode GUI paradigm to GameMaker. Instead of retaining U
 ## Quick Example
 
 ```gml
-// Create event
-gmui_init();
-selected = 0;
+if (gmui_begin("Debug", 100, 100, 290, 150)) {
+	gmui_text($"Hello, world {123}");
+	if (gmui_button("Save")) {
+		/* Do stuff */
+	}
+	str = gmui_textbox_label(str, "string");
+	float = gmui_slidebar_label(float, $"float", 0, 1);
+	gmui_end();
+}
+```
 
-// Step event
-gmui_update();
+<img width="302" height="161" alt="BasicDebug_Dark" src="https://github.com/user-attachments/assets/a019353d-912c-48e2-abc3-b3f381afbc3b" />
+<img width="299" height="162" alt="BasicDebug_Light" src="https://github.com/user-attachments/assets/4ee0eb89-ae5b-433b-a2cf-0ab8e23b6ee2" />
 
-if (gmui_begin_window("Inventory", 50, 50, 400, 300)) {
-    selected = gmui_list_box(selected, items, 10);
-    
-    if (gmui_button("Equip")) {
-        equip_item(items[selected]);
-    }
-    gmui_end_window();
+```gml
+// Create a context menu to be used by window menu.
+if (gmui_begin_context_menu("Ctx_File")) {
+	if (gmui_context_menu_item("Open..", "Ctrl+O")) { /* Do stuff */ }
+	if (gmui_context_menu_item("Save", "Ctrl+S")) { /* Do stuff */ }
+	if (gmui_context_menu_item("Close", "Ctrl+W")) { /* Do stuff */ }
+	gmui_end_context_menu();
 }
 
-// Draw event  
-gmui_draw_gui();
+// Create a window called "My First Tool", with a menu bar.
+if (gmui_begin("My First Tool", 100, 100, 500, 500)) {
+	gmui_window_menu(
+		[
+			gmui_menu_item("File", "Ctx_File")
+		]
+	);
+	
+	// Edit a color stored as RGBA
+	my_color = gmui_color_edit_4(my_color, "Color");
+	
+	// Generate samples and plot them
+	for (var i = 0; i < array_length(samples); i++) {
+		samples[i] = sin(i * 0.2 + current_time / 1000 * 1.5);
+	};
+	gmui_plot_lines(samples, array_length(samples), undefined, 24, false);
+	
+	// Display contents in a scrolling region
+	gmui_text_colored("Important Stuff", make_color_rgb(255, 255, 0));
+	if (gmui_begin_child("Scrolling")) {
+		for (var i = 0; i < 50; i++) {
+			gmui_text($"{string_replace_all(string_format(i, 4, 0), " ", "0")}: Some text");
+		};
+		gmui_end_child();
+	}
+	gmui_end();
+}
 ```
+
+<img width="510" height="511" alt="BasicDemo" src="https://github.com/user-attachments/assets/18249e4c-e26c-47db-9aa8-715d606f140a" />
 
 ---
 
