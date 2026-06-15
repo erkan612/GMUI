@@ -193,6 +193,12 @@ function gmui_update() {
 	input.any_element_hovered = (gmui.input.hovered_widget_id != undefined);
     
     gmui_handle_scroll_bubble();
+	
+	var update_calls = gmui.cache[? "__update_calls"] ?? ds_map_add(gmui.cache, "__update_calls", [ ]);
+	for (var i = 0; i < array_length(update_calls); i++) {
+		var call = update_calls[i];
+		call();
+	};
 };
 
 function gmui_draw_gui() {
