@@ -273,6 +273,9 @@ function gmui_auto_column(rows, column_count, column_ratios = undefined, row_hei
 			
 				gmui_end_column();
 			}
+			else {
+		        array_push(column_containers, undefined); // to keep the array consistent
+			}
 	    }
     
 	    gmui_end_columns(resize_enable);

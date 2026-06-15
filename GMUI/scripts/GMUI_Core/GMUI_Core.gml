@@ -89,10 +89,20 @@ function gmui_init(init_profile = gmui_get_default_profile()) {
 	gmui_style_init();
 	
 	global.gmui.cache[? "_last_detached_tab"] = undefined;
+	global.gmui.cache[? "__update_calls"] = [ ];
+	global.gmui.cache[? "__cleanup_calls"] = [ ];
 };
 
 function gmui_get() {
 	return global.gmui;
+};
+
+function gmui_get_update_calls() {
+	return global.gmui.cache[? "__update_calls"];
+};
+
+function gmui_get_cleanup_calls() {
+	return global.gmui.cache[? "__cleanup_calls"];
 };
 
 function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
@@ -194,7 +204,7 @@ function gmui_update() {
     
     gmui_handle_scroll_bubble();
 	
-	var update_calls = gmui.cache[? "__update_calls"] ?? ds_map_add(gmui.cache, "__update_calls", [ ]);
+	var update_calls = gmui.cache[? "__update_calls"];
 	for (var i = 0; i < array_length(update_calls); i++) {
 		var call = update_calls[i];
 		call();
@@ -291,6 +301,14 @@ function gmui_end_child() {
 
 function gmui_cleanup() {
     var gmui = global.gmui;
+	
+	var cleanup_calls = gmui.cache[? "__cleanup_calls"];
+	if (cleanup_calls != undefined) {
+		for (var i = 0; i < array_length(cleanup_calls); i++) {
+			var call = cleanup_calls[i];
+			call();
+		};
+	}
     
     var top_level = ds_map_keys_to_array(gmui.containers);
     for (var i = 0; i < array_length(top_level); i++) {

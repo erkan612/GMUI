@@ -1,6 +1,7 @@
 gmui_update();
 gmui_demo();
 gmui_style_editor();
+gmui_animation_demo();
 
 if (gmui_begin("test window", 100, 100, 500, 500)) {
 	//if (gmui_begin_collapsing_header("test header")) {

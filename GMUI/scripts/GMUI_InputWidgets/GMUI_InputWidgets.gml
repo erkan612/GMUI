@@ -4063,6 +4063,13 @@ function gmui_color_button(color, size = -1, is_rgba = true) {
     return pressed;
 };
 
+function gmui_color_button_3(color, size = -1) {
+	return gmui_color_button(color, size, false);
+};
+function gmui_color_button_4(color, size = -1) {
+	return gmui_color_button(color, size, true);
+};
+
 // color picker
 function gmui_color_picker(color, open_id) {
     var gmui = global.gmui;

@@ -42,6 +42,7 @@
     {"id":{"name":"SampleBasicDebugRoom","path":"rooms/SampleBasicDebugRoom/SampleBasicDebugRoom.yy",},},
     {"id":{"name":"SampleBasicDemoRoom","path":"rooms/SampleBasicDemoRoom/SampleBasicDemoRoom.yy",},},
     {"id":{"name":"SampleRoomTemplate","path":"rooms/SampleRoomTemplate/SampleRoomTemplate.yy",},},
+    {"id":{"name":"GMUI_Animation","path":"scripts/GMUI_Animation/GMUI_Animation.yy",},},
     {"id":{"name":"GMUI_Calls","path":"scripts/GMUI_Calls/GMUI_Calls.yy",},},
     {"id":{"name":"GMUI_Columns","path":"scripts/GMUI_Columns/GMUI_Columns.yy",},},
     {"id":{"name":"GMUI_Container","path":"scripts/GMUI_Container/GMUI_Container.yy",},},
@@ -75,9 +76,9 @@
   "resourceType":"GMProject",
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
+    {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
     {"roomId":{"name":"SampleBasicDemoRoom","path":"rooms/SampleBasicDemoRoom/SampleBasicDemoRoom.yy",},},
     {"roomId":{"name":"SampleBasicDebugRoom","path":"rooms/SampleBasicDebugRoom/SampleBasicDebugRoom.yy",},},
-    {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
     {"roomId":{"name":"SampleRoomTemplate","path":"rooms/SampleRoomTemplate/SampleRoomTemplate.yy",},},
   ],
   "templateType":"game",

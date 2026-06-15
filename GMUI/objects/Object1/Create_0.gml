@@ -1,4 +1,5 @@
 gmui_init(gmui_get_default_profile(gmui_default_profile.CACHED2));
+gmui_animation_init();
 
 color = c_red;
 str = "";
@@ -69,7 +70,7 @@ handle_pane = function(label) {
 			2,
 			[ 0.2, 0.6 ]
 		);
-		if (array_length(columns) > 0) {
+		if (array_length(columns) > 0 && columns[0] != undefined) {
 			columns[0].background_enabled = true;
 			columns[0].background_draw_func = function(c, x1, y1, x2, y2) {
 				draw_set_color(make_color_rgb(40, 40, 40));
