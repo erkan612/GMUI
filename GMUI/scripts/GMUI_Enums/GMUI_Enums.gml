@@ -50,4 +50,5 @@ enum gmui_default_profile {
 	ANIMATION						= 0,
 	CACHED1							= 1,
 	CACHED2							= 2,
+	BALANCED						= 3,
 };

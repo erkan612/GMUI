@@ -27,6 +27,7 @@ function gmui_container_get(name, parent = undefined) {
 			ignore_surface_flag_once: false,
 			surface_dirty: true,
 			surface_sleep: gmui.profile.container_properties.surface_sleep,
+			animation_flag: gmui.profile.container_properties.animation_flag,
 			
 			use_scissor: gmui.profile.container_properties.use_scissor,
 		
@@ -1096,4 +1097,13 @@ function gmui_scrolling_child(name, width, height, func) {
         return true;
     }
     return false;
+};
+
+function gmui_container_animation_detected(container = undefined) {
+	var _container = container ?? global.gmui.current_container;
+	var current = _container;
+	while (current != undefined) {
+		current.ignore_surface_flag_once = true;
+		current = current.parent;
+	};
 };

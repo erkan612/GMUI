@@ -114,12 +114,14 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				background_enabled: false,
 				use_surface: false,
 				use_scissor: true,
+				animation_flag: false,
 			},
 			container_properties: {
 				use_surface: true,
 				surface_flag: false,
 				surface_sleep: false,
 				use_scissor: true,
+				animation_flag: false,
 			},
 		};
 	} break;
@@ -129,13 +131,15 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				background_enabled: false,
 				use_surface: true,
 				surface_flag: true,
-				use_scissor: false,
+				use_scissor: true,
+				animation_flag: false,
 			},
 			container_properties: {
 				use_surface: false,
 				surface_flag: true,
 				surface_sleep: false,
 				use_scissor: true,
+				animation_flag: false,
 			},
 		};
 	} break;
@@ -146,13 +150,34 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				use_surface: true,
 				surface_flag: true,
 				surface_sleep: true,
-				use_scissor: false,
+				use_scissor: true,
+				animation_flag: false,
 			},
 			container_properties: {
 				use_surface: false,
 				surface_flag: true,
 				surface_sleep: true,
 				use_scissor: true,
+				animation_flag: false,
+			},
+		};
+	} break;
+	case gmui_default_profile.BALANCED: {
+		profile = {
+			column_row_properties: {
+				background_enabled: false,
+				use_surface: true,
+				surface_flag: true,
+				surface_sleep: true,
+				use_scissor: true,
+				animation_flag: true,
+			},
+			container_properties: {
+				use_surface: false,
+				surface_flag: true,
+				surface_sleep: true,
+				use_scissor: true,
+				animation_flag: true,
 			},
 		};
 	} break;

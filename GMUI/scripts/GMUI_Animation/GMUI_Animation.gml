@@ -1,12 +1,6 @@
 
 
 // ANIMATIONS
-/*
-* testing experimental feature, trying out if an independent api can be built
-* if it succeeds, more features can be implemented without interacting/interrupting internal functionality
-* gives more freedom, exploration and less error prone improvement
-* most of this is taken from an old project of mine, had to tweak some functions
-*/
 
 // enums
 enum gmui_animation_ease {
@@ -42,19 +36,19 @@ enum gmui_animation_ease {
 	OUT_BOUNCE,
 	IN_OUT_BOUNCE,
 	CUSTOM,
-	TOTAL
+	TOTAL,
 }
 
 enum gmui_animation_repeat_mode {
 	NONE,
 	LOOP,
 	PING_PONG,
-	PING_PONG_ONCE
+	PING_PONG_ONCE,
 }
 
 enum gmui_animation_tween_direction {
 	FORWARD,
-	BACKWARD
+	BACKWARD,
 }
 
 enum gmui_animation_tween_state {
@@ -62,7 +56,7 @@ enum gmui_animation_tween_state {
 	PLAYING,
 	PAUSED,
 	COMPLETED,
-	KILLED
+	KILLED,
 }
 
 enum gmui_animation_value_type {
@@ -73,7 +67,8 @@ enum gmui_animation_value_type {
 	VECTOR3,
 	VECTOR4,
 	ARRAY,
-	CUSTOM
+	INT,
+	CUSTOM,
 }
 
 enum gmui_animation_tween_flags {
@@ -83,7 +78,8 @@ enum gmui_animation_tween_flags {
 	IGNORE_TIME_SCALE			= 1 << 2,
 	REVERSE_EASE_ON_PINGPONG	= 1 << 3,
 	CLAMP_VALUES				= 1 << 4,
-	SYNC_TO_AUDIO				= 1 << 5
+	SYNC_TO_AUDIO				= 1 << 5,
+	QUEUE						= 1 << 6,
 }
 
 // init
@@ -179,12 +175,15 @@ function gmui_animation_get_lerp_function(_type) {
 		case gmui_animation_value_type.VECTOR3: return method({}, gmui_animation_lerp_vector3);
 		case gmui_animation_value_type.VECTOR4: return method({}, gmui_animation_lerp_vector4);
 		case gmui_animation_value_type.ARRAY: return method({}, gmui_animation_lerp_array);
+		case gmui_animation_value_type.INT: return undefined;
 		default: return undefined;
 	}
 }
 
 function gmui_animation_is_value_simple(_type) {
-	return (_type == gmui_animation_value_type.REAL || _type == gmui_animation_value_type.COLOR3);
+	return (_type == gmui_animation_value_type.REAL || 
+	        _type == gmui_animation_value_type.INT || 
+	        _type == gmui_animation_value_type.COLOR3);
 }
 
 function gmui_animation_is_value_array_type(_type) {
@@ -346,6 +345,9 @@ function gmui_animation_create(_id, _start_val, _end_val, _duration = -1) {
 		elapsed: 0,
 		delay: 0,
 		direction: gmui_animation_tween_direction.FORWARD,
+		
+		pending_queue: [ ],  // { _from, _to, _duration, _easing }
+		easing_per_axis: undefined,  // array of easing types, one per component
 		
 		use_system_delta: true,
 		dt_override: undefined,
@@ -800,12 +802,30 @@ function gmui_animation_update() {
 			}
 		}
 		
-		var _eased_progress = gmui_animation_get_eased_value(_tween, clamp(_progress, 0, 1));
+		if (_tween.easing_per_axis != undefined && gmui_animation_is_value_array_type(_tween.value_type)) { // per axis easing
+			var _len = array_length(_tween.easing_per_axis);
+			var _vals = array_create(_len);
+			var _start_arr = _tween.start_value;
+			var _end_arr = _tween.end_value;
+			for (var j = 0; j < _len; j++) {
+				var _per_axis_tween = { easing: _tween.easing_per_axis[j], easing_power: _tween.easing_power, easing_intensity: _tween.easing_intensity, easing_custom: undefined, flags: _tween.flags, ping_pong_forward: _tween.ping_pong_forward };
+				var _ep = gmui_animation_get_eased_value(_per_axis_tween, clamp(_progress, 0, 1));
+				_vals[j] = lerp(_start_arr[j], _end_arr[j], _ep);
+			}
+			_tween.current_value = _vals;
+		} else {
+			var _eased_progress = gmui_animation_get_eased_value(_tween, clamp(_progress, 0, 1));
+			_tween.current_value = gmui_animation_lerp_values(_tween.start_value, _tween.end_value, _tween.value_type, _eased_progress, _tween.value_lerp);
+		}
 		
-		_tween.current_value = gmui_animation_lerp_values(_tween.start_value, _tween.end_value, _tween.value_type, _eased_progress, _tween.value_lerp);
-		
+		//if (_tween.oscillation_amplitude > 0) {
+		//	var _osc = sin(_progress * _tween.oscillation_frequency * 2 * pi + _tween.oscillation_phase) * _tween.oscillation_amplitude * (1 - _progress);
+		//	_tween.current_value = gmui_animation_add_scalar_to_value(_tween.current_value, _tween.value_type, _osc);
+		//}
 		if (_tween.oscillation_amplitude > 0) {
-			var _osc = sin(_progress * _tween.oscillation_frequency * 2 * pi + _tween.oscillation_phase) * _tween.oscillation_amplitude * (1 - _progress);
+			var _time = _tween.elapsed / 1000000;
+			var _decay = (_tween.duration >= 999999999) ? 1.0 : (1 - _progress);
+			var _osc = sin(_time * _tween.oscillation_frequency * 2 * pi + _tween.oscillation_phase) * _tween.oscillation_amplitude * _decay;
 			_tween.current_value = gmui_animation_add_scalar_to_value(_tween.current_value, _tween.value_type, _osc);
 		}
 		
@@ -815,7 +835,10 @@ function gmui_animation_update() {
 			_tween.current_value = gmui_animation_add_scalar_to_value(_tween.current_value, _tween.value_type, _noise);
 		}
 		
-		_tween.current_value = gmui_animation_snap_value(_tween.current_value, _tween.end_value, _tween.value_type, _tween.snap_threshold, _tween.snap_to_integer);
+		if (_tween.value_type == gmui_animation_value_type.INT) { // forces int to be snapped
+			_tween.snap_to_integer = true;
+		}
+		_tween.current_value = gmui_animation_snap_value(_tween.current_value, _tween.end_value, _tween.value_type, _tween.snap_threshold, _tween.snap_to_integer); // snaps all types
 		
 		_tween.current_value = gmui_animation_process_value(_tween.current_value, _tween.value_type, _tween.value_processor);
 		
@@ -848,6 +871,39 @@ function gmui_animation_update() {
 }
 
 function gmui_animation_complete_tween(_tween) {
+	if (is_array(_tween.pending_queue) && array_length(_tween.pending_queue) > 0) { // should work now ?
+		var _q = _tween.pending_queue[0];
+		array_delete(_tween.pending_queue, 0, 1);
+		
+		if (array_length(_tween.pending_queue) == 0) {
+			_tween.pending_queue = [];
+			_tween.flags &= ~gmui_animation_tween_flags.QUEUE;
+		}
+		
+		_tween.start_value = _tween.current_value;
+		_tween.end_value = _q._to;
+		_tween.original_start = _tween.current_value;
+		_tween.original_end = _q._to;
+		_tween.duration = _q._duration;
+		_tween.elapsed = 0;
+		_tween.delay = 0;
+		_tween.repeat_count = 0;
+		_tween.repeat_mode = gmui_animation_repeat_mode.NONE;
+		_tween.ping_pong_forward = true;
+		_tween.completed = false;
+		_tween.direction = gmui_animation_tween_direction.FORWARD;
+		
+		if (_q._easing != undefined) {
+			_tween.easing = _q._easing;
+		}
+		
+		_tween.state = gmui_animation_tween_state.PLAYING; // reset
+		
+		if (_tween.on_start != undefined) { _tween.on_start(_tween); }
+		return; // keeps playing
+	}
+	
+	// complete
 	_tween.state = gmui_animation_tween_state.COMPLETED;
 	_tween.completed = true;
 	var _anim = gmui_animation_get();
@@ -947,6 +1003,7 @@ function gmui_animation_ease_out_bounce(_t) {
 // convenience/quick start functions
 function gmui_animation_tween(_id, _from, _to, _duration = -1, _easing = undefined) {
 	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
 	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
 	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) { return gmui_animation_get_value(_id); }
 	gmui_animation_tween_start(_id, _from, _to, _duration, _easing);
@@ -996,6 +1053,386 @@ function gmui_animation_shake(_id, _center_value, _intensity, _duration = 100000
 	return _tween;
 }
 
+// queue
+function gmui_animation_queue(_id, _from, _to, _duration = -1, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	var _anim = gmui_animation_get();
+	var _existing = ds_map_find_value(_anim.tweens_map, _id);
+	
+	if (_existing != undefined && _existing.state == gmui_animation_tween_state.PLAYING) {
+		if (!is_array(_existing.pending_queue)) {
+			_existing.pending_queue = [];
+		}
+		array_push(_existing.pending_queue, {
+			_from: _from,
+			_to: _to,
+			_duration: _duration < 0 ? _anim.default_duration : _duration,
+			_easing: _easing
+		});
+		_existing.flags |= gmui_animation_tween_flags.QUEUE;
+		return _existing.current_value;
+	}
+	
+	return gmui_animation_tween_start(_id, _from, _to, _duration, _easing);
+}
+
+function gmui_animation_queue_clear(_id) {
+	var _tween = ds_map_find_value(gmui_animation_get().tweens_map, _id);
+	if (_tween != undefined) {
+		_tween.pending_queue = [ ];
+		_tween.flags &= ~gmui_animation_tween_flags.QUEUE;
+	}
+}
+
+function gmui_animation_get_queue_count(_id) {
+	var _tween = ds_map_find_value(gmui_animation_get().tweens_map, _id);
+	if (_tween != undefined && is_array(_tween.pending_queue)) {
+		return array_length(_tween.pending_queue);
+	}
+	return 0;
+}
+
+// stagger
+function gmui_animation_stagger(_ids, _from, _to, _duration = -1, _stagger = 100000, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	
+	var _count = array_length(_ids);
+	for (var i = 0; i < _count; i++) {
+		var _tween = gmui_animation_create(_ids[i], _from, _to, _duration);
+		_tween.delay = i * _stagger;
+		if (_easing != undefined) {
+			_tween.easing = _easing;
+		}
+		gmui_animation_play(_ids[i]);
+	}
+}
+
+function gmui_animation_stagger_ex(_items, _duration = -1, _stagger = 100000, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	
+	var _count = array_length(_items);
+	for (var i = 0; i < _count; i++) {
+		var _item = _items[i];
+		var _tween = gmui_animation_create(_item.id, _item.from, _item.to, _duration);
+		_tween.delay = i * _stagger;
+		if (_easing != undefined) {
+			_tween.easing = _easing;
+		}
+		gmui_animation_play(_item.id);
+	}
+}
+
+// per axis easing
+function gmui_animation_set_easing_per_axis(_id, _easings) {
+	var _tween = ds_map_find_value(gmui_animation_get().tweens_map, _id);
+	if (_tween != undefined) {
+		_tween.easing_per_axis = _easings;
+	}
+	return _tween;
+}
+
+// wiggle
+function gmui_animation_wiggle(_id, _center, _amplitude, _frequency = 2, _duration = -1) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _tween = gmui_animation_create(_id, _center, _center, _duration < 0 ? 999999999 : _duration);
+	_tween.oscillation_amplitude = _amplitude;
+	_tween.oscillation_frequency = _frequency;
+	_tween.oscillation_phase = 0;
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
+// timeline
+function gmui_animation_timeline(_id, _keyframes, _loop = false, _default_easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	
+	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
+	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) {
+		return gmui_animation_get_value(_id);
+	}
+	
+	gmui_animation_timeline_start(_id, _keyframes, _loop, _default_easing);
+	return gmui_animation_get_value(_id);
+}
+
+function gmui_animation_timeline_start(_id, _keyframes, _loop = false, _default_easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _count = array_length(_keyframes);
+	if (_count < 2) {
+		//show_debug_message("ERROR: Timeline requires at least 2 keyframes");
+		return undefined;
+	}
+	
+	array_sort(_keyframes, function(a, b) { return a.time - b.time; });
+	
+	var _first = _keyframes[0];
+	var _last = _keyframes[_count - 1];
+	var _total_duration = _last.time;
+	
+	var _tween = gmui_animation_create(_id, _first.value, _last.value, _total_duration);
+	
+	_tween.value_type = gmui_animation_detect_value_type(_first.value);
+	
+	_tween.timeline_data = {
+		keyframes: _keyframes,
+		loop: _loop,
+		default_easing: _default_easing != undefined ? _default_easing : gmui_animation_ease.LINEAR,
+		current_keyframe: 0,
+	};
+	
+	_tween.value_lerp = method(_tween, function(_start, _end, _t) {
+		var _td = self.timeline_data;
+		var _kfs = _td.keyframes;
+		var _count = array_length(_kfs);
+		
+		if (_td.loop) {
+			_t = frac(_t);
+		} else {
+			_t = clamp(_t, 0, 1);
+		}
+		
+		var _elapsed = _t * self.duration;
+		
+		var _kf_from = _kfs[0];
+		var _kf_to = _kfs[_count - 1];
+		
+		for (var i = 0; i < _count - 1; i++) {
+			if (_elapsed >= _kfs[i].time && _elapsed <= _kfs[i + 1].time) {
+				_kf_from = _kfs[i];
+				_kf_to = _kfs[i + 1];
+				break;
+			}
+		}
+		
+		if (_elapsed >= _kfs[_count - 1].time && !_td.loop) {
+			return _kfs[_count - 1].value;
+		}
+		
+		var _segment_duration = _kf_to.time - _kf_from.time;
+		var _local_t = (_segment_duration > 0) ? (_elapsed - _kf_from.time) / _segment_duration : 0;
+		
+		var _easing = (_kf_from.easing != undefined) ? _kf_from.easing : _td.default_easing;
+		var _ease_tween = {
+			easing: _easing,
+			easing_power: self.easing_power,
+			easing_intensity: self.easing_intensity,
+			easing_custom: undefined,
+			flags: self.flags,
+			ping_pong_forward: self.ping_pong_forward
+		};
+		var _eased_t = gmui_animation_get_eased_value(_ease_tween, clamp(_local_t, 0, 1));
+		
+		return gmui_animation_lerp_values(_kf_from.value, _kf_to.value, self.value_type, _eased_t, undefined);
+	});
+	
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	
+	if (_loop) {
+		gmui_animation_set_repeat(_id, -1);
+	}
+	
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
+function gmui_animation_keyframe(_time, _value, _easing = undefined) {
+	return { time: _time, value: _value, easing: _easing };
+}
+
+// spring physics
+//function gmui_animation_spring_update(_current, _target, _velocity_ref, _tension = 0.5, _friction = 0.3, _mass = 1.0, _dt = -1) {
+//	if (_dt < 0) { _dt = delta_time / 1000000; }
+	
+//	var _force = -_tension * (_current - _target);
+//	var _damping = -_friction * _velocity_ref;
+//	var _acceleration = (_force + _damping) / _mass;
+	
+//	_velocity_ref += _acceleration * _dt;
+	
+//	return _current + _velocity_ref * _dt;
+//}
+//function gmui_animation_spring_update(_current, _target, _velocity_ref, _tension = 0.5, _friction = 0.3, _mass = 1.0, _dt = -1) {
+//	if (_dt < 0) { _dt = delta_time / 1000000; }
+	
+//	var _stiffness = _tension * 10;
+//	var _damping = _friction * 5;
+	
+//	var _force = (_target - _current) * _stiffness;
+//	var _acceleration = _force / _mass;
+	
+//	_velocity_ref += _acceleration * _dt;
+//	_velocity_ref *= (1 - _damping * _dt);
+	
+//	return _current + _velocity_ref * _dt;
+//}
+function gmui_animation_spring_update(_current, _target, _velocity, _tension = 0.5, _friction = 0.3, _mass = 1.0, _dt = -1) {
+	if (_dt < 0) { _dt = delta_time / 1000000; }
+	
+	var _omega = _tension * 20;
+	var _zeta = _friction;
+	
+	var _k = _mass * _omega * _omega;
+	var _c = 2 * _mass * _omega * _zeta;
+	
+	var _force = -_k * (_current - _target) - _c * _velocity;
+	var _accel = _force / _mass;
+	
+	var _new_velocity = _velocity + _accel * _dt;
+	var _new_value = _current + _new_velocity * _dt;
+	
+	return [_new_value, _new_velocity];
+}
+
+function gmui_animation_spring(_id, _from, _to, _tension = 0.5, _friction = 0.3, _mass = 1.0, _precision = 0.001) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _tween = gmui_animation_create(_id, _from, _to, 999999999)
+	_tween.value_type = gmui_animation_value_type.REAL;
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	
+	_tween.spring_data = {
+		tension: _tension,
+		friction: _friction,
+		mass: _mass,
+		precision: _precision,
+		velocity: 0,
+		target: _to,
+	};
+	
+	_tween.value_lerp = method(_tween, function(_start, _end, _t) {
+	    var _sd = self.spring_data;
+	    var _dt = delta_time / 1000000;
+	    var _result = gmui_animation_spring_update(self.current_value, _sd.target, _sd.velocity, _sd.tension, _sd.friction, _sd.mass, _dt);
+    
+	    var _new_val = _result[0];
+	    var _new_vel = _result[1];
+    
+	    _sd.velocity = _new_vel;
+    
+	    if (abs(_new_vel) < 0.01 && abs(_new_val - _sd.target) < 0.01) {
+	        _sd.velocity = 0;
+	        gmui_animation_complete_tween(self);
+	        return _sd.target;
+	    }
+    
+	    return _new_val;
+	});
+	
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
+// perlin noise
+function _gmui_animation_hash(_n, _s) {
+	_n = (_n + _s) * 374761393 + 668265263;
+	_n = ((_n >> 16) ^ _n) * 1274126177;
+	return ((_n >> 16) ^ _n) % 1000 / 1000;
+}
+
+function gmui_animation_perlin_noise(_x, _seed = 0) {
+	var _xi = floor(_x);
+	var _xf = _x - _xi;
+	
+	var _hash = _gmui_animation_hash;
+	
+	var _g0 = _hash(_xi, _seed) * 2 - 1;
+	var _g1 = _hash(_xi + 1, _seed) * 2 - 1;
+	
+	var _u = _xf * _xf * (3 - 2 * _xf);
+	
+	return lerp(_g0 * _xf, _g1 * (_xf - 1), _u);
+}
+
+function gmui_animation_perlin_wiggle(_id, _center, _amplitude = 0.5, _speed = 1, _seed = 0, _duration = -1) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _tween = gmui_animation_create(_id, _center, _center, _duration < 0 ? 999999999 : _duration);
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	
+	_tween.perlin_data = {
+		center: _center,
+		amplitude: _amplitude,
+		speed: _speed,
+		seed: _seed,
+		time_offset: 0,
+	};
+	
+	_tween.value_lerp = method(_tween, function(_start, _end, _t) {
+		var _pd = self.perlin_data;
+		_pd.time_offset += (delta_time / 1000000) * _pd.speed;
+		var _noise = gmui_animation_perlin_noise(_pd.time_offset, _pd.seed);
+		return _pd.center + _noise * _pd.amplitude;
+	});
+	
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
+// rotation & transform helpers
+function gmui_animation_lerp_angle(_from, _to, _t) {
+	var _diff = _to - _from;
+	return _from + _diff * _t;
+}
+
+function gmui_animation_tween_angle(_id, _from, _to, _duration = -1, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	
+	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
+	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) {
+		return gmui_animation_get_value(_id);
+	}
+	
+	return gmui_animation_tween_angle_start(_id, _from, _to, _duration, _easing);
+}
+
+function gmui_animation_tween_angle_start(_id, _from, _to, _duration = -1, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _tween = gmui_animation_create(_id, _from, _to, _duration);
+	_tween.value_type = gmui_animation_value_type.CUSTOM;
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	_tween.user_data = { from: _from, to: _to };
+	
+	_tween.value_lerp = method(_tween, function(_start, _end, _t) {
+		var _ud = self.user_data;
+		return gmui_animation_lerp_angle(_ud.from, _ud.to, _t);
+	});
+	
+	if (_easing != undefined) gmui_animation_set_easing(_id, _easing);
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
+function gmui_animation_tween_scale(_id, _from_x, _from_y, _to_x, _to_y, _duration = -1, _easing = undefined) {
+	return gmui_animation_tween_vector2(_id, [_from_x, _from_y], [_to_x, _to_y], _duration, _easing);
+}
+
+function gmui_animation_tween_position(_id, _from_x, _from_y, _to_x, _to_y, _duration = -1, _easing = undefined) {
+	return gmui_animation_tween_vector2(_id, [_from_x, _from_y], [_to_x, _to_y], _duration, _easing);
+}
+
 // utility stuff
 function gmui_animation_lerp(_a, _b, _t) { return _a + (_b - _a) * clamp(_t, 0, 1); }
 
@@ -1020,9 +1457,15 @@ function gmui_animation_cleanup() {
 	
 	var _group_keys = ds_map_keys_to_array(_anim.groups);
 	for (var g = 0; g < array_length(_group_keys); g++) {
-		ds_map_delete(_anim.groups, _group_keys[g]);
+		var _key = _group_keys[g];
+		var _group_list = _anim.groups[? _key];
+		if (_group_list != undefined) {
+			_group_list = undefined;
+		}
+		ds_map_delete(_anim.groups, _key);
 	}
 	ds_map_destroy(_anim.groups);
+	
 	ds_map_destroy(_anim.tweens_map);
 	
 	var _timeline_keys = ds_map_keys_to_array(_anim.timelines);
@@ -1031,7 +1474,14 @@ function gmui_animation_cleanup() {
 	}
 	ds_map_destroy(_anim.timelines);
 	
-	_anim.tweens = [];
+	_anim.tweens = [ ];
+	
+	_anim.active_tweens = 0;
+	_anim.total_tweens_created = 0;
+	_anim.global_time_scale = 1.0;
+	_anim.groups = undefined;
+	_anim.tweens_map = undefined;
+	_anim.timelines = undefined;
 }
 
 // type specific creation
@@ -1049,6 +1499,7 @@ function gmui_animation_tween_color3_start(_id, _from_color, _to_color, _duratio
 
 function gmui_animation_tween_color3(_id, _from_color, _to_color, _duration = -1, _easing = undefined) {
 	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
 	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
 	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) { return gmui_animation_get_value(_id); }
 	gmui_animation_tween_color3_start(_id, _from_color, _to_color, _duration, _easing);
@@ -1069,6 +1520,7 @@ function gmui_animation_tween_color4_start(_id, _from_color, _to_color, _duratio
 
 function gmui_animation_tween_color4(_id, _from_color, _to_color, _duration = -1, _easing = undefined) {
 	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
 	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
 	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) { return gmui_animation_get_value(_id); }
 	gmui_animation_tween_color4_start(_id, _from_color, _to_color, _duration, _easing);
@@ -1089,6 +1541,7 @@ function gmui_animation_tween_vector2_start(_id, _from_vec2, _to_vec2, _duration
 
 function gmui_animation_tween_vector2(_id, _from_vec2, _to_vec2, _duration = -1, _easing = undefined) {
 	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
 	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
 	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) { return gmui_animation_get_value(_id); }
 	gmui_animation_tween_vector2_start(_id, _from_vec2, _to_vec2, _duration, _easing);
@@ -1109,6 +1562,7 @@ function gmui_animation_tween_vector3_start(_id, _from_vec3, _to_vec3, _duration
 
 function gmui_animation_tween_vector3(_id, _from_vec3, _to_vec3, _duration = -1, _easing = undefined) {
 	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
 	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
 	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) { return gmui_animation_get_value(_id); }
 	gmui_animation_tween_vector3_start(_id, _from_vec3, _to_vec3, _duration, _easing);
@@ -1129,6 +1583,7 @@ function gmui_animation_tween_vector4_start(_id, _from_vec4, _to_vec4, _duration
 
 function gmui_animation_tween_vector4(_id, _from_vec4, _to_vec4, _duration = -1, _easing = undefined) {
 	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
 	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
 	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) { return gmui_animation_get_value(_id); }
 	gmui_animation_tween_vector4_start(_id, _from_vec4, _to_vec4, _duration, _easing);
@@ -1149,10 +1604,163 @@ function gmui_animation_tween_array_start(_id, _from_array, _to_array, _duration
 
 function gmui_animation_tween_array(_id, _from_array, _to_array, _duration = -1, _easing = undefined) {
 	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
 	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
 	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) { return gmui_animation_get_value(_id); }
 	gmui_animation_tween_array_start(_id, _from_array, _to_array, _duration, _easing);
 	return gmui_animation_get_value(_id);
+}
+
+function gmui_animation_tween_int(_id, _from, _to, _duration = -1, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	var _exists = ds_map_find_value(gmui_animation_get().tweens_map, _id);
+	if (_exists != undefined && _exists.state != gmui_animation_tween_state.KILLED) { return gmui_animation_get_value(_id); }
+	gmui_animation_tween_int_start(_id, _from, _to, _duration, _easing);
+	return gmui_animation_get_value(_id);
+}
+
+function gmui_animation_tween_int_start(_id, _from, _to, _duration = -1, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_animation_remove_existing_tween(_id);
+	var _tween = gmui_animation_create(_id, _from, _to, _duration);
+	_tween.value_type = gmui_animation_value_type.INT;
+	_tween.snap_to_integer = true;
+	if (_easing != undefined) gmui_animation_set_easing(_id, _easing);
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
+// bezier paths
+function gmui_animation_bezier_cubic(_p0, _p1, _p2, _p3, _t) {
+	var _u = 1 - _t;
+	var _tt = _t * _t;
+	var _uu = _u * _u;
+	return _uu * _u * _p0 + 3 * _uu * _t * _p1 + 3 * _u * _tt * _p2 + _tt * _t * _p3;
+}
+
+function gmui_animation_bezier_quadratic(_p0, _p1, _p2, _t) {
+	var _u = 1 - _t;
+	return _u * _u * _p0 + 2 * _u * _t * _p1 + _t * _t * _p2;
+}
+
+function gmui_animation_bezier_cubic_2d(_p0, _p1, _p2, _p3, _t) {
+	return [
+		gmui_animation_bezier_cubic(_p0[0], _p1[0], _p2[0], _p3[0], _t),
+		gmui_animation_bezier_cubic(_p0[1], _p1[1], _p2[1], _p3[1], _t)
+	];
+}
+
+function gmui_animation_catmull_rom(_points, _t, _loop = false) {
+	var _count = array_length(_points);
+	if (_count < 2) return _points[0];
+	
+	if (_loop) {
+		_t = frac(_t);
+	} else {
+		_t = clamp(_t, 0, 1);
+	}
+	
+	var _segments = _loop ? _count : _count - 1;
+	var _scaled_t = _t * _segments;
+	var _idx = floor(_scaled_t);
+	var _local_t = _scaled_t - _idx;
+	
+	var _p0, _p1, _p2, _p3;
+	
+	if (_loop) {
+		_p0 = _points[(_idx - 1 + _count) % _count];
+		_p1 = _points[_idx % _count];
+		_p2 = _points[(_idx + 1) % _count];
+		_p3 = _points[(_idx + 2) % _count];
+	} else {
+		_idx = clamp(_idx, 0, _count - 2);
+		_p0 = (_idx > 0) ? _points[_idx - 1] : _points[0];
+		_p1 = _points[_idx];
+		_p2 = _points[_idx + 1];
+		_p3 = (_idx < _count - 2) ? _points[_idx + 2] : _points[_count - 1];
+	}
+	
+	// catmull-rom formula
+	var _tt = _local_t * _local_t;
+	var _ttt = _tt * _local_t;
+	
+	if (is_array(_p0)) {
+		var _result = [0, 0];
+		for (var i = 0; i < 2; i++) {
+			_result[i] = 0.5 * ((2 * _p1[i]) + 
+			                     (-_p0[i] + _p2[i]) * _local_t + 
+			                     (2 * _p0[i] - 5 * _p1[i] + 4 * _p2[i] - _p3[i]) * _tt + 
+			                     (-_p0[i] + 3 * _p1[i] - 3 * _p2[i] + _p3[i]) * _ttt);
+		}
+		return _result;
+	} else {
+		return 0.5 * ((2 * _p1) + 
+		              (-_p0 + _p2) * _local_t + 
+		              (2 * _p0 - 5 * _p1 + 4 * _p2 - _p3) * _tt + 
+		              (-_p0 + 3 * _p1 - 3 * _p2 + _p3) * _ttt);
+	}
+}
+
+function gmui_animation_tween_bezier(_id, _p0, _p1, _p2, _p3, _duration = -1, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _tween = gmui_animation_create(_id, _p0, _p3, _duration);
+	_tween.value_type = gmui_animation_value_type.CUSTOM;
+	_tween.user_data = { p0: _p0, p1: _p1, p2: _p2, p3: _p3 };
+	_tween.value_lerp = method(_tween, function(_start, _end, _t) {
+		var _ud = self.user_data;
+		return gmui_animation_bezier_cubic(_ud.p0, _ud.p1, _ud.p2, _ud.p3, _t);
+	});
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	if (_easing != undefined) gmui_animation_set_easing(_id, _easing);
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
+function gmui_animation_tween_bezier_2d(_id, _p0, _p1, _p2, _p3, _duration = -1, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _tween = gmui_animation_create(_id, _p0, _p3, _duration);
+	_tween.value_type = gmui_animation_value_type.VECTOR2;
+	_tween.user_data = { p0: _p0, p1: _p1, p2: _p2, p3: _p3 };
+	_tween.value_lerp = method(_tween, function(_start, _end, _t) {
+		var _ud = self.user_data;
+		return gmui_animation_bezier_cubic_2d(_ud.p0, _ud.p1, _ud.p2, _ud.p3, _t);
+	});
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	if (_easing != undefined) gmui_animation_set_easing(_id, _easing);
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
+function gmui_animation_tween_spline(_id, _points, _duration = -1, _loop = false, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _start = _points[0];
+	var _end = _loop ? _points[0] : _points[array_length(_points) - 1];
+	
+	var _tween = gmui_animation_create(_id, _start, _end, _duration);
+	_tween.value_type = is_array(_start) ? gmui_animation_value_type.VECTOR2 : gmui_animation_value_type.REAL;
+	_tween.user_data = { points: _points, loop: _loop };
+	_tween.value_lerp = method(_tween, function(_s, _e, _t) {
+		var _ud = self.user_data;
+		return gmui_animation_catmull_rom(_ud.points, _t, _ud.loop);
+	});
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	if (_easing != undefined) gmui_animation_set_easing(_id, _easing);
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
 }
 
 // demo
@@ -1195,15 +1803,31 @@ function gmui_animation_demo() {
                 
                 gmui_end_collapsing_header();
             }
+			
+			if (gmui_begin_collapsing_header_ex("Integer Tween (Auto-Snap)")) {
+			    if (gmui_button("0 -> 100")) {
+			        gmui_animation_tween_int("demo_int", 0, 100, 2000000, gmui_animation_ease.IN_OUT_QUAD);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("100 -> 0")) {
+			        gmui_animation_tween_int("demo_int", 100, 0, 2000000, gmui_animation_ease.OUT_ELASTIC);
+			    }
+    
+			    var iv = gmui_animation_get_value("demo_int") ?? 0;
+			    gmui_text($"Value: {string_format(iv, 1, 0)} (always integer)");
+			    gmui_progress(iv, 100, gmui_get_available_width(), true);
+    
+			    gmui_end_collapsing_header();
+			}
             
             if (gmui_begin_collapsing_header_ex("Color3 Tween (RGB)")) {
                 static demo_color3_fallback = c_black;
                 
-                if (gmui_button("Red → Blue")) {
+                if (gmui_button("Red -> Blue")) {
                     demo_color3_fallback = gmui_animation_tween_color3("demo_color3", c_red, c_blue, 1500000, gmui_animation_ease.IN_OUT_QUAD);
                 }
                 gmui_sameline();
-                if (gmui_button("Yellow → Purple")) {
+                if (gmui_button("Yellow -> Purple")) {
                     demo_color3_fallback = gmui_animation_tween_color3("demo_color3", c_yellow, c_purple, 1500000, gmui_animation_ease.IN_OUT_QUAD);
                 }
                 
@@ -1248,7 +1872,7 @@ function gmui_animation_demo() {
             }
             
             if (gmui_begin_collapsing_header_ex("Vector2 Tween")) {
-                if (gmui_button("Move Corner → Corner")) {
+                if (gmui_button("Move Corner -> Corner")) {
                     gmui_animation_tween_vector2("demo_vec2", [0, 0], [1, 1], 1500000, gmui_animation_ease.IN_OUT_BACK);
                 }
                 gmui_sameline();
@@ -1290,6 +1914,190 @@ function gmui_animation_demo() {
                 
                 gmui_end_collapsing_header();
             }
+			
+			if (gmui_begin_collapsing_header_ex("Bezier Path")) {
+			    if (gmui_button("Cubic Bezier: 0 ->^ 1.5 ->! 0.5 -> 1")) {
+			        gmui_animation_tween_bezier("demo_bezier", 0, 1.5, 0.5, 1, 2000000, gmui_animation_ease.LINEAR);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Overshoot Path")) {
+			        gmui_animation_tween_bezier("demo_bezier", 0, 1.3, -0.2, 1, 2000000, gmui_animation_ease.LINEAR);
+			    }
+    
+			    var bv = gmui_animation_get_value("demo_bezier") ?? 0;
+			    gmui_text($"Value: {string_format(bv, 1, 3)}");
+			    gmui_progress(clamp(bv, 0, 1.5), 1.5, gmui_get_available_width(), true);
+			    gmui_text("Path: overshoots then settles");
+    
+			    gmui_end_collapsing_header();
+			}
+
+			if (gmui_begin_collapsing_header_ex("Bezier 2D Path")) {
+			    if (gmui_button("Arc Path")) {
+			        gmui_animation_tween_bezier_2d("demo_bezier2d", [0, 0], [0.3, 1.2], [0.7, 1.2], [1, 0], 2000000, gmui_animation_ease.LINEAR);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("S-Curve")) {
+			        gmui_animation_tween_bezier_2d("demo_bezier2d", [0, 0.5], [0.5, 1.5], [0.5, -0.5], [1, 0.5], 2000000, gmui_animation_ease.LINEAR);
+			    }
+    
+			    var b2d = gmui_animation_get_value("demo_bezier2d") ?? [0, 0];
+			    gmui_text($"X: {string_format(b2d[0], 1, 3)}  Y: {string_format(b2d[1], 1, 3)}");
+			    gmui_progress(b2d[0], 1, gmui_get_available_width(), true);
+			    gmui_progress(b2d[1], 1.5, gmui_get_available_width(), true);
+    
+			    gmui_end_collapsing_header();
+			}
+
+			if (gmui_begin_collapsing_header_ex("Spline Path (Catmull-Rom)")) {
+			    if (gmui_button("Through Points")) {
+			        var pts = [0, 0.8, 0.3, 1.2, 0.6, 0.4, 1];
+			        gmui_animation_tween_spline("demo_spline", pts, 3000000, false, gmui_animation_ease.LINEAR);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Looping Spline")) {
+			        var pts = [0, 0.8, 0.3, 1.2, 0.6, 0.4, 1];
+			        gmui_animation_tween_spline("demo_spline", pts, 3000000, true, gmui_animation_ease.LINEAR);
+			    }
+    
+			    var sv = gmui_animation_get_value("demo_spline") ?? 0;
+			    gmui_text($"Value: {string_format(sv, 1, 3)}");
+			    gmui_progress(clamp(sv, 0, 1.5), 1.5, gmui_get_available_width(), true);
+    
+			    gmui_end_collapsing_header();
+			}
+			
+			if (gmui_begin_collapsing_header_ex("Timeline Keyframes")) {
+			    if (gmui_button("Play Timeline")) {
+			        var kfs = [
+			            gmui_animation_keyframe(0, 0, gmui_animation_ease.OUT_QUAD),
+			            gmui_animation_keyframe(500000, 1, gmui_animation_ease.OUT_BOUNCE),
+			            gmui_animation_keyframe(1200000, 0.3, gmui_animation_ease.OUT_ELASTIC),
+			            gmui_animation_keyframe(2000000, 1, gmui_animation_ease.IN_OUT_BACK),
+			        ];
+			        gmui_animation_timeline_start("demo_timeline", kfs, false);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Loop Timeline")) {
+			        var kfs = [
+			            gmui_animation_keyframe(0, 0),
+			            gmui_animation_keyframe(400000, 1),
+			            gmui_animation_keyframe(800000, 0.5),
+			            gmui_animation_keyframe(1200000, 1),
+			            gmui_animation_keyframe(1600000, 0),
+			        ];
+			        gmui_animation_timeline_start("demo_timeline", kfs, true);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Vector2 Timeline")) {
+			        var kfs = [
+			            gmui_animation_keyframe(0, [0, 0], gmui_animation_ease.OUT_QUAD),
+			            gmui_animation_keyframe(500000, [1, 0.8], gmui_animation_ease.OUT_BOUNCE),
+			            gmui_animation_keyframe(1000000, [0.5, 0.2], gmui_animation_ease.IN_OUT_BACK),
+			            gmui_animation_keyframe(1500000, [1, 1], gmui_animation_ease.OUT_ELASTIC),
+			        ];
+			        gmui_animation_timeline_start("demo_timeline", kfs, false);
+			    }
+    
+			    var tv = gmui_animation_get_value("demo_timeline");
+			    if (is_array(tv)) {
+			        gmui_text($"X: {string_format(tv[0], 1, 3)}  Y: {string_format(tv[1], 1, 3)}");
+			        gmui_progress(tv[0], 1, gmui_get_available_width(), true);
+			        gmui_progress(tv[1], 1, gmui_get_available_width(), true);
+			    } else {
+			        gmui_text($"Value: {string_format(tv ?? 0, 1, 3)}");
+			        gmui_progress(tv ?? 0, 1, gmui_get_available_width(), true);
+			    }
+    
+			    gmui_end_collapsing_header();
+			}
+			
+			if (gmui_begin_collapsing_header_ex("Spring Physics")) {
+				static spring_tension = 0.3;
+				static spring_friction = 0.3;
+
+				spring_tension = gmui_slider(spring_tension, 0.1, 3, gmui_get_available_width());
+				gmui_text($"Tension: {string_format(spring_tension, 1, 2)}");
+				spring_friction = gmui_slider(spring_friction, 0.1, 2, gmui_get_available_width());
+				gmui_text($"Friction: {string_format(spring_friction, 1, 2)}");
+    
+			    if (gmui_button("Spring: 0 -> 1")) {
+			        gmui_animation_spring("demo_spring", 0, 1, spring_tension, spring_friction);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Spring: 1 -> 0")) {
+			        gmui_animation_spring("demo_spring", 1, 0, spring_tension, spring_friction);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Bouncy!")) {
+			        gmui_animation_spring("demo_spring", 0, 1, spring_tension, spring_friction);
+			    }
+    
+			    var spv = gmui_animation_get_value("demo_spring") ?? 0;
+			    gmui_text($"Value: {string_format(spv, 1, 3)}");
+			    gmui_progress(spv, 4, gmui_get_available_width(), true);
+    
+			    gmui_end_collapsing_header();
+			}
+			
+			if (gmui_begin_collapsing_header_ex("Perlin Noise")) {
+			    if (gmui_button("Start Perlin")) {
+			        gmui_animation_perlin_wiggle("demo_perlin", 0.5, 0.3, 2, 42, -1);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Faster")) {
+			        gmui_animation_perlin_wiggle("demo_perlin", 0.5, 0.3, 5, 123, -1);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Stop")) {
+			        gmui_animation_stop("demo_perlin", false);
+			    }
+    
+			    var pnv = gmui_animation_get_value("demo_perlin") ?? 0.5;
+			    gmui_text($"Value: {string_format(pnv, 1, 3)}");
+			    gmui_progress(clamp(pnv, 0, 1), 1, gmui_get_available_width(), true);
+			    gmui_text("Smooth natural-looking random motion");
+    
+			    gmui_end_collapsing_header();
+			}
+			
+			if (gmui_begin_collapsing_header_ex("Rotation & Transform")) {
+			    static demo_angle_fallback = 0;
+    
+			    if (gmui_button("Rotate 0° -> 350°")) {
+			        gmui_animation_tween_angle("demo_angle", 0, 350, 2000000, gmui_animation_ease.IN_OUT_QUAD);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Rotate 0° -> 720°")) {
+			        gmui_animation_tween_angle("demo_angle", 0, 720, 2000000, gmui_animation_ease.IN_OUT_QUAD);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Spin!")) {
+			        gmui_animation_tween_angle("demo_angle", 0, 360, 1000000, gmui_animation_ease.LINEAR);
+			        gmui_animation_set_repeat("demo_angle", -1);
+			    }
+
+			    var ang = gmui_animation_get_value("demo_angle");
+			    if (ang == undefined) { ang = demo_angle_fallback; }
+			    else { demo_angle_fallback = ang; }
+    
+			    var display_ang = ((ang % 360) + 360) % 360;
+			    gmui_text($"Angle: {string_format(display_ang, 1, 1)}° | Raw: {string_format(ang, 1, 1)}°");
+			    gmui_progress(display_ang / 360, 1, gmui_get_available_width(), true);
+
+			    gmui_text("Position + Scale (via Vector2):");
+			    if (gmui_button("Move & Grow")) {
+			        gmui_animation_tween_position("demo_pos", 0, 0, 100, 200, 1500000, gmui_animation_ease.OUT_BOUNCE);
+			        gmui_animation_tween_scale("demo_scale", 1, 1, 1.5, 0.8, 1500000, gmui_animation_ease.OUT_ELASTIC);
+			    }
+
+			    var pos = gmui_animation_get_value("demo_pos") ?? [0, 0];
+			    var scl = gmui_animation_get_value("demo_scale") ?? [1, 1];
+			    gmui_text($"Pos: ({string_format(pos[0],1,0)}, {string_format(pos[1],1,0)})");
+			    gmui_text($"Scale: ({string_format(scl[0],1,2)}, {string_format(scl[1],1,2)})");
+
+			    gmui_end_collapsing_header();
+			}
             
             gmui_end_collapsing_header();
         }
@@ -1312,7 +2120,7 @@ function gmui_animation_demo() {
                 "IN_BOUNCE", "OUT_BOUNCE", "IN_OUT_BOUNCE"
             ];
             
-            if (gmui_button("Next Easing →")) {
+            if (gmui_button("Next Easing ->")) {
                 ease_index = (ease_index + 1) % array_length(easing_names);
                 gmui_animation_tween("demo_easing_show", 0, 1, 1500000, ease_index);
             }
@@ -1422,6 +2230,31 @@ function gmui_animation_demo() {
                 
                 gmui_end_collapsing_header();
             }
+			
+			if (gmui_begin_collapsing_header_ex("Stagger (Sequential Delay)")) {
+			    if (gmui_button("Stagger 5 Bars")) {
+			        var ids = [];
+			        for (var i = 0; i < 5; i++) {
+			            ids[i] = "demo_stagger_" + string(i);
+			        }
+			        gmui_animation_stagger(ids, 0, 1, 500000, 150000, gmui_animation_ease.OUT_BOUNCE);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Stagger Ex (Custom)")) {
+			        var items = [];
+			        for (var i = 0; i < 5; i++) {
+			            items[i] = { id: "demo_stagger_" + string(i), from: 0, to: 0.3 + i * 0.15 };
+			        }
+			        gmui_animation_stagger_ex(items, 600000, 120000, gmui_animation_ease.OUT_ELASTIC);
+			    }
+    
+			    for (var i = 0; i < 5; i++) {
+			        var sv = gmui_animation_get_value("demo_stagger_" + string(i)) ?? 0;
+			        gmui_progress(sv, 1, gmui_get_available_width(), true);
+			    }
+    
+			    gmui_end_collapsing_header();
+			}
             
             gmui_end_collapsing_header();
         }
@@ -1571,6 +2404,30 @@ function gmui_animation_demo() {
                 
                 gmui_end_collapsing_header();
             }
+        
+			if (gmui_begin_collapsing_header_ex("Queue (Chain Tweens)")) {
+			    if (gmui_button("Queue: 0->100")) {
+			        gmui_animation_queue("demo_queue", 0, 1, 800000, gmui_animation_ease.OUT_QUAD);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Queue: ->50")) {
+			        gmui_animation_queue("demo_queue", gmui_animation_get_value("demo_queue") ?? 1, 0.5, 500000, gmui_animation_ease.OUT_BOUNCE);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Queue: ->0")) {
+			        gmui_animation_queue("demo_queue", gmui_animation_get_value("demo_queue") ?? 0.5, 0, 600000, gmui_animation_ease.IN_OUT_BACK);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Clear Queue")) {
+			        gmui_animation_queue_clear("demo_queue");
+			    }
+    
+			    var qv = gmui_animation_get_value("demo_queue") ?? 0;
+			    gmui_text($"Value: {string_format(qv, 1, 3)} | Queued: {gmui_animation_get_queue_count("demo_queue")}");
+			    gmui_progress(qv, 1, gmui_get_available_width(), true);
+    
+			    gmui_end_collapsing_header();
+			}
             
             gmui_end_collapsing_header();
         }
@@ -1677,6 +2534,46 @@ function gmui_animation_demo() {
                 
                 gmui_end_collapsing_header();
             }
+			
+			if (gmui_begin_collapsing_header_ex("Per-Axis Easing (Vector)")) {
+			    if (gmui_button("X: Bounce, Y: Linear")) {
+			        gmui_animation_tween_vector2("demo_peraxis", [0, 0], [1, 1], 1500000);
+			        gmui_animation_set_easing_per_axis("demo_peraxis", [gmui_animation_ease.OUT_BOUNCE, gmui_animation_ease.LINEAR]);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("X: Elastic, Y: Back")) {
+			        gmui_animation_tween_vector2("demo_peraxis", [0, 0], [1, 1], 1500000);
+			        gmui_animation_set_easing_per_axis("demo_peraxis", [gmui_animation_ease.OUT_ELASTIC, gmui_animation_ease.IN_OUT_BACK]);
+			    }
+    
+			    var pa = gmui_animation_get_value("demo_peraxis") ?? [0, 0];
+			    gmui_text($"X: {string_format(pa[0], 1, 3)} (Bounce/Elastic)");
+			    gmui_progress(pa[0], 1, gmui_get_available_width(), true);
+			    gmui_text($"Y: {string_format(pa[1], 1, 3)} (Linear/Back)");
+			    gmui_progress(pa[1], 1, gmui_get_available_width(), true);
+    
+			    gmui_end_collapsing_header();
+			}
+			
+			if (gmui_begin_collapsing_header_ex("Wiggle (Continuous Oscillation)")) {
+			    if (gmui_button("Start Wiggle")) {
+			        gmui_animation_wiggle("demo_wiggle", 0.5, 0.25, 3, -1);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Faster")) {
+			        gmui_animation_wiggle("demo_wiggle", 0.5, 0.25, 8, -1);
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Stop")) {
+			        gmui_animation_stop("demo_wiggle", false);
+			    }
+    
+			    var wv = gmui_animation_get_value("demo_wiggle") ?? 0.5;
+			    gmui_text($"Value: {string_format(wv, 1, 3)} | Playing: {gmui_animation_is_playing("demo_wiggle")}");
+			    gmui_progress(clamp(wv, 0, 1), 1, gmui_get_available_width(), true);
+    
+			    gmui_end_collapsing_header();
+			}
             
             gmui_end_collapsing_header();
         }

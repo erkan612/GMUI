@@ -1,4 +1,4 @@
-gmui_init(gmui_get_default_profile(gmui_default_profile.CACHED2));
+gmui_init(gmui_get_default_profile(gmui_default_profile.ANIMATION));
 gmui_animation_init();
 
 color = c_red;

@@ -5330,13 +5330,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
                         tab_data.selected = sel;
                         live_attached = true;
 						if (is_method(_handlers.on_bar_attach)) { _handlers.on_bar_attach(tab_data, other_data); };
-						//tabs_container.ignore_surface_flag_once = true;
-						//tabs_container.parent.ignore_surface_flag_once = true;
-						var current_container = tabs_container;
-						while (current_container != undefined) {
-							current_container.ignore_surface_flag_once = true;
-							current_container = current_container.parent;
-						};
+						gmui_container_animation_detected(tabs_container);
                         
                         if (ds_map_exists(gmui.cache, "_detached_tab_visual")) {
                             ds_map_delete(gmui.cache, "_detached_tab_visual");
@@ -5416,11 +5410,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 		                        gmui.cache[? "_detached_tab_visual"].active);
 
 		if (is_dragging_tab || is_detached_dragging) {
-			var current_container = tabs_container;
-			while (current_container != undefined) {
-				current_container.ignore_surface_flag_once = true;
-				current_container = current_container.parent;
-			};
+			gmui_container_animation_detected(tabs_container);
 		}
 
         if (gmui.input.m_released && drag_idx >= 0) {

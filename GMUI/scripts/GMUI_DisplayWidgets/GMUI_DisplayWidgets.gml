@@ -391,6 +391,8 @@ function gmui_progress_bar_indeterminate(width = -1) {
     var style = gmui.style;
     var widget = gmui_begin_widget("progress_bar");
     var container = widget.container;
+	
+	gmui_container_animation_detected();
     
     var bar_width = width > 0 ? width : container.width - style.container_padding_h * 2 - container.context.indent_level;
     var bar_height = style.progress_bar_height;
@@ -495,6 +497,8 @@ function gmui_progress_spinner(size = -1, thickness = -1) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("progress_spinner");
+	
+	gmui_container_animation_detected();
     
     var circle_size = size > 0 ? size : style.progress_circular_size;
     var _thickness = thickness > 0 ? thickness : style.progress_circular_thickness;
@@ -851,6 +855,8 @@ function gmui_spinner(size = 16, thickness = 2) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("spinner");
+	
+	gmui_container_animation_detected();
     
     widget.width = size;
     widget.height = size;
