@@ -1301,6 +1301,134 @@ function gmui_slider_label(value, label, min_val, max_val, width = 200) {
 	return value;
 }
 
+// slidebar
+function gmui_slidebar(value, min_val, max_val, width = 200, show_text = true, font = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var widget = gmui_begin_widget("slidebar");
+    
+    var track_height = style.slidebar_track_height;
+    var handle_width = style.slidebar_handle_width;
+    var handle_height = style.slidebar_handle_height;
+	
+	var _font = gmui_resolve_font(widget, font);
+    
+    widget.width = width;
+    widget.height = max(track_height, handle_height);
+    
+	if (gmui_widget_is_callable(widget)) {
+	    var track_x = widget.x;
+	    var track_y = widget.y + (widget.height - track_height) / 2;
+	    var track_width = width;
+    
+	    var range = max_val - min_val;
+	    if (range == 0) range = 1;
+	    var normalized = (value - min_val) / range;
+	    normalized = clamp(normalized, 0, 1);
+    
+	    var handle_x = track_x + (track_width - handle_width) * normalized;
+	    var handle_y = widget.y + (widget.height - handle_height) / 2;
+    
+		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
+		
+	    var hovered = mouse_interaction.is_hovering;
+	    var active = mouse_interaction.is_active;
+	    var released = mouse_interaction.is_pressed;
+	    var slidebar_id = widget.id;
+    
+	    if (hovered && gmui_input_mouse_pressed()) {
+	        var click_x = gmui.input.m_x - gmui_get_container_screen_offset(widget.container)[0];
+	        var local_x = click_x - track_x - handle_width / 2;
+	        var new_normalized = local_x / (track_width - handle_width);
+	        new_normalized = clamp(new_normalized, 0, 1);
+	        value = min_val + new_normalized * range;
+        
+	        gmui.input.active_widget_id = slidebar_id;
+	        widget.container._slidebar_drag_start_value = value;
+	        widget.container._slidebar_drag_start_mouse_x = gmui.input.m_x;
+	    }
+    
+	    if (gmui.input.active_widget_id == slidebar_id && gmui.input.m_held) {
+	        var mouse_dx = gmui.input.m_x - widget.container._slidebar_drag_start_mouse_x;
+	        var value_delta = (mouse_dx / (track_width - handle_width)) * range;
+	        value = widget.container._slidebar_drag_start_value + value_delta;
+	        value = clamp(value, min_val, max_val);
+        
+	        normalized = (value - min_val) / range;
+	        handle_x = track_x + (track_width - handle_width) * normalized;
+	    }
+    
+	    var offset = gmui_get_container_screen_offset(widget.container);
+	    var screen_handle_x = offset[0] + widget.x + (track_width - handle_width) * normalized;
+	    var screen_handle_y = offset[1] + widget.y + (widget.height - handle_height) / 2;
+	    var handle_hovered = point_in_rectangle(
+	        gmui.input.m_x, gmui.input.m_y,
+	        screen_handle_x, screen_handle_y,
+	        screen_handle_x + handle_width, screen_handle_y + handle_height
+	    ) && widget.container.is_mouse_hovering;
+    
+	    gmui_add_roundrect(
+	        track_x, track_y,
+	        track_x + track_width, track_y + track_height,
+	        false,
+	        style.slidebar_track_color, 1,
+	        style.slidebar_track_rounding
+	    );
+    
+	    if (normalized > 0) {
+	        gmui_add_roundrect(
+	            track_x, track_y,
+	            track_x + (track_width - handle_width) * normalized + handle_width / 2, track_y + track_height,
+	            false,
+	            style.slidebar_track_fill_color, 1,
+	            style.slidebar_track_rounding
+	        );
+	    }
+    
+	    var handle_color = style.slidebar_handle_color;
+	    if (gmui.input.active_widget_id == slidebar_id && gmui.input.m_held) {
+	        handle_color = style.slidebar_handle_active_color;
+	    } else if (handle_hovered) {
+	        handle_color = style.slidebar_handle_hovered_color;
+	    }
+    
+	    gmui_add_roundrect(
+	        handle_x, handle_y,
+	        handle_x + handle_width, handle_y + handle_height,
+	        false,
+	        handle_color, 1,
+	        style.slidebar_handle_rounding
+	    );
+    
+	    gmui_add_roundrect(
+	        handle_x, handle_y,
+	        handle_x + handle_width, handle_y + handle_height,
+	        true,
+	        style.slidebar_handle_border_color, 1,
+	        style.slidebar_handle_rounding
+	    );
+		
+		if (show_text) {
+			var text = string(value);
+			var text_size = gmui_calculate_text_size(text, _font);
+			var text_x = widget.x + (widget.width - text_size[0]) / 2;
+			var text_y = widget.y + (widget.height - text_size[1]) / 2;
+			gmui_add_text(text, text_x, text_y, style.slidebar_text_color, 1, _font);
+		}
+	};
+    
+    gmui_end_widget(widget, true);
+    
+    return value;
+}
+
+function gmui_slidebar_label(value, label, min_val, max_val, width = 200, show_text = true, font = undefined) {
+	value = gmui_slidebar(value, min_val, max_val, width, show_text, font);
+	gmui_sameline();
+	gmui_text(label);
+	return value;
+}
+
 function gmui_slider_disabled(value, min_val, max_val, width = 200) {
     var gmui = global.gmui;
     var style = gmui.style;

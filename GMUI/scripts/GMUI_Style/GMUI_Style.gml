@@ -305,6 +305,7 @@ function gmui_style_apply_ruler
 		font_context_menu: undefined,
 		font_toast: undefined,
 		font_drag_textbox: undefined,
+		font_slidebar: undefined,
         
         // container
         container_background_color: _bg_dom,
@@ -380,6 +381,22 @@ function gmui_style_apply_ruler
         slider_handle_active_color: _ruler.color_front_active,
         slider_handle_border_color: _border_light,
         slider_handle_rounding: _round_med,
+		
+		// slidebar
+        slidebar_track_height: 16,
+        slidebar_track_color: _bg_ter,
+        slidebar_track_fill_color: _bg_ter,
+        slidebar_track_rounding: _round_med,
+        
+        slidebar_handle_width: 12,
+        slidebar_handle_height: 16,
+        slidebar_handle_color: _accent_alt,
+        slidebar_handle_hovered_color: _accent_light,
+        slidebar_handle_active_color: _accent_dark,
+        slidebar_handle_border_color: _border_light,
+        slidebar_handle_rounding: _round_med,
+		
+		slidebar_text_color: _text_primary,
         
         // textbox
         textbox_color: _bg_ter,

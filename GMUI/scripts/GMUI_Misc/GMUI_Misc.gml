@@ -65,6 +65,7 @@ function gmui_resolve_font(widget, font) {
 	case "knob":					if (font == -5) { return gmui.style.font; } else if (font == undefined)	{ return gmui.style.font_knob					?? gmui.style.font;	}	else { return font; };
 	case "multiselect":				if (font == -5) { return gmui.style.font; } else if (font == undefined)	{ return gmui.style.font_multiselect			?? gmui.style.font;	}	else { return font; };
 	case "kv_list":					if (font == -5) { return gmui.style.font; } else if (font == undefined)	{ return gmui.style.font_kv_list				?? gmui.style.font;	}	else { return font; };
+	case "slidebar":				if (font == -5) { return gmui.style.font; } else if (font == undefined)	{ return gmui.style.font_slidebar				?? gmui.style.font;	}	else { return font; };
 	default:						return -1;
 	};
 };
