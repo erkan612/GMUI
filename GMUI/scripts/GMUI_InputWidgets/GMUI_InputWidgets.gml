@@ -5027,7 +5027,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
     
     var tab_data = gmui.cache[? cache_key];
     var tabs = tab_data.labels;
-    var _width = width > 0 ? width : container.width - style.container_padding_h * 2 - container.context.indent_level;
+    var _width = width > 0 ? width : gmui_get_available_width();
     var _height = height > 0 ? height : style.tab_bar_height;
     var close_size = 14;
     var drag_threshold = 4;
@@ -5053,6 +5053,8 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 	var tabs_container = gmui_container_get(container.name + "_tabs_" + name, container);
 	if (!tabs_container.initialized) {
 	    tabs_container.scrolling_enabled = true;
+	    tabs_container.scrolling_enabled_vertical = false;
+	    tabs_container.scrolling_enabled_horizontal = true;
 	    tabs_container.use_surface = false;
 	    tabs_container.surface_flag = false;
 	    tabs_container.surface_sleep = false;
@@ -5060,13 +5062,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 	    tabs_container.background_enabled = false;
 	}
     if (gmui_begin_container(container.name + "_tabs_" + name, undefined, undefined, _width, _height)) {
-			gmui_style_push_multi({
-			container_padding_h: 0,
-			container_padding_v: 0,
-			element_spacing_v: 0,
-			element_spacing_h: 0,
-		});
-        tabs_container.context.cursor_x = 0;
+		tabs_container.context.cursor_x = 0;
         tabs_container.context.cursor_y = 0;
 		
         var _font = gmui_resolve_font({ type: "tabs" }, font);
@@ -5553,14 +5549,6 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
         
         gmui_add_rectangle(0, _height - 1, _width, _height, false, style.color_border_dark, 1);
         //tabs_container.content_width = total_width;
-		if (gmui.input.hovered_container == tabs_container && gmui.input.m_wheel != 0) {
-		    var max_scroll = max(0, total_width - _width);
-		    tabs_container.scroll_x = clamp(
-		        tabs_container.scroll_x - gmui.input.m_wheel * tabs_container.scroll_speed,
-		        0, max_scroll
-		    );
-		    gmui.input.m_wheel = 0;
-		}
         gmui_end_widget(widget, true);
         gmui_end_container();
     }

@@ -274,6 +274,7 @@ function gmui_begin_drag_drop_source(widget = undefined) {
     gmui.cache[? key_widget] = drag_widget;
     
     var result = (state == "dragging" && drag_widget != undefined && drag_widget.id == _widget.id);
+	if (result) { gmui_container_animation_detected(); };
     return result;
 };
 

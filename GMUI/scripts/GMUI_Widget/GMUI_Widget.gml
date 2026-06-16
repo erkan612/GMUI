@@ -62,15 +62,15 @@ function gmui_begin_widget(type = "unnamed") {
 
 function gmui_end_widget(widget, is_interactive = false) {
 	if (!widget.context.ignore_cursor_advance_once) {
-	    widget.context.cursor_x += widget.width + widget.gmui.style.element_spacing_h;
+	    widget.context.cursor_x += widget.width;
 	    widget.context.line_height = max(widget.context.line_height, widget.height);
 	    gmui_newline();
     
-	    // subtract trailing spacing — content_width should reflect the rightmost edge
-	    // of actual content, not content + a spacing gap that has nothing after it
-	    var effective_width = widget.context.cursor_x - widget.gmui.style.element_spacing_h;
-	    widget.container.content_width = max(widget.container.content_width, effective_width);
-	    widget.container.content_height = max(widget.container.content_height, widget.context.cursor_y + widget.context.line_height);
+	    widget.container.content_width = max(widget.container.content_width, widget.context.cursor_x - widget.gmui.style.container_padding_h);
+	    widget.container.content_height = max(widget.container.content_height, widget.context.cursor_y + widget.context.line_height - widget.gmui.style.container_padding_v);
+		
+		widget.container.context.needs_horizontal_scrollbar = widget.container.content_width > widget.container.width - widget.gmui.style.container_padding_h * 2;
+		widget.container.context.needs_vertical_scrollbar = widget.container.content_height > widget.container.height - widget.gmui.style.container_padding_v * 2;
 	}
 	else {
 		widget.context.ignore_cursor_advance_once = false;

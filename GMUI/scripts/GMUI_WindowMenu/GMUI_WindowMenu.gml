@@ -34,7 +34,7 @@ function gmui_window_menu(menu_array) {
         cursor_x += btn_widths[i];
     }
 
-    if (gmui_widget_is_visible(widget)) {
+    if (gmui_widget_is_callable(widget)) {
         var offset = gmui_get_container_screen_offset(container);
         var input  = gmui.input;
 

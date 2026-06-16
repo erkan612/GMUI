@@ -165,7 +165,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				animation_flag: false,
 			},
 			container_properties: {
-				use_surface: false,
+				use_surface: true,
 				surface_flag: true,
 				surface_sleep: true,
 				use_scissor: true,
@@ -184,7 +184,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				animation_flag: true,
 			},
 			container_properties: {
-				use_surface: false,
+				use_surface: true,
 				surface_flag: true,
 				surface_sleep: true,
 				use_scissor: true,

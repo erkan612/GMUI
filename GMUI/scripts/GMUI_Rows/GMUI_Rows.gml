@@ -118,7 +118,7 @@ function gmui_end_rows(resize_enabled = true) {
 
     if (frame.current_row >= 0) {
         frame.parent.context.ignore_cursor_advance_once = true;
-        gmui_end_container();
+        //gmui_end_container();
     }
     gmui.current_container = frame.parent;
 
@@ -181,7 +181,7 @@ function gmui_end_rows(resize_enabled = true) {
     frame.parent.context.cursor_y    = style.container_padding_v;
     frame.parent.context.line_height  = 0;
     frame.parent.context.new_line_requested = false;
-    frame.parent.content_width = max(frame.parent.content_width, frame.origin_x + frame.width + style.container_padding_h);
+    //frame.parent.content_width = max(frame.parent.content_width, frame.origin_x + frame.width + style.container_padding_h);
 }
 
 function gmui_auto_row(columns, row_count, row_ratios = undefined, col_width = 28, show_separators = false, resize_enable = true) {

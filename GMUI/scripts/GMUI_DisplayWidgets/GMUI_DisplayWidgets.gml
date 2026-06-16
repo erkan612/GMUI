@@ -559,7 +559,7 @@ function gmui_tooltip(text, widget, width = -1, font = undefined) {
 	var style = gmui.style;
 	var input = gmui.input;
 	var container = gmui.current_container;
-    
+	
 	var text_size = gmui_calculate_text_size(text);
     var tooltip_width = width > style.tooltip_min_width ? min(width, text_size[0]) : style.tooltip_min_width;
     var tooltip_height = 0;

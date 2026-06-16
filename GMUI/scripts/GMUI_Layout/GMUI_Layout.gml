@@ -7,6 +7,7 @@ function gmui_newline() {
 	var context = container.context;
 	
 	context.new_line_requested = true;
+	context.same_line_requested = false;
 };
 
 function gmui_sameline() {
@@ -15,6 +16,7 @@ function gmui_sameline() {
 	var context = container.context;
 	
 	context.new_line_requested = false;
+	context.same_line_requested = true;
 };
 
 function gmui_indent(amount) {
@@ -101,7 +103,12 @@ function gmui_get_available_width(container = undefined) {
 	
 	if (_container == undefined) { return -1; }
 	
-	return _container.width - style.container_padding_h * 2 - _container.context.indent_level - (_container.context.new_line_requested ? 0 : _container.context.cursor_x - style.element_spacing_h);
+	if (_container.context.new_line_requested) {
+		return _container.width - style.container_padding_h * 2;
+	}
+	else {
+		return _container.width - style.container_padding_h - _container.context.cursor_x;
+	};
 };
 
 function gmui_get_available_height(container = undefined) {
@@ -111,5 +118,5 @@ function gmui_get_available_height(container = undefined) {
 	
 	if (_container == undefined) { return -1; }
 	
-	return _container.height - gmui.style.container_padding_v * 2 - gmui.style.element_spacing_v * 2 - _container.context.cursor_y;
+	return _container.height - style.container_padding_v - (_container.context.same_line_requested ? 0 : _container.context.cursor_y + _container.context.line_height);
 };
