@@ -48,3 +48,68 @@ function gmui_indent_pop(amount = -1) {
     var indent_amount = amount > 0 ? amount : style.spacing_large;
     gmui_unindent(indent_amount);
 };
+
+function gmui_cursor_set(x, y) {
+	if (global.gmui.current_container == undefined) { return; };
+	gmui_container_cursor_advance(global.gmui.current_container);
+	global.gmui.current_container.context.cursor_x = x;
+	global.gmui.current_container.context.cursor_y = y;
+};
+
+function gmui_cursor_set_x(x) {
+	if (global.gmui.current_container == undefined) { return; };
+	gmui_container_cursor_advance(global.gmui.current_container);
+	global.gmui.current_container.context.cursor_x = x;
+};
+
+function gmui_cursor_set_y(y) {
+	if (global.gmui.current_container == undefined) { return; };
+	gmui_container_cursor_advance(global.gmui.current_container);
+	global.gmui.current_container.context.cursor_y = y;
+};
+
+function gmui_cursor_get() {
+	if (global.gmui.current_container == undefined) { return; };
+	return {
+		x: global.gmui.current_container.context.cursor_x,
+		y: global.gmui.current_container.context.cursor_y,
+	};
+};
+
+function gmui_cursor_get_x() {
+	if (global.gmui.current_container == undefined) { return; };
+	return global.gmui.current_container.context.cursor_x;
+};
+
+function gmui_cursor_get_y() {
+	if (global.gmui.current_container == undefined) { return; };
+	return global.gmui.current_container.context.cursor_y;
+};
+
+function gmui_cursor_get_line_height() {
+    return global.gmui.current_container.context.line_height;
+}
+
+function gmui_cursor_set_line_height(height) {
+    global.gmui.current_container.context.line_height = height;
+}
+
+function gmui_get_available_width(container = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+	var _container = container ?? gmui.current_container;
+	
+	if (_container == undefined) { return -1; }
+	
+	return _container.width - style.container_padding_h * 2 - _container.context.indent_level - (_container.context.new_line_requested ? 0 : _container.context.cursor_x - style.element_spacing_h);
+};
+
+function gmui_get_available_height(container = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+	var _container = container ?? gmui.current_container;
+	
+	if (_container == undefined) { return -1; }
+	
+	return _container.height - gmui.style.container_padding_v * 2 - gmui.style.element_spacing_v * 2 - _container.context.cursor_y;
+};

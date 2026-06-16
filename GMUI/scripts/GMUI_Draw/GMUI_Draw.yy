@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"GMUI_Draw",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"GMUI_Draw",
+  "parent":{
+    "name":"Core",
+    "path":"folders/GMUI/Core.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
