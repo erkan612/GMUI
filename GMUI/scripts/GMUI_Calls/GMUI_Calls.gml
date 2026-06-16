@@ -29,9 +29,8 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
     
     if (!is_struct(params)) { return; };
 	
-	if (variable_struct_exists(params, "x")) { params.x += origin_x; };
-	if (variable_struct_exists(params, "y")) { params.y += origin_y; };
-	
+	if (variable_struct_exists(params, "x"))  { params.x  += origin_x; };
+	if (variable_struct_exists(params, "y"))  { params.y  += origin_y; };
 	if (variable_struct_exists(params, "x1")) { params.x1 += origin_x; };
 	if (variable_struct_exists(params, "y1")) { params.y1 += origin_y; };
 	if (variable_struct_exists(params, "x2")) { params.x2 += origin_x; };
@@ -39,50 +38,52 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 	if (variable_struct_exists(params, "x3")) { params.x3 += origin_x; };
 	if (variable_struct_exists(params, "y3")) { params.y3 += origin_y; };
 	
+	var _vc = global.gmui.visual_calls ?? gmui_get_default_visual_calls();
+	
 	switch (call.type) {
 	// Misc Calls
 	case "font_set": {
-		draw_set_font(params.font);
+		_vc.draw_set_font(params.font);
 	} break;
 
 	case "halign_set": {
-		draw_set_halign(params.halign);
+		_vc.draw_set_halign(params.halign);
 	} break;
 
 	case "valign_set": {
-		draw_set_valign(params.valign);
+		_vc.draw_set_valign(params.valign);
 	} break;
 
 	case "primitive_type_set": {
-		draw_primitive_begin(params.type);
+		_vc.draw_primitive_begin(params.type);
 	} break;
 	
 	case "primitive_end": {
-		draw_primitive_end();
+		_vc.draw_primitive_end();
 	} break;
 
 	case "vertex": {
-		draw_vertex(params.x, params.y);
+		_vc.draw_vertex(params.x, params.y);
 	} break;
 
 	case "vertex_color": {
-		draw_vertex_color(params.x, params.y, params.color, params.alpha);
+		_vc.vertex_color(params.x, params.y, params.color, params.alpha);
 	} break;
 
 	case "scrolling_set_value": {
-		global.gmui.current_container.scrolling_enabled = params.value;
+		_vc.scrolling_set_value(params.value);
 	} break;
 
 	case "scissor_begin": {
-		gmui_begin_scissor(params.x, params.y, params.w, params.h);
+		_vc.scissor_begin(params.x, params.y, params.w, params.h);
 	} break;
 
 	case "scissor_isolated": {
-		gmui_push_scissor_isolated(params.x, params.y, params.w, params.h);
+		_vc.scissor_isolated(params.x, params.y, params.w, params.h);
 	} break;
 
 	case "scissor_end": {
-		gmui_end_scissor();
+		_vc.scissor_end();
 	} break;
 	
 	// Draw Calls
@@ -94,11 +95,11 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		if (params.font != undefined) {
 			var old_font = draw_get_font();
 			draw_set_font(params.font);
-			draw_text(params.x, params.y, params.text);
+			_vc.draw_text(params.x, params.y, params.text, params.color, params.alpha, params.font);
 			draw_set_font(old_font);
 		}
 		else {
-			draw_text(params.x, params.y, params.text);
+			_vc.draw_text(params.x, params.y, params.text, params.color, params.alpha, params.font);
 		};
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
@@ -109,7 +110,7 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		var old_alpha = draw_get_alpha();
 		draw_set_color(params.color);
 		draw_set_alpha(params.alpha);
-		draw_rectangle(params.x1, params.y1, params.x2, params.y2, params.outline);
+		_vc.draw_rectangle(params.x1, params.y1, params.x2, params.y2, params.outline, params.color, params.alpha);
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
 	} break;
@@ -119,8 +120,7 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		var old_alpha = draw_get_alpha();
 		draw_set_color(params.color);
 	    draw_set_alpha(params.alpha);
-	    var r = params.rounding;
-	    draw_roundrect_ext(params.x1, params.y1, params.x2, params.y2, r, r, params.outline);
+	    _vc.draw_roundrect(params.x1, params.y1, params.x2, params.y2, params.outline, params.color, params.alpha, params.rounding);
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
 	} break;
@@ -130,7 +130,7 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		var old_alpha = draw_get_alpha();
 		draw_set_color(params.color);
 		draw_set_alpha(params.alpha);
-		draw_line(params.x1, params.y1, params.x2, params.y2);
+		_vc.draw_line(params.x1, params.y1, params.x2, params.y2, params.color, params.alpha);
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
 	} break;
@@ -140,7 +140,7 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		var old_alpha = draw_get_alpha();
 		draw_set_color(params.color);
 		draw_set_alpha(params.alpha);
-		draw_line_width(params.x1, params.y1, params.x2, params.y2, params.width);
+		_vc.draw_line_width(params.x1, params.y1, params.x2, params.y2, params.width, params.color, params.alpha);
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
 	} break;
@@ -150,7 +150,7 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		var old_alpha = draw_get_alpha();
 		draw_set_color(params.color);
 		draw_set_alpha(params.alpha);
-		draw_circle(params.x, params.y, params.r, params.outline);
+		_vc.draw_circle(params.x, params.y, params.r, params.outline, params.color, params.alpha);
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
 	} break;
@@ -160,13 +160,13 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		var old_alpha = draw_get_alpha();
 		draw_set_color(params.color);
 		draw_set_alpha(params.alpha);
-		draw_sprite(params.sprite, params.subimg, params.x, params.y);
+		_vc.draw_sprite(params.sprite, params.subimg, params.x, params.y, params.color, params.alpha);
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
 	} break;
 
 	case "draw_sprite_ext": {
-		draw_sprite_ext(params.sprite, params.subimg, params.x, params.y, params.xscale, params.yscale, params.rot, params.color, params.alpha);
+		_vc.draw_sprite_ext(params.sprite, params.subimg, params.x, params.y, params.xscale, params.yscale, params.rot, params.color, params.alpha);
 	} break;
 
 	case "draw_surface": {
@@ -174,13 +174,13 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		var old_alpha = draw_get_alpha();
 		draw_set_color(params.color);
 		draw_set_alpha(params.alpha);
-		draw_surface(params.id, params.x, params.y);
+		_vc.draw_surface(params.id, params.x, params.y, params.color, params.alpha);
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
 	} break;
 
 	case "draw_surface_ext": {
-		draw_surface_ext(params.id, params.x, params.y, params.xscale, params.yscale, params.rot, params.color, params.alpha);
+		_vc.draw_surface_ext(params.id, params.x, params.y, params.xscale, params.yscale, params.rot, params.color, params.alpha);
 	} break;
 	
 	case "draw_triangle": {
@@ -188,67 +188,32 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		var old_alpha = draw_get_alpha();
 	    draw_set_color(params.color);
 	    draw_set_alpha(params.alpha);
-	    //draw_primitive_begin(pr_trianglelist);
-	    //draw_vertex(params.x1, params.y1);
-	    //draw_vertex(params.x2, params.y2);
-	    //draw_vertex(params.x3, params.y3);
-	    //draw_primitive_end();
-		draw_triangle(params.x1, params.y1, params.x2, params.y2, params.x3, params.y3, params.outline);
+		_vc.draw_triangle(params.x1, params.y1, params.x2, params.y2, params.x3, params.y3, params.color, params.alpha, params.outline);
 		draw_set_colour(old_color);
 		draw_set_alpha(old_alpha);
 	} break;
 	
 	case "draw_shader_rect": {
-	    shader_set(params.shader);
-    
-	    // Set uniforms
-	    for (var j = 0; j < array_length(params.uniforms); j++) {
-	        var u = params.uniforms[j];
-	        switch (u.type) {
-	            case "float":
-	                shader_set_uniform_f(shader_get_uniform(params.shader, u.name), u.value);
-	                break;
-	            case "vec2":
-	                shader_set_uniform_f(shader_get_uniform(params.shader, u.name), u.value[0], u.value[1]);
-	                break;
-	            case "vec3":
-	                shader_set_uniform_f(shader_get_uniform(params.shader, u.name), u.value[0], u.value[1], u.value[2]);
-	                break;
-	            case "vec4":
-	                shader_set_uniform_f(shader_get_uniform(params.shader, u.name), u.value[0], u.value[1], u.value[2], u.value[3]);
-	                break;
-	        }
-	    }
-    
-	    draw_primitive_begin_texture(pr_trianglelist, -1);
-	    draw_vertex_texture(params.x1, params.y2, 0, 1);
-	    draw_vertex_texture(params.x1, params.y1, 0, 0);
-	    draw_vertex_texture(params.x2, params.y1, 1, 0);
-	    draw_vertex_texture(params.x2, params.y2, 1, 1);
-	    draw_vertex_texture(params.x1, params.y2, 0, 1);
-	    draw_vertex_texture(params.x2, params.y1, 1, 0);
-	    draw_primitive_end();
-    
-	    shader_reset();
+	    _vc.draw_shader_rect(params.x1, params.y1, params.x2, params.y2, params.shader, params.uniforms);
 	} break;
 	
 	case "draw_rect_expensive": {
+		var old_color = draw_get_colour();
+		var old_alpha = draw_get_alpha();
 	    draw_set_color(params.color);
 	    draw_set_alpha(params.alpha);
-	    _gmui_draw_rounded_rectangle_directional(
-	        params.x1, params.y1, params.x2, params.y2,
-	        params.radius, params.direction, params.filled, params.segments
-	    );
+	    _vc.draw_rect_expensive(params.x1, params.y1, params.x2, params.y2, params.radius, params.direction, params.filled, params.segments);
+		draw_set_colour(old_color);
+		draw_set_alpha(old_alpha);
 	} break;
 	
 	case "call_function": {
-		params.func(params);
+		_vc.call_function(params.func, params);
 	} break;
 	};
 	
-	if (variable_struct_exists(params, "x")) { params.x -= origin_x; };
-	if (variable_struct_exists(params, "y")) { params.y -= origin_y; };
-	
+	if (variable_struct_exists(params, "x"))  { params.x  -= origin_x; };
+	if (variable_struct_exists(params, "y"))  { params.y  -= origin_y; };
 	if (variable_struct_exists(params, "x1")) { params.x1 -= origin_x; };
 	if (variable_struct_exists(params, "y1")) { params.y1 -= origin_y; };
 	if (variable_struct_exists(params, "x2")) { params.x2 -= origin_x; };
