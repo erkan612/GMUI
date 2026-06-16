@@ -27,9 +27,9 @@ function gmui_begin_sleeper(name) {
 	var saved_height = target_container.state[? "_sleeper_saved_height"];
 	var begin_result = gmui_begin_container(name, undefined, undefined, saved_width, saved_height);
 	if (begin_result) {
-		gmui_style_push("container_padding_h", 10);
-		gmui_style_push("container_padding_v", 10);
-		gmui_cursor_set(10, 10);
+		gmui_style_push("container_padding_h", 0);
+		gmui_style_push("container_padding_v", 0);
+		gmui_cursor_set(0, 0);
 		return true;
 	}
 	else {

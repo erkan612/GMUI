@@ -22,7 +22,7 @@ if (gmui_begin("test window", 100, 100, 500, 500)) {
 		}
 	);
 	
-	tx = gmui_tabs("test tab", tx);
+	gmui_button("test");
 	gmui_end();
 }
 
