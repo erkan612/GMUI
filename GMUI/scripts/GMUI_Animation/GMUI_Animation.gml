@@ -1,88 +1,6 @@
 
 
 // ANIMATIONS
-
-// enums
-enum gmui_animation_ease {
-	LINEAR,
-	IN_QUAD,
-	OUT_QUAD,
-	IN_OUT_QUAD,
-	IN_CUBIC,
-	OUT_CUBIC,
-	IN_OUT_CUBIC,
-	IN_QUART,
-	OUT_QUART,
-	IN_OUT_QUART,
-	IN_QUINT,
-	OUT_QUINT,
-	IN_OUT_QUINT,
-	IN_SINE,
-	OUT_SINE,
-	IN_OUT_SINE,
-	IN_EXPO,
-	OUT_EXPO,
-	IN_OUT_EXPO,
-	IN_CIRC,
-	OUT_CIRC,
-	IN_OUT_CIRC,
-	IN_ELASTIC,
-	OUT_ELASTIC,
-	IN_OUT_ELASTIC,
-	IN_BACK,
-	OUT_BACK,
-	IN_OUT_BACK,
-	IN_BOUNCE,
-	OUT_BOUNCE,
-	IN_OUT_BOUNCE,
-	CUSTOM,
-	TOTAL,
-}
-
-enum gmui_animation_repeat_mode {
-	NONE,
-	LOOP,
-	PING_PONG,
-	PING_PONG_ONCE,
-}
-
-enum gmui_animation_tween_direction {
-	FORWARD,
-	BACKWARD,
-}
-
-enum gmui_animation_tween_state {
-	IDLE,
-	PLAYING,
-	PAUSED,
-	COMPLETED,
-	KILLED,
-}
-
-enum gmui_animation_value_type {
-	REAL,
-	COLOR3,
-	COLOR4,
-	VECTOR2,
-	VECTOR3,
-	VECTOR4,
-	ARRAY,
-	INT,
-	CUSTOM,
-}
-
-enum gmui_animation_tween_flags {
-	NONE						= 0,
-	OVERRIDE_EXISTING			= 1 << 0,
-	DELETE_ON_COMPLETE			= 1 << 1,
-	IGNORE_TIME_SCALE			= 1 << 2,
-	REVERSE_EASE_ON_PINGPONG	= 1 << 3,
-	CLAMP_VALUES				= 1 << 4,
-	SYNC_TO_AUDIO				= 1 << 5,
-	QUEUE						= 1 << 6,
-}
-
-// init
 function gmui_animation_init() {
 	var gmui = global.gmui;
 	var cache = gmui.cache;
@@ -2179,6 +2097,86 @@ function gmui_animation_tween_spline(_id, _points, _duration = -1, _loop = false
 	return _tween;
 }
 
+// enums
+enum gmui_animation_ease {
+	LINEAR,
+	IN_QUAD,
+	OUT_QUAD,
+	IN_OUT_QUAD,
+	IN_CUBIC,
+	OUT_CUBIC,
+	IN_OUT_CUBIC,
+	IN_QUART,
+	OUT_QUART,
+	IN_OUT_QUART,
+	IN_QUINT,
+	OUT_QUINT,
+	IN_OUT_QUINT,
+	IN_SINE,
+	OUT_SINE,
+	IN_OUT_SINE,
+	IN_EXPO,
+	OUT_EXPO,
+	IN_OUT_EXPO,
+	IN_CIRC,
+	OUT_CIRC,
+	IN_OUT_CIRC,
+	IN_ELASTIC,
+	OUT_ELASTIC,
+	IN_OUT_ELASTIC,
+	IN_BACK,
+	OUT_BACK,
+	IN_OUT_BACK,
+	IN_BOUNCE,
+	OUT_BOUNCE,
+	IN_OUT_BOUNCE,
+	CUSTOM,
+	TOTAL,
+}
+
+enum gmui_animation_repeat_mode {
+	NONE,
+	LOOP,
+	PING_PONG,
+	PING_PONG_ONCE,
+}
+
+enum gmui_animation_tween_direction {
+	FORWARD,
+	BACKWARD,
+}
+
+enum gmui_animation_tween_state {
+	IDLE,
+	PLAYING,
+	PAUSED,
+	COMPLETED,
+	KILLED,
+}
+
+enum gmui_animation_value_type {
+	REAL,
+	COLOR3,
+	COLOR4,
+	VECTOR2,
+	VECTOR3,
+	VECTOR4,
+	ARRAY,
+	INT,
+	CUSTOM,
+}
+
+enum gmui_animation_tween_flags {
+	NONE						= 0,
+	OVERRIDE_EXISTING			= 1 << 0,
+	DELETE_ON_COMPLETE			= 1 << 1,
+	IGNORE_TIME_SCALE			= 1 << 2,
+	REVERSE_EASE_ON_PINGPONG	= 1 << 3,
+	CLAMP_VALUES				= 1 << 4,
+	SYNC_TO_AUDIO				= 1 << 5,
+	QUEUE						= 1 << 6,
+}
+
 // demo
 function gmui_animation_demo() { // yes, not a visual novelty but the purpose is to demonstrate its functionality
     if (gmui_begin("Animation System Demo", 50, 50, 550, 500)) {
@@ -3015,7 +3013,7 @@ function gmui_animation_demo() { // yes, not a visual novelty but the purpose is
 			        gmui_animation_clip_play("bounce", "demo_clip_bounce");
 			    }
 			    gmui_sameline();
-			    if (gmui_button("Play 'fade_in' → 'bounce'")) {
+			    if (gmui_button("Play 'fade_in' + 'bounce'")) {
 				    gmui_animation_clip_play("fade_in", "demo_clip_chain");
 				}
 			    gmui_sameline();
