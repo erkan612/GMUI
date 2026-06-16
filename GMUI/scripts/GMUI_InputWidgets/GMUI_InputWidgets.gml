@@ -2341,7 +2341,7 @@ function gmui_textbox(text, placeholder = "", width = 200, is_password = false, 
         }
         
         if (is_focused) {
-			container.ignore_surface_flag_once = true;
+			gmui_container_animation_detected();
 			if (gmui_input_key_pressed()) {
 			    var char = gmui_input_lastchar();
 			    var key = gmui_input_key();
@@ -2648,7 +2648,7 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         }
         
         if (is_dragging && gmui.input.m_held) {
-			container.ignore_surface_flag_once = true;
+			gmui_container_animation_detected();
             var dx = gmui.input.m_x - container._if_drag_start_mx;
             value = container._if_drag_start_value + dx * style.drag_textbox_sensitivity * step;
             value = clamp(value, min_val, max_val);
@@ -2686,7 +2686,7 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         }
         
         if (is_focused) {
-		container.ignore_surface_flag_once = true;
+			gmui_container_animation_detected();
             if (gmui_input_ctrl() && gmui_input_key_pressed()) {
                 var key = gmui_input_key();
                 var s = min(cursor, cursor_start);
@@ -2958,7 +2958,7 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
         }
         
         if (is_dragging && gmui.input.m_held) {
-			container.ignore_surface_flag_once = true;
+			gmui_container_animation_detected();
             var dx = gmui.input.m_x - container._ii_drag_start_mx;
             value = container._ii_drag_start_value + round(dx * style.drag_textbox_sensitivity) * step;
             value = clamp(value, min_val, max_val);
@@ -2998,7 +2998,7 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
         }
         
         if (is_focused) {
-		container.ignore_surface_flag_once = true;
+			gmui_container_animation_detected();
             if (gmui_input_ctrl() && gmui_input_key_pressed()) {
                 var key = gmui_input_key();
                 var s = min(cursor, cursor_start);
