@@ -556,7 +556,7 @@ function gmui_get_available_height(container = undefined) {
 	
 	if (_container == undefined) { return -1; }
 	
-	return _container.height - gmui.style.container_padding_v * 2 - gmui.style.element_spacing_v * 2 - _container.context.cursor_y - 8;
+	return _container.height - gmui.style.container_padding_v * 2 - gmui.style.element_spacing_v * 2 - _container.context.cursor_y;
 };
 
 function gmui_default_background_draw_call(container, x1, y1, x2, y2) {

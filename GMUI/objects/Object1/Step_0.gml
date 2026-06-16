@@ -21,6 +21,8 @@ if (gmui_begin("test window", 100, 100, 500, 500)) {
 			if (gmui_button("Click Me!")) { show_debug_message("Hello World!"); }
 		}
 	);
+	
+	tx = gmui_tabs("test tab", tx);
 	gmui_end();
 }
 

@@ -27,13 +27,13 @@ function gmui_begin_rows(count, ratios = undefined, width = 200) {
     var state = parent.state[? state_key];
 
     var sep_h   = gmui.style.rows_separator_height;
-    var avail_h = parent.height - gmui.style.container_padding_v * 2 - sep_h * (count - 1);
+    var avail_h = gmui_get_available_height() - sep_h * (count - 1);
 	
     if (!variable_struct_exists(gmui, "_row_stack")) gmui[$ "_row_stack"] = [];
 	
     var actual_width = width;
     if (width == -1) {
-        actual_width = parent.width - gmui.style.container_padding_h * 2 - parent.context.cursor_x;
+        actual_width = gmui_get_available_width();
     }
 
     array_push(gmui[$ "_row_stack"], {

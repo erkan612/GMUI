@@ -1,4 +1,4 @@
-gmui_init(gmui_get_default_profile(gmui_default_profile.BALANCED));
+gmui_init(gmui_get_default_profile(gmui_default_profile.ANIMATION));
 gmui_animation_init();
 
 color = c_red;
@@ -6,6 +6,12 @@ str = "";
 val = 0.5;
 va = 50;
 vb = 50.1234;
+
+tx = 0;
+gmui_tab_add("test tab", "test 1");
+gmui_tab_add("test tab", "test 2");
+gmui_tab_add("test tab", "test 3");
+gmui_tab_add("test tab", "test 4");
 
 math_set_epsilon(0.00000001);
 

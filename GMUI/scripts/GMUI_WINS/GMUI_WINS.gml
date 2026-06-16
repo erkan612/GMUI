@@ -1,9 +1,29 @@
 
 
 // WINS
+function gmui_begin_wins_space() {
+	gmui_style_push_multi({
+		container_padding_h: 0,
+		container_padding_v: 0,
+		element_spacing_h: 0,
+		element_spacing_v: 0,
+	});
+};
+
+function gmui_end_wins_space() {
+	gmui_style_pop_multi([
+		"element_spacing_v",
+		"element_spacing_h",
+		"container_padding_v",
+		"container_padding_h",
+	]);
+};
+
 function gmui_begin_wins(name, direction, ratios = undefined) {
     var gmui = global.gmui;
     var cache = gmui.cache;
+	
+	gmui_begin_wins_space();
     
     if (!ds_map_exists(cache, "__split_stack")) {
         cache[? "__split_stack"] = [];
@@ -20,6 +40,8 @@ function gmui_begin_wins(name, direction, ratios = undefined) {
     
     var stack = cache[? "__split_stack"];
     array_push(stack, name);
+	
+	var begin_result = false;
     
     if (direction == gmui_split_dir.VERTICAL) {
         return gmui_begin_columns(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1);
@@ -33,12 +55,14 @@ function gmui_begin_wins_pane(index, properties = undefined) {
     var cache = gmui.cache;
     var stack = cache[? "__split_stack"];
     if (array_length(stack) == 0) return false;
+	
+	gmui_end_wins_space();
     
     var last_name = stack[array_length(stack) - 1];
     var split_id = "__split_" + last_name;
     var state = cache[? split_id];
     state.current_pane = index;
-    
+	
     if (state.direction == gmui_split_dir.VERTICAL) {
         return gmui_begin_column(index, properties);
     } else {
@@ -61,6 +85,8 @@ function gmui_end_wins_pane() {
     } else {
         gmui_end_row();
     }
+	
+	gmui_begin_wins_space();
 }
 
 function gmui_end_wins() {
@@ -78,6 +104,8 @@ function gmui_end_wins() {
     } else {
         gmui_end_rows();
     }
+	
+	gmui_end_wins_space();
     
     array_pop(stack);
     

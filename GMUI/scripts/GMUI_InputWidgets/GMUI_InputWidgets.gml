@@ -5047,10 +5047,6 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 	if (leave_one && array_length(tab_data.labels) < 2) { enable_close = false; detachable = false; enable_move = false; };
 	
 	gmui_style_push_multi({
-		container_padding_h: 0,
-		container_padding_v: 0,
-		element_spacing_v: 0,
-		element_spacing_h: 0,
 		scrollbar_width: 3,
 		scrollbar_padding: 0,
 	});
@@ -5064,6 +5060,12 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 	    tabs_container.background_enabled = false;
 	}
     if (gmui_begin_container(container.name + "_tabs_" + name, undefined, undefined, _width, _height)) {
+			gmui_style_push_multi({
+			container_padding_h: 0,
+			container_padding_v: 0,
+			element_spacing_v: 0,
+			element_spacing_h: 0,
+		});
         tabs_container.context.cursor_x = 0;
         tabs_container.context.cursor_y = 0;
 		

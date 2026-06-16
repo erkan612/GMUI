@@ -868,6 +868,7 @@ function gmui_container_ignore_cursor_advance_once(container = undefined) {
 
 function gmui_container_cursor_advance(container = undefined) {
 	var c = container ?? global.gmui.current_container;
+	if (c == undefined) { return; };
 	var context = c.context;
 	if (context.new_line_requested && !context.ignore_cursor_advance_once) {
 		context.cursor_y += context.line_height + global.gmui.style.element_spacing_v;
