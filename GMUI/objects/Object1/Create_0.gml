@@ -1,3 +1,13 @@
+/*
+* WARNING!
+* this object is not meant to be a sample
+* it is used to detect bugs and to test features
+* if you have this, that means you have downloaded the project as zip
+* instead of importing the *.yymps file
+* do not take this object as a sample
+* it does not aim to demonstrate anything
+*/
+
 gmui_init(gmui_get_default_profile(gmui_default_profile.BALANCED), gmui_get_high_quality_visual_calls());
 gmui_animation_init();
 

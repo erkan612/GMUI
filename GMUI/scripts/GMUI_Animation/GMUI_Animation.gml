@@ -97,6 +97,8 @@ function gmui_animation_init() {
 		total_tweens_created: 0,
 		default_easing: gmui_animation_ease.IN_OUT_QUAD,
 		default_duration: 300000,
+		clips: ds_map_create(),
+		paths: ds_map_create(),
 	};
 	
 	cache[? "__gmui_anim"] = gmui_animation;
@@ -1171,7 +1173,7 @@ function gmui_animation_timeline_start(_id, _keyframes, _loop = false, _default_
 	
 	var _count = array_length(_keyframes);
 	if (_count < 2) {
-		//show_debug_message("ERROR: Timeline requires at least 2 keyframes");
+		show_debug_message("ERROR: Timeline requires at least 2 keyframes");
 		return undefined;
 	}
 	
@@ -1433,6 +1435,410 @@ function gmui_animation_tween_position(_id, _from_x, _from_y, _to_x, _to_y, _dur
 	return gmui_animation_tween_vector2(_id, [_from_x, _from_y], [_to_x, _to_y], _duration, _easing);
 }
 
+// clip system
+function gmui_animation_clip_begin(_name) {
+	gmui_animation_init_check_safe();
+	var _anim = gmui_animation_get();
+	
+	var _clip = {
+		name: _name,
+		keyframes: [],
+		total_duration: 0,
+		loop: false,
+		loop_direction: gmui_animation_repeat_mode.NONE,
+		on_complete: undefined,
+		on_marker: undefined,
+		next_clip: undefined, // for chaining
+	};
+	
+	return _clip;
+}
+
+function gmui_animation_clip_key_float(_clip, _time, _value, _easing = undefined) {
+	array_push(_clip.keyframes, {
+		time: _time,
+		value: _value,
+		type: gmui_animation_value_type.REAL,
+		easing: _easing
+	});
+	if (_time > _clip.total_duration) {
+		_clip.total_duration = _time;
+	}
+	return _clip;
+}
+
+function gmui_animation_clip_key_vector2(_clip, _time, _value, _easing = undefined) {
+	array_push(_clip.keyframes, {
+		time: _time,
+		value: _value,
+		type: gmui_animation_value_type.VECTOR2,
+		easing: _easing
+	});
+	if (_time > _clip.total_duration) {
+		_clip.total_duration = _time;
+	}
+	return _clip;
+}
+
+function gmui_animation_clip_key_color3(_clip, _time, _value, _easing = undefined) {
+	array_push(_clip.keyframes, {
+		time: _time,
+		value: _value,
+		type: gmui_animation_value_type.COLOR3,
+		easing: _easing
+	});
+	if (_time > _clip.total_duration) {
+		_clip.total_duration = _time;
+	}
+	return _clip;
+}
+
+function gmui_animation_clip_key_color4(_clip, _time, _value, _easing = undefined) {
+	array_push(_clip.keyframes, {
+		time: _time,
+		value: _value,
+		type: gmui_animation_value_type.COLOR4,
+		easing: _easing
+	});
+	if (_time > _clip.total_duration) {
+		_clip.total_duration = _time;
+	}
+	return _clip;
+}
+
+function gmui_animation_clip_set_loop(_clip, _loop, _direction = undefined) {
+	_clip.loop = _loop;
+	_clip.loop_direction = (_direction != undefined) ? _direction : gmui_animation_repeat_mode.LOOP;
+	return _clip;
+}
+
+function gmui_animation_clip_on_complete(_clip, _callback) {
+	_clip.on_complete = _callback;
+	return _clip;
+}
+
+function gmui_animation_clip_on_marker(_clip, _callback) {
+	_clip.on_marker = _callback;
+	return _clip;
+}
+
+function gmui_animation_clip_chain(_clip, _next_clip_name) {
+	_clip.next_clip = _next_clip_name;
+	return _clip;
+}
+
+function gmui_animation_clip_set_stagger(_clip, _count, _delay_per_item, _initial_delay = 0) {
+	_clip.stagger_count = _count;
+	_clip.stagger_delay = _delay_per_item;
+	_clip.stagger_initial = _initial_delay;
+	return _clip;
+}
+
+function gmui_animation_clip_end(_clip) {
+	var _anim = gmui_animation_get();
+	
+	if (array_length(_clip.keyframes) < 2) {
+		show_debug_message("ERROR: Clip '" + _clip.name + "' needs at least 2 keyframes");
+		return;
+	}
+	
+	array_sort(_clip.keyframes, function(a, b) { return a.time - b.time; });
+	
+	ds_map_add(_anim.clips, _clip.name, _clip);
+	
+	show_debug_message("Clip '" + _clip.name + "' defined with " + string(array_length(_clip.keyframes)) + " keyframes, duration: " + string(_clip.total_duration) + "us");
+}
+
+// clip playback
+function gmui_animation_clip_play(_clip_name, _target_id) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	
+	var _anim = gmui_animation_get();
+	var _clip = ds_map_find_value(_anim.clips, _clip_name);
+	
+	if (_clip == undefined) {
+		show_debug_message("ERROR: Clip '" + _clip_name + "' not found");
+		return undefined;
+	}
+	
+	if (_clip.stagger_count != undefined && _clip.stagger_count > 1) {
+		var _tweens = [];
+		for (var s = 0; s < _clip.stagger_count; s++) {
+			var _sid = _target_id + "_" + string(s);
+			var _kfs = [];
+			for (var i = 0; i < array_length(_clip.keyframes); i++) {
+				var _kf = _clip.keyframes[i];
+				array_push(_kfs, {
+					time: _kf.time,
+					value: _kf.value,
+					easing: _kf.easing
+				});
+			}
+			var _tween = gmui_animation_timeline_start(_sid, _kfs, false);
+			var _total_delay = _clip.stagger_initial + s * _clip.stagger_delay;
+			_tween.delay = _total_delay;
+			_tween.elapsed = -_total_delay;
+			
+			_tween.clip_data = {
+				clip_name: _clip_name,
+				loop: _clip.loop,
+				loop_direction: _clip.loop_direction,
+				next_clip: _clip.next_clip,
+				user_on_complete: _clip.on_complete,
+				user_on_marker: _clip.on_marker,
+				markers_triggered: [],
+				original_on_complete: _tween.on_complete,
+				original_on_update: _tween.on_update,
+				stagger_index: s,
+				stagger_total: _clip.stagger_count,
+			};
+			
+			if (_clip.loop) {
+				if (_clip.loop_direction == gmui_animation_repeat_mode.PING_PONG) {
+					gmui_animation_set_pingpong(_sid, -1);
+				} else {
+					gmui_animation_set_repeat(_sid, -1);
+				}
+			}
+			
+			_tween.on_complete = method(_tween, function(_t) {
+				var _cd = self.clip_data;
+				if (_cd.user_on_complete != undefined) {
+					_cd.user_on_complete(self.id);
+				}
+				if (_cd.next_clip != undefined && _cd.stagger_index == _cd.stagger_total - 1) {
+					gmui_animation_clip_play(_cd.next_clip, string_replace(self.id, "_" + string(_cd.stagger_index), ""));
+				}
+				if (_cd.original_on_complete != undefined) {
+					_cd.original_on_complete(_t);
+				}
+			});
+			
+			_tween.on_update = method(_tween, function(_t) {
+				var _cd = self.clip_data;
+				if (_cd.user_on_marker != undefined) {
+					var _clip_ref = ds_map_find_value(gmui_animation_get().clips, _cd.clip_name);
+					if (_clip_ref != undefined) {
+						for (var i = 0; i < array_length(_clip_ref.keyframes); i++) {
+							var _kf_time = _clip_ref.keyframes[i].time;
+							var _already = false;
+							for (var j = 0; j < array_length(_cd.markers_triggered); j++) {
+								if (_cd.markers_triggered[j] == _kf_time) { _already = true; break; }
+							}
+							if (!_already && self.elapsed >= _kf_time) {
+								array_push(_cd.markers_triggered, _kf_time);
+								_cd.user_on_marker(self.id, _kf_time);
+							}
+						}
+					}
+				}
+				if (_cd.original_on_update != undefined) {
+					_cd.original_on_update(_t);
+				}
+			});
+			
+			array_push(_tweens, _tween);
+		}
+		return _tweens;
+	}
+	
+	var _kfs = [];
+	var _count = array_length(_clip.keyframes);
+	for (var i = 0; i < _count; i++) {
+		var _kf = _clip.keyframes[i];
+		array_push(_kfs, {
+			time: _kf.time,
+			value: _kf.value,
+			easing: _kf.easing
+		});
+	}
+	
+	var _tween = gmui_animation_timeline_start(_target_id, _kfs, false);
+	
+	_tween.clip_data = {
+		clip_name: _clip_name,
+		loop: _clip.loop,
+		loop_direction: _clip.loop_direction,
+		next_clip: _clip.next_clip,
+		user_on_complete: _clip.on_complete,
+		user_on_marker: _clip.on_marker,
+		markers_triggered: [],
+		original_on_complete: _tween.on_complete,
+		original_on_update: _tween.on_update,
+		stagger_index: 0,
+		stagger_total: 1,
+	};
+	
+	if (_clip.loop) {
+		if (_clip.loop_direction == gmui_animation_repeat_mode.PING_PONG) {
+			gmui_animation_set_pingpong(_target_id, -1);
+		} else {
+			gmui_animation_set_repeat(_target_id, -1);
+		}
+	}
+	
+	_tween.on_complete = method(_tween, function(_t) {
+		var _cd = self.clip_data;
+		if (_cd.user_on_complete != undefined) {
+			_cd.user_on_complete(self.id);
+		}
+		if (_cd.next_clip != undefined) {
+			gmui_animation_clip_play(_cd.next_clip, self.id);
+		}
+		if (_cd.original_on_complete != undefined) {
+			_cd.original_on_complete(_t);
+		}
+	});
+	
+	_tween.on_update = method(_tween, function(_t) {
+		var _cd = self.clip_data;
+		if (_cd.user_on_marker != undefined) {
+			var _clip_ref = ds_map_find_value(gmui_animation_get().clips, _cd.clip_name);
+			if (_clip_ref != undefined) {
+				for (var i = 0; i < array_length(_clip_ref.keyframes); i++) {
+					var _kf_time = _clip_ref.keyframes[i].time;
+					var _already = false;
+					for (var j = 0; j < array_length(_cd.markers_triggered); j++) {
+						if (_cd.markers_triggered[j] == _kf_time) { _already = true; break; }
+					}
+					if (!_already && self.elapsed >= _kf_time) {
+						array_push(_cd.markers_triggered, _kf_time);
+						_cd.user_on_marker(self.id, _kf_time);
+					}
+				}
+			}
+		}
+		if (_cd.original_on_update != undefined) {
+			_cd.original_on_update(_t);
+		}
+	});
+	
+	return _tween;
+}
+
+function gmui_animation_clip_stop(_target_id) {
+	gmui_animation_stop(_target_id, false);
+}
+
+function gmui_animation_clip_is_playing(_target_id) {
+	return gmui_animation_is_playing(_target_id);
+}
+
+function gmui_animation_clip_get_float(_target_id) {
+	return gmui_animation_get_value(_target_id) ?? 0;
+}
+
+function gmui_animation_clip_get_vector2(_target_id) {
+	return gmui_animation_get_value(_target_id) ?? [0, 0];
+}
+
+function gmui_animation_clip_get_color3(_target_id) {
+	return gmui_animation_get_value(_target_id) ?? c_black;
+}
+
+function gmui_animation_clip_get_color4(_target_id) {
+	return gmui_animation_get_value(_target_id) ?? gmui_make_color_rgba(0, 0, 0, 255);
+}
+
+// motion path
+function gmui_animation_path_begin(_name, _start) {
+	gmui_animation_init_check_safe();
+	
+	var _path = {
+		name: _name,
+		points: [_start],
+		segments: [], // { type: "quadratic"/"cubic", points: [...] }
+	};
+	
+	return _path;
+}
+
+function gmui_animation_path_quadratic_to(_path, _control, _end) {
+	array_push(_path.segments, {
+		type: "quadratic",
+		control: _control,
+		end_point: _end
+	});
+	var _last = _path.points[array_length(_path.points) - 1];
+	array_push(_path.points, _end);
+	return _path;
+}
+
+function gmui_animation_path_cubic_to(_path, _control1, _control2, _end) {
+	array_push(_path.segments, {
+		type: "cubic",
+		control1: _control1,
+		control2: _control2,
+		end_point: _end
+	});
+	var _last = _path.points[array_length(_path.points) - 1];
+	array_push(_path.points, _end);
+	return _path;
+}
+
+function gmui_animation_path_end(_path) {
+	var _anim = gmui_animation_get();
+	ds_map_add(_anim.paths, _path.name, _path);
+	show_debug_message("Path '" + _path.name + "' defined with " + string(array_length(_path.segments)) + " segments");
+}
+
+function gmui_animation_path_evaluate(_path, _t) {
+	_t = clamp(_t, 0, 1);
+	var _seg_count = array_length(_path.segments);
+	if (_seg_count == 0) return _path.points[0];
+	
+	var _seg_t = _t * _seg_count;
+	var _seg_idx = floor(_seg_t);
+	if (_seg_idx >= _seg_count) _seg_idx = _seg_count - 1;
+	var _local_t = _seg_t - _seg_idx;
+	
+	var _seg = _path.segments[_seg_idx];
+	var _start = _path.points[_seg_idx];
+	var _end_pt = _seg.end_point;
+	
+	if (_seg.type == "quadratic") {
+		return [
+			gmui_animation_bezier_quadratic(_start[0], _seg.control[0], _end_pt[0], _local_t),
+			gmui_animation_bezier_quadratic(_start[1], _seg.control[1], _end_pt[1], _local_t)
+		];
+	} else {
+		return gmui_animation_bezier_cubic_2d(_start, _seg.control1, _seg.control2, _end_pt, _local_t);
+	}
+}
+
+function gmui_animation_tween_path(_id, _path_name, _duration = -1, _easing = undefined) {
+	gmui_animation_init_check_safe();
+	gmui_container_animation_detected(gmui_get_current_container());
+	gmui_animation_remove_existing_tween(_id);
+	
+	var _anim = gmui_animation_get();
+	var _path = ds_map_find_value(_anim.paths, _path_name);
+	
+	if (_path == undefined) {
+		show_debug_message("ERROR: Path '" + _path_name + "' not found");
+		return undefined;
+	}
+	
+	var _start = _path.points[0];
+	var _end = _path.points[array_length(_path.points) - 1];
+	
+	var _tween = gmui_animation_create(_id, _start, _end, _duration);
+	_tween.value_type = gmui_animation_value_type.VECTOR2;
+	_tween.flags &= ~gmui_animation_tween_flags.CLAMP_VALUES;
+	_tween.user_data = { path_name: _path_name };
+	
+	_tween.value_lerp = method(_tween, function(_start, _end, _t) {
+		var _path_ref = ds_map_find_value(gmui_animation_get().paths, self.user_data.path_name);
+		return gmui_animation_path_evaluate(_path_ref, _t);
+	});
+	
+	if (_easing != undefined) gmui_animation_set_easing(_id, _easing);
+	_tween.state = gmui_animation_tween_state.PLAYING;
+	gmui_animation_get().active_tweens++;
+	return _tween;
+}
+
 // utility stuff
 function gmui_animation_lerp(_a, _b, _t) { return _a + (_b - _a) * clamp(_t, 0, 1); }
 
@@ -1454,6 +1860,16 @@ function gmui_animation_get_total_count() {
 function gmui_animation_cleanup() {
 	var _anim = gmui_animation_get();
 	if (_anim == undefined) { return; }
+	
+	 var _path_keys = ds_map_keys_to_array(_anim.paths);
+	 for (var p = 0; p < array_length(_path_keys); p++) { ds_map_delete(_anim.paths, _path_keys[p]); };
+	 ds_map_destroy(_anim.paths);
+	
+	var _clip_keys = ds_map_keys_to_array(_anim.clips);
+	for (var c = 0; c < array_length(_clip_keys); c++) {
+	    ds_map_delete(_anim.clips, _clip_keys[c]);
+	}
+	ds_map_destroy(_anim.clips);
 	
 	var _group_keys = ds_map_keys_to_array(_anim.groups);
 	for (var g = 0; g < array_length(_group_keys); g++) {
@@ -1764,7 +2180,7 @@ function gmui_animation_tween_spline(_id, _points, _duration = -1, _loop = false
 }
 
 // demo
-function gmui_animation_demo() {
+function gmui_animation_demo() { // yes, not a visual novelty but the purpose is to demonstrate its functionality
     if (gmui_begin("Animation System Demo", 50, 50, 550, 500)) {
         gmui_text("GMUI Animation System - Feature Demo");
         gmui_separator();
@@ -2571,6 +2987,102 @@ function gmui_animation_demo() {
 			    var wv = gmui_animation_get_value("demo_wiggle") ?? 0.5;
 			    gmui_text($"Value: {string_format(wv, 1, 3)} | Playing: {gmui_animation_is_playing("demo_wiggle")}");
 			    gmui_progress(clamp(wv, 0, 1), 1, gmui_get_available_width(), true);
+    
+			    gmui_end_collapsing_header();
+			}
+			
+			if (gmui_begin_collapsing_header_ex("Clips")) {
+			    static clips_defined = false;
+    
+			    if (!clips_defined) {
+			        var bounce = gmui_animation_clip_begin("bounce");
+			        gmui_animation_clip_key_float(bounce, 0, 1.0, gmui_animation_ease.OUT_ELASTIC);
+			        gmui_animation_clip_key_float(bounce, 500000, 1.5, gmui_animation_ease.IN_OUT_CUBIC);
+			        gmui_animation_clip_key_float(bounce, 1000000, 1.0, gmui_animation_ease.OUT_BOUNCE);
+			        gmui_animation_clip_set_loop(bounce, true, gmui_animation_repeat_mode.PING_PONG);
+			        gmui_animation_clip_end(bounce);
+        
+			        var fade_in = gmui_animation_clip_begin("fade_in");
+			        gmui_animation_clip_key_float(fade_in, 0, 0, gmui_animation_ease.OUT_QUAD);
+			        gmui_animation_clip_key_float(fade_in, 800000, 1, gmui_animation_ease.LINEAR);
+			        gmui_animation_clip_chain(fade_in, "bounce");
+			        gmui_animation_clip_end(fade_in);
+        
+			        clips_defined = true;
+			    }
+    
+			    if (gmui_button("Play 'bounce' Clip")) {
+			        gmui_animation_clip_play("bounce", "demo_clip_bounce");
+			    }
+			    gmui_sameline();
+			    if (gmui_button("Play 'fade_in' → 'bounce'")) {
+				    gmui_animation_clip_play("fade_in", "demo_clip_chain");
+				}
+			    gmui_sameline();
+			    if (gmui_button("Stop")) {
+			        gmui_animation_clip_stop("demo_clip_bounce");
+			        gmui_animation_clip_stop("demo_clip_chain");
+			    }
+    
+			    var cv = gmui_animation_clip_get_float("demo_clip_bounce");
+			    if (gmui_animation_clip_is_playing("demo_clip_bounce")) {
+			        gmui_text($"Bounce: {string_format(cv, 1, 3)}");
+			        gmui_progress(cv, 1.5, gmui_get_available_width(), true);
+			    }
+    
+			    var fv = gmui_animation_clip_get_float("demo_clip_chain");
+				if (!gmui_animation_clip_is_playing("demo_clip_chain")) {
+				    fv = gmui_animation_clip_get_float("demo_clip_chain_next");
+				}
+				if (gmui_animation_clip_is_playing("demo_clip_chain")) {
+				    gmui_text($"Chain: {string_format(fv, 1, 3)}");
+				    gmui_progress(fv, 1.5, gmui_get_available_width(), true);
+				}
+    
+			    gmui_end_collapsing_header();
+			}
+			
+			if (gmui_begin_collapsing_header_ex("Clip with Stagger")) {
+			    static stagger_clip_defined = false;
+			    if (!stagger_clip_defined) {
+			        var stagger = gmui_animation_clip_begin("stagger_fade");
+			        gmui_animation_clip_key_float(stagger, 0, 0, gmui_animation_ease.OUT_QUAD);
+			        gmui_animation_clip_key_float(stagger, 800000, 1, gmui_animation_ease.OUT_BOUNCE);
+			        gmui_animation_clip_set_stagger(stagger, 6, 150000);
+			        gmui_animation_clip_end(stagger);
+			        stagger_clip_defined = true;
+			    }
+    
+			    if (gmui_button("Play Stagger")) {
+			        gmui_animation_clip_play("stagger_fade", "demo_stagger_clip");
+			    }
+    
+			    for (var i = 0; i < 6; i++) {
+			        var sv = gmui_animation_get_value("demo_stagger_clip_" + string(i)) ?? 0;
+			        gmui_progress(sv, 1, gmui_get_available_width(), true);
+			    }
+    
+			    gmui_end_collapsing_header();
+			}
+			
+			if (gmui_begin_collapsing_header_ex("Named Paths")) {
+			    static paths_defined = false;
+			    if (!paths_defined) {
+			        var curve = gmui_animation_path_begin("my_curve", [0, 0]);
+			        gmui_animation_path_quadratic_to(curve, [50, -50], [100, 0]);
+			        gmui_animation_path_cubic_to(curve, [130, 0], [170, 100], [200, 50]);
+			        gmui_animation_path_end(curve);
+			        paths_defined = true;
+			    }
+    
+			    if (gmui_button("Play Path")) {
+			        gmui_animation_tween_path("demo_named_path", "my_curve", 2000000, gmui_animation_ease.LINEAR);
+			    }
+    
+			    var np = gmui_animation_get_value("demo_named_path") ?? [0, 0];
+			    gmui_text($"X: {string_format(np[0], 1, 1)}  Y: {string_format(np[1], 1, 1)}");
+			    gmui_progress(np[0], 200, gmui_get_available_width(), true);
+			    gmui_progress(np[1], 100, gmui_get_available_width(), true);
     
 			    gmui_end_collapsing_header();
 			}
