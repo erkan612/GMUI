@@ -4396,7 +4396,7 @@ function gmui_color_pick(color, id = "") {
 	}
     
     if (open) {
-		container.ignore_surface_flag_once = true;
+		gmui_container_animation_detected(container);
         var offset = gmui_get_container_screen_offset(container);
         var picker_padding = style.color_picker_padding;
         var picker_w = style.color_picker_width + picker_padding * 2;
@@ -4490,7 +4490,7 @@ function gmui_color_pick_rgb(color, id = "") {
 	}
     
     if (open) {
-		container.ignore_surface_flag_once = true;
+		gmui_container_animation_detected(container);
         var offset = gmui_get_container_screen_offset(container);
         var picker_padding = style.color_picker_padding;
         var picker_w = style.color_picker_width + picker_padding * 2;
