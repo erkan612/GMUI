@@ -1218,49 +1218,52 @@ function _gmui_edit_color_group(ruler_struct, color_items) {
     var row_height = max(text_height, max(color_btn_height, rgb_height)) + style.element_spacing_v;
     var total_height = count * row_height;
     
-    gmui_begin_columns(3, [0.3, 0.15, 0.55], total_height);
-    
-    gmui_set_column(0);
-    for (var i = 0; i < count; i++) {
-        gmui_text(color_items[i].label);
-    }
-    
-    gmui_set_column(1);
-    for (var i = 0; i < count; i++) {
-        var current_color = variable_struct_get(ruler_struct, color_items[i].prop);
-        var rgba_color = gmui_color_rgb_to_rgba(current_color, 255);
-        rgba_color = gmui_color_pick(rgba_color, color_items[i].prop);
-        var r = gmui_color_rgba_get_red(rgba_color);
-        var g = gmui_color_rgba_get_green(rgba_color);
-        var b = gmui_color_rgba_get_blue(rgba_color);
-        variable_struct_set(ruler_struct, color_items[i].prop, make_color_rgb(r, g, b));
-    }
-    
-    gmui_set_column(2);
-    for (var i = 0; i < count; i++) {
-        var current_color = variable_struct_get(ruler_struct, color_items[i].prop);
-        var r = color_get_red(current_color);
-        var g = color_get_green(current_color);
-        var b = color_get_blue(current_color);
+	if (gmui_begin_columns(3, [0.3, 0.15, 0.55], total_height)) {
+		if (gmui_begin_column(0)) {
+		    for (var i = 0; i < count; i++) {
+		        gmui_text(color_items[i].label);
+		    }
+			gmui_end_column();
+		}
+		if (gmui_begin_column(1)) {
+	    for (var i = 0; i < count; i++) {
+		        var current_color = variable_struct_get(ruler_struct, color_items[i].prop);
+		        var rgba_color = gmui_color_rgb_to_rgba(current_color, 255);
+		        rgba_color = gmui_color_pick(rgba_color, color_items[i].prop);
+		        var r = gmui_color_rgba_get_red(rgba_color);
+		        var g = gmui_color_rgba_get_green(rgba_color);
+		        var b = gmui_color_rgba_get_blue(rgba_color);
+		        variable_struct_set(ruler_struct, color_items[i].prop, make_color_rgb(r, g, b));
+	    }
+			gmui_end_column();
+		}
+		if (gmui_begin_column(2)) {
+		    for (var i = 0; i < count; i++) {
+		        var current_color = variable_struct_get(ruler_struct, color_items[i].prop);
+		        var r = color_get_red(current_color);
+		        var g = color_get_green(current_color);
+		        var b = color_get_blue(current_color);
         
-        gmui_text("R:");
-        gmui_sameline();
-        var new_r = gmui_input_int(r, 1, 0, 255, 40, c_red);
-        gmui_sameline();
-        gmui_text("G:");
-        gmui_sameline();
-        var new_g = gmui_input_int(g, 1, 0, 255, 40, c_green);
-        gmui_sameline();
-        gmui_text("B:");
-        gmui_sameline();
-        var new_b = gmui_input_int(b, 1, 0, 255, 40, c_blue);
+		        gmui_text("R:");
+		        gmui_sameline();
+		        var new_r = gmui_input_int(r, 1, 0, 255, 40, c_red);
+		        gmui_sameline();
+		        gmui_text("G:");
+		        gmui_sameline();
+		        var new_g = gmui_input_int(g, 1, 0, 255, 40, c_green);
+		        gmui_sameline();
+		        gmui_text("B:");
+		        gmui_sameline();
+		        var new_b = gmui_input_int(b, 1, 0, 255, 40, c_blue);
         
-        if (new_r != r || new_g != g || new_b != b) {
-            variable_struct_set(ruler_struct, color_items[i].prop, make_color_rgb(new_r, new_g, new_b));
-        }
-    }
-    
-    gmui_end_columns();
+		        if (new_r != r || new_g != g || new_b != b) {
+		            variable_struct_set(ruler_struct, color_items[i].prop, make_color_rgb(new_r, new_g, new_b));
+		        }
+		    }
+			gmui_end_column();
+		}
+	    gmui_end_columns();
+	}
 }
 
 function _gmui_edit_value_group(ruler_struct, value_items) {
@@ -1272,23 +1275,25 @@ function _gmui_edit_value_group(ruler_struct, value_items) {
     var row_height = max(text_height, input_height) + style.element_spacing_v;
     var total_height = count * row_height;
     
-    gmui_begin_columns(2, [0.4, 0.6], total_height);
-    
-    gmui_set_column(0);
-    for (var i = 0; i < count; i++) {
-        gmui_text(value_items[i].label);
-    }
-    
-    gmui_set_column(1);
-    for (var i = 0; i < count; i++) {
-        var value = variable_struct_get(ruler_struct, value_items[i].prop);
-        var new_value = gmui_input_int(value, 1, value_items[i].min, value_items[i].max, 100);
-        if (new_value != value) {
-            variable_struct_set(ruler_struct, value_items[i].prop, new_value);
-        }
-    }
-    
-    gmui_end_columns();
+	if (gmui_begin_columns(2, [0.4, 0.6], total_height)) {
+		if (gmui_begin_column(0)) {
+		    for (var i = 0; i < count; i++) {
+		        gmui_text(value_items[i].label);
+		    }
+			gmui_end_column();
+		}
+		if (gmui_begin_column(1)) {
+		    for (var i = 0; i < count; i++) {
+		        var value = variable_struct_get(ruler_struct, value_items[i].prop);
+		        var new_value = gmui_input_int(value, 1, value_items[i].min, value_items[i].max, 100);
+		        if (new_value != value) {
+		            variable_struct_set(ruler_struct, value_items[i].prop, new_value);
+		        }
+		    }
+			gmui_end_column();
+		}
+	    gmui_end_columns();
+	}
 }
 
 function _gmui_edit_float_group(ruler_struct, float_items) {
@@ -1300,21 +1305,23 @@ function _gmui_edit_float_group(ruler_struct, float_items) {
     var row_height = max(text_height, input_height) + style.element_spacing_v;
     var total_height = count * row_height;
     
-    gmui_begin_columns(2, [0.4, 0.6], total_height);
-    
-    gmui_set_column(0);
-    for (var i = 0; i < count; i++) {
-        gmui_text(float_items[i].label);
-    }
-    
-    gmui_set_column(1);
-    for (var i = 0; i < count; i++) {
-        var value = variable_struct_get(ruler_struct, float_items[i].prop);
-        var new_value = gmui_input_float(value, float_items[i].step, float_items[i].min, float_items[i].max, 120);
-        if (new_value != value) {
-            variable_struct_set(ruler_struct, float_items[i].prop, new_value);
-        }
-    }
-    
-    gmui_end_columns();
+	if (gmui_begin_columns(2, [0.4, 0.6], total_height)) {
+		if (gmui_begin_column(0)) {
+		    for (var i = 0; i < count; i++) {
+		        gmui_text(float_items[i].label);
+		    }
+			gmui_end_column();
+		}
+		if (gmui_begin_column(1)) {
+		    for (var i = 0; i < count; i++) {
+		        var value = variable_struct_get(ruler_struct, float_items[i].prop);
+		        var new_value = gmui_input_float(value, float_items[i].step, float_items[i].min, float_items[i].max, 120);
+		        if (new_value != value) {
+		            variable_struct_set(ruler_struct, float_items[i].prop, new_value);
+		        }
+		    }
+			gmui_end_column();
+		}
+	    gmui_end_columns();
+	}
 }

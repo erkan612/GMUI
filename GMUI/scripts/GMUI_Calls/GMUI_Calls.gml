@@ -95,7 +95,9 @@ function gmui_handle_call(call, origin_x = 0, origin_y = 0) {
 		if (params.font != undefined) {
 			var old_font = draw_get_font();
 			draw_set_font(params.font);
+			gpu_set_colorwriteenable(true, true, true, false);
 			_vc.draw_text(params.x, params.y, params.text, params.color, params.alpha, params.font);
+			gpu_set_colorwriteenable(true, true, true, true);
 			draw_set_font(old_font);
 		}
 		else {

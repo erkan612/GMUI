@@ -21,7 +21,9 @@
     {"$GMFolder":"","%Name":"2-BasicDemo","folderPath":"folders/Samples/A-BasicDemos/2-BasicDemo.yy","name":"2-BasicDemo","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Template","folderPath":"folders/Samples/Template.yy","name":"Template","resourceType":"GMFolder","resourceVersion":"2.0",},
   ],
-  "ForcedPrefabProjectReferences":[],
+  "ForcedPrefabProjectReferences":[
+    {"link":"io.gamemaker.sdfshaders-1.0.0","name":"io.gamemaker.sdfshaders-1.0.0","path":"io.gamemaker.sdfshaders-1.0.0.yyp",},
+  ],
   "IncludedFiles":[
     {"$GMIncludedFile":"","%Name":"www.txt","CopyToMask":-1,"filePath":"datafiles/teere","name":"www.txt","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"tes.txt","CopyToMask":-1,"filePath":"datafiles","name":"tes.txt","resourceType":"GMIncludedFile","resourceVersion":"2.0",},

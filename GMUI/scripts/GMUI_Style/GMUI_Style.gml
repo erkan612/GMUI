@@ -534,6 +534,16 @@ function gmui_style_apply_ruler
         context_menu_arrow_color: _arrow,
         context_menu_padding_h: _sp_medium,
 		
+		context_menu_disabled_color: _widget_active,
+		context_menu_disabled_text_color: _text_disabled,
+		context_menu_disabled_checkbox_color: _widget_active,
+		context_menu_disabled_checkbox_border: _border_dark,
+		context_menu_disabled_checkmark_color: _text_disabled,
+		context_menu_disabled_radio_color: _widget_active,
+		context_menu_disabled_radio_border: _border_dark,
+		context_menu_disabled_radio_dot_color: _text_disabled,
+		context_menu_disabled_arrow_color: _text_disabled,
+		
 		// docking
 		dock_separator_thickness:   5,
 		dock_separator_grab_pad:    4,

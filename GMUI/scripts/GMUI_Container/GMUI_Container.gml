@@ -21,13 +21,13 @@ function gmui_container_get(name, parent = undefined) {
 			z_index: 0,
 			z_interaction_enabled: false,
 		
-			use_surface: gmui.profile.container_properties.use_surface,
+			use_surface: true,
 			surface: -1,
-			surface_flag: gmui.profile.container_properties.surface_flag,
+			surface_flag: false,
 			ignore_surface_flag_once: false,
 			surface_dirty: true,
-			surface_sleep: gmui.profile.container_properties.surface_sleep,
-			animation_flag: gmui.profile.container_properties.animation_flag,
+			surface_sleep: false,
+			animation_flag: false,
 			
 			use_scissor: gmui.profile.container_properties.use_scissor,
 		
@@ -70,6 +70,9 @@ function gmui_container_get(name, parent = undefined) {
 			scroll_x: 0,
 			scroll_y: 0,
 			scroll_speed: 20,
+			scroll_widget_horizontal: true,
+			scroll_widget_vertical: true,
+			
 			content_width: 0,
 			content_height: 0,
 			
@@ -82,6 +85,8 @@ function gmui_container_get(name, parent = undefined) {
 			mask_surface: -1,
 			mask_draw_func: gmui_default_mask_draw_call,
 		};
+		
+		gmui_append_structure(map[? name], global.gmui.profile.container_properties);
 	}
 	
 	var container = map[? name];
@@ -386,8 +391,8 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	//var need_vertical_scrollbar = container.content_height > container.height - style.container_padding_v * 2;
 	//var need_horizontal_scrollbar = container.content_width > container.width - style.container_padding_h * 2;
 	if (container.scrolling_enabled && (container.context.needs_vertical_scrollbar || container.context.needs_horizontal_scrollbar)) {
-        var need_vertical = container.context.needs_vertical_scrollbar && container.scrolling_enabled_vertical;
-        var need_horizontal = container.context.needs_horizontal_scrollbar && container.scrolling_enabled_horizontal;
+        var need_vertical = container.context.needs_vertical_scrollbar && container.scrolling_enabled_vertical && container.scroll_widget_vertical;
+        var need_horizontal = container.context.needs_horizontal_scrollbar && container.scrolling_enabled_horizontal && container.scroll_widget_horizontal;
         
         if (need_vertical || need_horizontal) {
             var sb_thickness = gmui.style.scrollbar_width;
@@ -529,8 +534,8 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
 	//var need_vertical_scrollbar = container.content_height > container.height - style.container_padding_v * 2;
 	//var need_horizontal_scrollbar = container.content_width > container.width - style.container_padding_h * 2;
 	if (container.scrolling_enabled && (container.context.needs_vertical_scrollbar || container.context.needs_horizontal_scrollbar)) {
-        var need_vertical = container.context.needs_vertical_scrollbar && container.scrolling_enabled_vertical;
-        var need_horizontal = container.context.needs_horizontal_scrollbar && container.scrolling_enabled_horizontal;
+        var need_vertical = container.context.needs_vertical_scrollbar && container.scrolling_enabled_vertical && container.scroll_widget_vertical;
+        var need_horizontal = container.context.needs_horizontal_scrollbar && container.scrolling_enabled_horizontal && container.scroll_widget_horizontal;
         
         if (need_vertical || need_horizontal) {
             var sb_thickness = gmui.style.scrollbar_width;
@@ -685,7 +690,7 @@ function gmui_draw_container(container) {
 	};
 	
 	if (container.parent != undefined && container.parent.use_surface && container.use_surface) { surface_reset_target(); };
-	if (surface_exists(container.surface)) { surface_set_target(container.surface); draw_clear_alpha(c_black, 0); };
+	if (surface_exists(container.surface)) { surface_set_target(container.surface); draw_clear_alpha(c_black, 0); gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha); };
 	
 	if (container.use_scissor) {
 	    var scissor_x = container.use_surface ? 0 : container.x + container.x_origin;
@@ -743,7 +748,7 @@ function gmui_draw_container(container) {
 		gmui_end_scissor();
 	};
 	
-	if (container.mask_enabled) {
+	if (container.mask_enabled && container.use_surface) {
 		var old_blend = gpu_get_blendmode();
 		gpu_set_blendmode(bm_subtract);
 		draw_surface(container.mask_surface, 0, 0);

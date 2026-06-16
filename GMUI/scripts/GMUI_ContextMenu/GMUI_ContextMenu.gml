@@ -16,6 +16,8 @@ function gmui_begin_context_menu(name, width = 160) {
 		window.state[? "ctx_sub"] = undefined;
 		window.state[? "ctx_sub_state_key"] = undefined;
 		window.state[? "ctx_previous"] = undefined;
+		window.surface_flag = false;
+		window.content_container.surface_flag = false;
     };
     
     if (!window.is_enabled) { return false; };
@@ -23,12 +25,14 @@ function gmui_begin_context_menu(name, width = 160) {
     var result = gmui_begin_window(name, 0, 0, width, 20, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS);
     gmui_container_bring_to_front(name);
     
-    gmui_style_push_multi({
-        container_padding_h: 0,
-        container_padding_v: 0,
-        element_spacing_h: 0,
-        element_spacing_v: 0,
-    });
+	if (result) {
+	    gmui_style_push_multi({
+	        container_padding_h: 0,
+	        container_padding_v: 0,
+	        element_spacing_h: 0,
+	        element_spacing_v: 0,
+	    });
+	}
     
     window.content_container.context.cursor_x = 0;
     window.content_container.context.cursor_y = 0;
@@ -265,8 +269,8 @@ function gmui_context_menu_item_disabled(text, short_cut = undefined, font = und
     widget.height = item_height;
     
     if (gmui_widget_is_visible(widget)) {
-        var bg_color = make_color_rgb(40, 40, 40);
-        var text_color = style.text_disabled_color;
+        var bg_color = style.context_menu_disabled_color;
+        var text_color = style.context_menu_disabled_text_color;
         
         gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + item_height, false, bg_color, 1);
         
@@ -350,22 +354,23 @@ function gmui_context_menu_item_checkbox_disabled(text, checked) {
     widget.height = item_height;
     
     if (gmui_widget_is_visible(widget)) {
-        var bg_color = make_color_rgb(40, 40, 40);
-        var text_color = style.text_disabled_color;
+        var bg_color = style.context_menu_disabled_color;
+        var text_color = style.context_menu_disabled_text_color;
         
         gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + item_height, false, bg_color, 1);
         
         var cbx = widget.x + style.context_menu_padding_h;
         var cby = widget.y + (item_height - check_size) / 2;
         
-        gmui_add_rectangle(cbx, cby, cbx + check_size, cby + check_size, false, checked ? make_color_rgb(60, 60, 80) : make_color_rgb(40, 40, 40), 1);
-        gmui_add_rectangle(cbx, cby, cbx + check_size, cby + check_size, true, make_color_rgb(60, 60, 60), 1);
+        var checkbox_color = checked ? style.context_menu_disabled_checkbox_color : style.context_menu_disabled_checkbox_border;
+        gmui_add_rectangle(cbx, cby, cbx + check_size, cby + check_size, false, checkbox_color, 1);
+        gmui_add_rectangle(cbx, cby, cbx + check_size, cby + check_size, true, style.context_menu_disabled_checkbox_border, 1);
         
         if (checked) {
             var mx = cbx + check_size / 2;
             var my = cby + check_size / 2;
-            gmui_add_line(cbx + 2, my, mx, cby + check_size - 2, make_color_rgb(100, 100, 100), 1.5);
-            gmui_add_line(mx, cby + check_size - 2, cbx + check_size - 2, cby + 2, make_color_rgb(100, 100, 100), 1.5);
+            gmui_add_line(cbx + 2, my, mx, cby + check_size - 2, style.context_menu_disabled_checkmark_color, 1.5);
+            gmui_add_line(mx, cby + check_size - 2, cbx + check_size - 2, cby + 2, style.context_menu_disabled_checkmark_color, 1.5);
         }
         
         var text_x = cbx + check_size + check_spacing;
@@ -441,19 +446,19 @@ function gmui_context_menu_item_radio_disabled(text, selected) {
     widget.height = item_height;
     
     if (gmui_widget_is_visible(widget)) {
-        var bg_color = make_color_rgb(40, 40, 40);
-        var text_color = style.text_disabled_color;
+        var bg_color = style.context_menu_disabled_color;
+        var text_color = style.context_menu_disabled_text_color;
         
         gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + item_height, false, bg_color, 1);
         
         var rx = widget.x + style.context_menu_padding_h + radio_size / 2;
         var ry = widget.y + item_height / 2;
         
-        gmui_add_circle(rx, ry, radio_size / 2, false, make_color_rgb(40, 40, 40), 1);
-        gmui_add_circle(rx, ry, radio_size / 2, true, make_color_rgb(60, 60, 60), 1);
+        gmui_add_circle(rx, ry, radio_size / 2, false, style.context_menu_disabled_radio_color, 1);
+        gmui_add_circle(rx, ry, radio_size / 2, true, style.context_menu_disabled_radio_border, 1);
         
         if (selected) {
-            gmui_add_circle(rx, ry, radio_size / 4, false, make_color_rgb(100, 100, 100), 1);
+            gmui_add_circle(rx, ry, radio_size / 4, false, style.context_menu_disabled_radio_dot_color, 1);
         }
         
         var text_x = widget.x + style.context_menu_padding_h + radio_size + radio_spacing;
@@ -519,7 +524,7 @@ function gmui_begin_context_menu_sub(text) {
         var sub_menu = gmui_container_get(text, undefined);
         sub_menu.state[? "ctx_previous"] = widget.container.parent;
         var parent_window = widget.container.parent;
-        
+		
 		var current_sub = parent_window.state[? "ctx_sub"];
 		if (current_sub != undefined && current_sub != sub_menu) {
 		    var old_state_key = parent_window.state[? "ctx_sub_state_key"];
@@ -530,7 +535,7 @@ function gmui_begin_context_menu_sub(text) {
 		}
         
         sub_menu.is_enabled = true;
-        gmui_begin_context_menu(text, widget.container.parent.width);
+        open = gmui_begin_context_menu(text, widget.container.parent.width);
         sub_menu.is_enabled = false;
         gmui_context_menu_open(text, parent_window.x + parent_window.width, parent_window.y + widget.y);
         parent_window.state[? "ctx_sub"] = sub_menu;
@@ -552,8 +557,8 @@ function gmui_begin_context_menu_sub_disabled(text) {
     widget.height = item_height;
     
     if (gmui_widget_is_visible(widget)) {
-        var bg_color = make_color_rgb(40, 40, 40);
-        var text_color = style.text_disabled_color;
+        var bg_color = style.context_menu_disabled_color;
+        var text_color = style.context_menu_disabled_text_color;
         
         gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + item_height, false, bg_color, 1);
         
@@ -564,7 +569,7 @@ function gmui_begin_context_menu_sub_disabled(text) {
         var arrow_size = 8;
         var arrow_x = widget.x + widget.width - arrow_size - 8;
         var arrow_y = widget.y + item_height / 2;
-        gmui_add_triangle(arrow_x, arrow_y - arrow_size / 2, arrow_x + arrow_size, arrow_y, arrow_x, arrow_y + arrow_size / 2, make_color_rgb(100, 100, 100));
+        gmui_add_triangle(arrow_x, arrow_y - arrow_size / 2, arrow_x + arrow_size, arrow_y, arrow_x, arrow_y + arrow_size / 2, style.context_menu_disabled_arrow_color);
     }
     
     gmui_end_widget(widget, true);

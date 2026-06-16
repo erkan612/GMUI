@@ -252,3 +252,12 @@ function gmui_is_widget_hovering_at(widget, x, y) {
 function gmui_get_current_container() {
 	return global.gmui.current_container;
 };
+
+function gmui_append_structure(source, target) {
+	if (source == undefined || target == undefined) { return; };
+	var names = variable_struct_get_names(target);
+	for (var i = 0; i < array_length(names); i++) {
+		var name = names[i];
+		source[$ name] = target[$ name];
+	};
+};

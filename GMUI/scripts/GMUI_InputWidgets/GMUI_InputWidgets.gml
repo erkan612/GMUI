@@ -3409,6 +3409,7 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     }
     
     if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held && (variable_struct_exists(widget.container, "_sb_drag_start_y") && variable_struct_exists(widget.container, "_sb_drag_start_value"))) {
+		gmui_container_animation_detected();
         var dy = gmui.input.m_y - widget.container._sb_drag_start_y;
         var thumb_range = track_height - thumb_height;
         if (thumb_range > 0) {
@@ -3514,6 +3515,7 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     }
     
     if (gmui.input.active_widget_id == scrollbar_id && gmui.input.m_held && (variable_struct_exists(widget.container, "_sb_drag_start_x") && variable_struct_exists(widget.container, "_sb_drag_start_value"))) {
+		gmui_container_animation_detected();
         var dx = gmui.input.m_x - widget.container._sb_drag_start_x;
         var thumb_range = track_width - thumb_width;
         if (thumb_range > 0) {
@@ -5055,6 +5057,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 	    tabs_container.scrolling_enabled = true;
 	    tabs_container.scrolling_enabled_vertical = false;
 	    tabs_container.scrolling_enabled_horizontal = true;
+	    tabs_container.scroll_widget_horizontal = false;
 	    tabs_container.use_surface = false;
 	    tabs_container.surface_flag = false;
 	    tabs_container.surface_sleep = false;
@@ -5549,6 +5552,14 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
         
         gmui_add_rectangle(0, _height - 1, _width, _height, false, style.color_border_dark, 1);
         //tabs_container.content_width = total_width;
+		if (gmui.input.hovered_container == tabs_container && gmui.input.m_wheel != 0) {
+		    var max_scroll = max(0, total_width - _width);
+		    tabs_container.scroll_x = clamp(
+		        tabs_container.scroll_x - gmui.input.m_wheel * tabs_container.scroll_speed,
+		        0, max_scroll
+		    );
+		    gmui.input.m_wheel = 0;
+		}
         gmui_end_widget(widget, true);
         gmui_end_container();
     }

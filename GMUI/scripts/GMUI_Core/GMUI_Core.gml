@@ -95,13 +95,7 @@ function gmui_init(init_profile = gmui_get_default_profile(), visual_calls = und
 	global.gmui.cache[? "__cleanup_calls"] = [ ];
 	
 	global.gmui.visual_calls = gmui_get_default_visual_calls();
-	if (visual_calls != undefined) {
-		var struct_names = variable_struct_get_names(visual_calls);
-		for (var i = 0; i < array_length(struct_names); i++) {
-			var name = struct_names[i];
-			global.gmui.visual_calls[$ name] = visual_calls[$ name];
-		};
-	}
+	gmui_append_structure(global.gmui.visual_calls, visual_calls);
 };
 
 function gmui_get() {
@@ -133,6 +127,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				surface_sleep: false,
 				use_scissor: true,
 				animation_flag: false,
+				mask_enabled: true,
 			},
 		};
 	} break;
@@ -144,6 +139,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				surface_flag: true,
 				use_scissor: true,
 				animation_flag: false,
+				mask_enabled: true,
 			},
 			container_properties: {
 				use_surface: false,
@@ -151,6 +147,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				surface_sleep: false,
 				use_scissor: true,
 				animation_flag: false,
+				mask_enabled: true,
 			},
 		};
 	} break;
@@ -163,6 +160,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				surface_sleep: true,
 				use_scissor: true,
 				animation_flag: false,
+				mask_enabled: true,
 			},
 			container_properties: {
 				use_surface: true,
@@ -170,6 +168,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				surface_sleep: true,
 				use_scissor: true,
 				animation_flag: false,
+				mask_enabled: false,
 			},
 		};
 	} break;
@@ -189,6 +188,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				surface_sleep: true,
 				use_scissor: true,
 				animation_flag: true,
+				mask_enabled: true,
 			},
 		};
 	} break;
@@ -254,7 +254,6 @@ function gmui_draw_gui() {
 	gmui_begin_scissor(0, 0, surface_get_width(application_surface), surface_get_height(application_surface));
 	
 	var old_blend_mode = gpu_get_blendmode();
-	gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_inv_src_alpha, bm_one, bm_inv_src_alpha);
 	
 	for (var i = 0; i < array_length(gmui.containers_sorted); i++) {
 		var container = gmui.containers_sorted[i];
