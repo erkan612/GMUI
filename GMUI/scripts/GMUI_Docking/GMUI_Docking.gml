@@ -61,17 +61,22 @@ function gmui_docking_remove_tab(dock_name, pane, label) {
     }
 }
 
-function gmui_begin_dockspace(dock_name, handler, x = 0, y = 0, width = 1280, height = 720, flags = 0) {
+function gmui_begin_dockspace(dock_name, handler, x = 0, y = 0, width = 1280, height = 720, flags = 0, vertical_shift = 0) {
 	var begin_result = gmui_begin(dock_name, x, y, width, height, flags);
 	if (!begin_result) { return false; };
-	gmui_docking_handle_dock(dock_name, handler);
+	global.gmui.cache[? "__dockspace_avaiting_handler"] = handler;
+	global.gmui.cache[? "__dockspace_avaiting_vertical_shift"] = vertical_shift;
+	return true;
 };
 
 function gmui_end_dockspace() {
+	gmui_docking_handle_dock(global.gmui.current_container.parent.name, global.gmui.cache[? "__dockspace_avaiting_handler"], global.gmui.cache[? "__dockspace_avaiting_vertical_shift"]);
+	global.gmui.cache[? "__dockspace_avaiting_handler"] = undefined;
+	global.gmui.cache[? "__dockspace_avaiting_vertical_shift"] = 0;
 	gmui_end();
 };
 
-function gmui_docking_handle_dock(dock_name, handler) {
+function gmui_docking_handle_dock(dock_name, handler, vertical_shift = 0) {
     var gmui    = global.gmui;
     var style   = gmui.style;
     var input   = gmui.input;
@@ -86,9 +91,9 @@ function gmui_docking_handle_dock(dock_name, handler) {
     var content = gmui.current_container;
     var offset  = gmui_get_container_screen_offset(content);
     var cx = 0;
-    var cy = 0;
+    var cy = vertical_shift;
     var cw = content.width;
-    var ch = content.height;
+    var ch = content.height - vertical_shift;
 
     var splitters = [];
 
@@ -233,9 +238,12 @@ function _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, px, py, pw, ph, 
     parent.context.new_line_requested  = false;
     parent.context.same_line_requested = false;
     parent.context.ignore_cursor_advance_once = true;
+	
 
     var pane_name = dock_name + "_pane_" + string(pane_dir);
-    if (!gmui_begin_container(pane_name, 0, 0, pw, ph)) { return; }
+    if (!gmui_begin_container(pane_name, 0, 0, pw, ph)) {
+		return;
+	}
 
     var pane_container = gmui.current_container;
     pane_container.use_scissor      = true;
