@@ -5711,7 +5711,7 @@ function _gmui_draw_detached_tab() {
                 for (var k = 0; k < array_length(bar_names); k++) {
                     var r = group_bars[? bar_names[k]];
                     if (point_in_rectangle(gmui.input.m_x, gmui.input.m_y, r[0], r[1], r[2], r[3])) {
-                        return;
+                        //return;
                     }
                 }
             }

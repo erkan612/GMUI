@@ -49,6 +49,10 @@ function gmui_docking_remove_tab(dock_name, pane, label) {
     
     gmui_tab_delete(tab_name, label);
     
+    var tab_data = gmui_tab_get_data(tab_name);
+    var is_empty = (tab_data == undefined || !variable_struct_exists(tab_data, "labels") 
+                 || array_length(tab_data.labels) == 0);
+    
     if (array_length(gmui_tab_get_data(tab_name).labels) == 0) {
         var idx = array_get_index(dock.pane_order, pane);
         if (idx >= 0) { array_delete(dock.pane_order, idx, 1); }
@@ -253,7 +257,9 @@ function _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, px, py, pw, ph, 
 			    var drop_zones  = cache[? "_dock_drop_zone"];
 			    var target_pane = (drop_zones != undefined) ? drop_zones[? dock_name] : -1;
 
-			    if (target_pane == undefined || target_pane < 0 || target_pane == pane_dir) { return; }
+			    if (target_pane == undefined || target_pane < 0 || target_pane == pane_dir) {
+					return;
+				}
 
 			    var window    = gmui_window_get(dock_name);
 			    var dock      = window.state[? "__dock"];
@@ -261,10 +267,27 @@ function _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, px, py, pw, ph, 
 			    if (ds_map_exists(dock.panes, target_pane)) {
 			        def_ratio = dock.panes[? target_pane].ratio;
 			    }
-			    gmui_docking_add_tab(dock_name, target_pane, detached_label, def_ratio);
 			    gmui_docking_remove_tab(dock_name, pane_dir, detached_label);
+			    gmui_docking_add_tab(dock_name, target_pane, detached_label, def_ratio);
 			}),
-	        on_bar_attach:   undefined,
+	        on_bar_attach: method({ dock_name: dock_name, pane_dir: pane_dir }, function(tab_data, detached_label) {
+			    var cache       = global.gmui.cache;
+			    var drop_zones  = cache[? "_dock_drop_zone"];
+			    var target_pane = (drop_zones != undefined) ? drop_zones[? dock_name] : -1;
+
+			    if (target_pane == undefined) {
+					return;
+				}
+
+			    var window    = gmui_window_get(dock_name);
+			    var dock      = window.state[? "__dock"];
+			    var def_ratio = 0.25;
+			    if (ds_map_exists(dock.panes, target_pane)) {
+			        def_ratio = dock.panes[? target_pane].ratio;
+			    }
+			    gmui_docking_remove_tab(dock_name, pane_dir, detached_label);
+			    gmui_docking_add_tab(dock_name, target_pane, detached_label, def_ratio);
+			}),
 	        on_tab_select:   undefined,
 	        on_tab_close: method({ dock_name: dock_name, pane_dir: pane_dir }, function(tab_data, closed_label) {
 	            gmui_docking_remove_tab(dock_name, pane_dir, closed_label);
