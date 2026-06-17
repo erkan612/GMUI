@@ -225,7 +225,7 @@ function gmui_auto_column(rows, column_count, column_ratios = undefined, row_hei
 	
 	var column_containers = [];
     
-	if (gmui_begin_columns(column_count, ratios, total_height)) {
+	if (gmui_begin_columns(column_count, ratios, total_height, resize_enable)) {
 	    for (var c = 0; c < column_count; c++) {
 			if (gmui_begin_column(c)) {
 				var col_container = global.gmui.current_container;
@@ -287,7 +287,7 @@ function gmui_auto_column(rows, column_count, column_ratios = undefined, row_hei
 			}
 	    }
     
-	    gmui_end_columns(resize_enable);
+	    gmui_end_columns();
 	}
 	
 	gmui_style_pop("container_padding_v");

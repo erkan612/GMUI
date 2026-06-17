@@ -52,3 +52,10 @@ enum gmui_default_profile {
 	CACHED2							= 2,
 	BALANCED						= 3,
 };
+
+enum gmui_flow_direction {
+	LEFT							= 0,
+	RIGHT							= 1,
+	UP								= 2,
+	DOWN							= 3,
+};

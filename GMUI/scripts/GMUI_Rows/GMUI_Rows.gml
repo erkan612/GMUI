@@ -225,7 +225,7 @@ function gmui_auto_row(columns, row_count, row_ratios = undefined, col_width = 2
     
     var row_containers = [];
     
-    if (gmui_begin_rows(row_count, ratios, total_width)) {
+    if (gmui_begin_rows(row_count, ratios, total_width, resize_enable)) {
 	    for (var r = 0; r < row_count; r++) {
 	        if (gmui_begin_column(r)) {
 				var row_container = global.gmui.current_container;
@@ -286,7 +286,7 @@ function gmui_auto_row(columns, row_count, row_ratios = undefined, col_width = 2
 			}
 	    }
     
-	    gmui_end_rows(resize_enable);
+	    gmui_end_rows();
 	}
     
     gmui_style_pop("container_padding_h");

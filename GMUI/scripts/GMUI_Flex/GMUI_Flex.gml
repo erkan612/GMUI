@@ -1,7 +1,7 @@
 
 
 // FLEX (WINS wrapper)
-function gmui_begin_flex(direction, ratios = undefined, resize_enabled = true) {
+function gmui_begin_flex(direction, ratios = undefined, resize_enabled = true, flow = undefined) {
     var gmui  = global.gmui;
     var cache = gmui.cache;
 
@@ -39,6 +39,7 @@ function gmui_begin_flex(direction, ratios = undefined, resize_enabled = true) {
         ratios:      ratios,
         pane_index:  0,
         auto_child:  auto_child,
+        flow:        flow,
     });
 
     var result = gmui_begin_wins(flex_name, direction, ratios, resize_enabled);
@@ -74,7 +75,7 @@ function gmui_begin_flex_child() {
     if (stack == undefined || array_length(stack) == 0) { return false; }
 
     var frame = stack[array_length(stack) - 1];
-    var idx   = frame.pane_index;
+    var idx   = frame.flow == gmui_flow_direction.LEFT || frame.flow == gmui_flow_direction.UP ? array_length(frame.ratios) - frame.pane_index - 1 : frame.pane_index;
     frame.pane_index++;
 
     return gmui_begin_wins_pane(idx);

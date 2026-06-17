@@ -1,31 +1,31 @@
 gmui_update();
-gmui_demo();
-gmui_style_editor();
-gmui_animation_demo();
+//gmui_demo();
+//gmui_style_editor();
+//gmui_animation_demo();
 
 if (gmui_begin("WINS Demo", 100, 100, 720, 360)) {
-	if (gmui_begin_flex(gmui_split_dir.HORIZONTAL, [ 0.3, 0.4, 0.3 ])) {
+	if (gmui_begin_flex(gmui_split_dir.HORIZONTAL, [ 0.3, 0.4, 0.3 ], undefined, gmui_flow_direction.UP)) {
 		if (gmui_begin_flex_child()) {
-			gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+			gmui_button_size("Button on child 0!", gmui_get_available_width(), gmui_get_available_height());
 			gmui_end_flex_child();
 		}
-		if (gmui_begin_flex(gmui_split_dir.VERTICAL, [ 0.3, 0.4, 0.3 ])) {
+		if (gmui_begin_flex(gmui_split_dir.VERTICAL, [ 0.3, 0.4, 0.3 ], undefined, gmui_flow_direction.RIGHT)) {
 			if (gmui_begin_flex_child()) {
-				gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+				gmui_button_size("Button on child 1:0!", gmui_get_available_width(), gmui_get_available_height());
 				gmui_end_flex_child();
 			}
 			if (gmui_begin_flex_child()) {
-				gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+				gmui_button_size("Button on child 1:1!", gmui_get_available_width(), gmui_get_available_height());
 				gmui_end_flex_child();
 			}
 			if (gmui_begin_flex_child()) {
-				gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+				gmui_button_size("Button on child 1:2!", gmui_get_available_width(), gmui_get_available_height());
 				gmui_end_flex_child();
 			}
 			gmui_end_flex();
 		}
 		if (gmui_begin_flex_child()) {
-			gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+			gmui_button_size("Button on child 2!", gmui_get_available_width(), gmui_get_available_height());
 			gmui_end_flex_child();
 		}
 		gmui_end_flex();
@@ -33,6 +33,7 @@ if (gmui_begin("WINS Demo", 100, 100, 720, 360)) {
 	gmui_end();
 }
 
+/*
 if (gmui_begin("Demo", 100, 100, 360, 180)) {
 	toggle = gmui_animated_toggle(toggle);
 	
