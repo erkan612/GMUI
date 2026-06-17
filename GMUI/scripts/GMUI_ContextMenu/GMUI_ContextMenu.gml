@@ -24,7 +24,6 @@ function gmui_begin_context_menu(name, width = 160) {
     if (!window.is_enabled) { return false; };
     
     var result = gmui_begin_window(name, 0, 0, width, 20, gmui_window_flags.NO_CLOSE | gmui_window_flags.NO_COLLAPSE | gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS);
-    gmui_container_bring_to_front(name);
     
 	if (result) {
 	    gmui_style_push_multi({
