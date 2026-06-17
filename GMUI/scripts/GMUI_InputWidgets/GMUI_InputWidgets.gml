@@ -5651,6 +5651,14 @@ function gmui_tab_delete(name, label) {
     return true;
 }
 
+function gmui_tab_destroy(name) {
+    var gmui = global.gmui;
+    var cache_key = "_tabs_data_" + name;
+    if (!ds_map_exists(gmui.cache, cache_key)) return false;
+	ds_map_delete(gmui.cache, cache_key);
+	return true;
+};
+
 function gmui_get_last_detached_tab() {
     return global.gmui.cache[? "_last_detached_tab"];
 }

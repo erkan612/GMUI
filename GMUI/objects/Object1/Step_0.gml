@@ -3,6 +3,20 @@ gmui_update();
 //gmui_style_editor();
 //gmui_animation_demo();
 
+if (gmui_begin_dockspace("My Editor", function(tab_name) {
+        switch (tab_name) {
+            case "Hierarchy": { gmui_text("hierarchy content"); } break;
+            case "Materials": { gmui_text("materials content"); } break;
+            case "Scene":     { gmui_text("scene content");     } break;
+            case "Settings":  { gmui_text("settings content");  } break;
+            case "Assets":    { gmui_text("assets content");    } break;
+            case "Output":    { gmui_text("output content");    } break;
+        }
+    }, 0, 0, 1280, 720)) {
+    gmui_end_dockspace();
+}
+
+/*
 if (gmui_begin("Flow Demo", 100, 100, 360, 180)) {
 	global.gmui.current_container.context.flow = true;
 	gmui_button("Click Me!");

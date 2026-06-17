@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						            Version 2.5.184					                     *
+*   						            Version 2.5.191					                     *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -92,6 +92,7 @@ function gmui_init(init_profile = gmui_get_default_profile(), visual_calls = und
 	
 	global.gmui.cache[? "_last_detached_tab"] = undefined;
 	global.gmui.cache[? "__update_calls"] = [ ];
+	global.gmui.cache[? "__draw_calls"] = [ ];
 	global.gmui.cache[? "__cleanup_calls"] = [ ];
 	
 	global.gmui.visual_calls = gmui_get_default_visual_calls();
@@ -277,6 +278,12 @@ function gmui_draw_gui() {
 	
 	_gmui_draw_detached_tab();
 	
+	var dockspaces = gmui.cache[? "__dockspace_names"];
+	for (var i = 0; i < array_length(dockspaces); i++) {
+		var dockspace_name = dockspaces[i];
+		gmui_docking_draw_drop_zones(dockspace_name);
+	};
+	
 	var widget_drag_state = gmui.cache[? "__widget_drag_state"];
 	var widget_drag_draw = gmui.cache[? "__widget_drag_draw"];
 	var widget_drag_widget = gmui.cache[? "__widget_drag_widget"];
@@ -288,6 +295,12 @@ function gmui_draw_gui() {
 	for (var i = 0; i < array_length(gmui.calls); i++) {
 		var call = gmui.calls[i];
 		gmui_handle_call(call);
+	};
+	
+	var draw_calls = gmui.cache[? "__draw_calls"];
+	for (var i = 0; i < array_length(draw_calls); i++) {
+		var call = draw_calls[i];
+		call();
 	};
 	
 	gpu_set_blendmode(old_blend_mode);
