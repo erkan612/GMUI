@@ -1,7 +1,7 @@
 
 
 // FLEX (WINS wrapper)
-function gmui_begin_flex(direction, ratios = undefined) {
+function gmui_begin_flex(direction, ratios = undefined, resize_enabled = true) {
     var gmui  = global.gmui;
     var cache = gmui.cache;
 
@@ -41,7 +41,7 @@ function gmui_begin_flex(direction, ratios = undefined) {
         auto_child:  auto_child,
     });
 
-    var result = gmui_begin_wins(flex_name, direction, ratios);
+    var result = gmui_begin_wins(flex_name, direction, ratios, resize_enabled);
     if (!result) {
         array_pop(stack);
         if (auto_child) { gmui_end_flex_child(); }

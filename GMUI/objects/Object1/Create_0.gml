@@ -8,7 +8,7 @@
 * it does not aim to demonstrate anything
 */
 
-gmui_init(gmui_get_default_profile(gmui_default_profile.ANIMATION));
+gmui_init(gmui_get_default_profile(gmui_default_profile.BALANCED));
 gmui_animation_init();
 
 toggle = true;

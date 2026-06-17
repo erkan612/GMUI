@@ -1,7 +1,7 @@
 
 
 // ROWS
-function gmui_begin_rows(count, ratios = undefined, width = 200) {
+function gmui_begin_rows(count, ratios = undefined, width = 200, resize_enabled = true) {
     var gmui   = global.gmui;
     var parent = gmui.current_container;
 
@@ -47,6 +47,7 @@ function gmui_begin_rows(count, ratios = undefined, width = 200) {
         origin_x:    parent.context.cursor_x,
         origin_y:    parent.context.cursor_y,
         current_row: -1,
+        resize_enabled: resize_enabled,
     });
 	
 	return true;
@@ -112,7 +113,7 @@ function gmui_begin_row(idx, properties = undefined) {
 	return gmui_begin_container("_row_" + frame.state_key + "_" + string(idx), 0, 0, frame.width, row_h);
 }
 
-function gmui_end_rows(resize_enabled = true) {
+function gmui_end_rows() {
     var gmui  = global.gmui;
     var stack = gmui[$ "_row_stack"];
     var frame = stack[array_length(stack) - 1];
@@ -122,6 +123,7 @@ function gmui_end_rows(resize_enabled = true) {
     var style = global.gmui.style;
     var input = gmui.input;
     var sep_h = frame.sep_h;
+	var resize_enabled = frame.resize_enabled;
 
     if (frame.current_row >= 0) {
         frame.parent.context.ignore_cursor_advance_once = true;

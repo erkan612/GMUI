@@ -20,7 +20,7 @@ function gmui_end_wins_space() {
 	]);
 };
 
-function gmui_begin_wins(name, direction, ratios = undefined) {
+function gmui_begin_wins(name, direction, ratios = undefined, resize_enabled = true) {
     var gmui = global.gmui;
     var cache = gmui.cache;
 	
@@ -47,9 +47,9 @@ function gmui_begin_wins(name, direction, ratios = undefined) {
 	var begin_result = false;
 	
     if (direction == gmui_split_dir.VERTICAL) {
-        begin_result = gmui_begin_columns(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1);
+        begin_result = gmui_begin_columns(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1, resize_enabled);
     } else {
-        begin_result = gmui_begin_rows(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1);
+        begin_result = gmui_begin_rows(array_length(cache[? split_id].ratios), cache[? split_id].ratios, -1, resize_enabled);
     }
 	
 	if (!begin_result) {
