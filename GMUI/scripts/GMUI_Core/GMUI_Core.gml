@@ -28,7 +28,7 @@
 *   						  ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║		                         *
 *   						   ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝		                         *
 *   						 GameMaker Immediate Mode UI Library	                         *
-*   						            Version 2.4.99					                     *
+*   						            Version 2.4.173					                     *
 *   																                         *
 *   						            by erkan612					                         *
 *   						=======================================	                         *
@@ -100,6 +100,18 @@ function gmui_init(init_profile = gmui_get_default_profile(), visual_calls = und
 
 function gmui_get() {
 	return global.gmui;
+};
+
+function gmui_get_cache() {
+	return gmui_get().cache;
+};
+
+function gmui_cache_get(name) {
+	return gmui_get_cache()[? name];
+};
+
+function gmui_cache_set(name, value) {
+	gmui_get_cache()[? name] = value;
 };
 
 function gmui_get_update_calls() {

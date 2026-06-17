@@ -6,11 +6,10 @@ function gmui_text(text, font = undefined) {
 	var style = gmui.style;
 	var widget = gmui_begin_widget("text");
 	
-	var text_size = gmui_calculate_text_size(text);
+	var _font = gmui_resolve_font(widget, font);
+	var text_size = gmui_calculate_text_size(text, _font);
 	widget.width = text_size[0];
 	widget.height = text_size[1];
-	
-	var _font = gmui_resolve_font(widget, font);
 	
 	if (gmui_widget_is_callable(widget)) {
 		gmui_add_text(text, widget.x, widget.y, style.text_color, style.text_alpha, _font);
@@ -208,16 +207,14 @@ function gmui_separator_text(text, font = undefined) {
     var style = gmui.style;
     var widget = gmui_begin_widget("separator_text");
     var container = widget.container;
-    
-    var text_size = gmui_calculate_text_size(text);
-    var available_width = container.width - style.container_padding_h * 2 - container.context.indent_level;
-    var gap = style.separator_gap;
-    var line_y = text_size[1] / 2;
-    
-    widget.width = available_width;
-    widget.height = text_size[1] + style.element_spacing_v;
 	
 	var _font = gmui_resolve_font(widget, font);
+    var text_size = gmui_calculate_text_size(text, _font);
+    var available_width = container.width - style.container_padding_h * 2 - container.context.indent_level;
+    widget.width = available_width;
+    widget.height = text_size[1] + style.element_spacing_v;
+    var gap = style.separator_gap;
+    var line_y = text_size[1] / 2;
     
 	if (gmui_widget_is_callable(widget)) {
 	    var line_width = (available_width - text_size[0] - gap * 2) / 2;
@@ -251,15 +248,13 @@ function gmui_separator_text_left(text, font = undefined) {
     var widget = gmui_begin_widget("separator_text_left");
     var container = widget.container;
     
-    var text_size = gmui_calculate_text_size(text);
+	var _font = gmui_resolve_font(widget, font);
+    var text_size = gmui_calculate_text_size(text, _font);
     var available_width = container.width - style.container_padding_h * 2 - container.context.indent_level;
     var gap = style.separator_gap;
     var line_y = text_size[1] / 2;
-    
     widget.width = available_width;
     widget.height = text_size[1] + style.element_spacing_v;
-	
-	var _font = gmui_resolve_font(widget, font);
     
 	if (gmui_widget_is_callable(widget)) {
 	    var line_start = widget.x + text_size[0] + gap;
@@ -375,7 +370,7 @@ function gmui_progress_bar(value, min_val = 0, max_val = 1, width = -1, show_tex
         
         if (show_text) {
             var text = string(floor(normalized * 100)) + "%";
-            var text_size = gmui_calculate_text_size(text);
+            var text_size = gmui_calculate_text_size(text, _font);
             var text_x = widget.x + (bar_width - text_size[0]) / 2;
             var text_y = widget.y + (bar_height - text_size[1]) / 2;
             gmui_add_text(text, text_x, text_y, style.progress_bar_text_color, 1, _font);
@@ -482,7 +477,7 @@ function gmui_progress_circular(value, min_val = 0, max_val = 1, size = -1, show
         
         if (show_text) {
             var text = string(floor(normalized * 100)) + "%";
-            var text_size = gmui_calculate_text_size(text);
+            var text_size = gmui_calculate_text_size(text, _font);
             var text_x = cx - text_size[0] / 2;
             var text_y = cy - text_size[1] / 2;
             gmui_add_text(text, text_x, text_y, style.progress_circular_text_color, 1, _font);
@@ -560,7 +555,8 @@ function gmui_tooltip(text, widget, width = -1, font = undefined) {
 	var input = gmui.input;
 	var container = gmui.current_container;
 	
-	var text_size = gmui_calculate_text_size(text);
+	var _font = gmui_resolve_font({ type: "tooltip" });
+	var text_size = gmui_calculate_text_size(text, _font);
     var tooltip_width = width > style.tooltip_min_width ? min(width, text_size[0]) : style.tooltip_min_width;
     var tooltip_height = 0;
 	
@@ -579,7 +575,6 @@ function gmui_tooltip(text, widget, width = -1, font = undefined) {
 	gmui.current_container = undefined;
 	
 	if (show_tooltip) {
-		var _font = font == -5 ? gmui.style.font : (font == undefined ? gmui.style.font_text : font);
 	    var wrap_width = tooltip_width;
     
 	    var lines = [];
@@ -651,13 +646,13 @@ function gmui_set_tooltip(text, x = -1, y = -1, width = -1, font = undefined) { 
     var input = gmui.input;
     var container = gmui.current_container;
     
-    var text_size = gmui_calculate_text_size(text);
+	var _font = gmui_resolve_font({ type: "tooltip" });
+    var text_size = gmui_calculate_text_size(text, _font);
     var tooltip_width = width > style.tooltip_min_width ? min(width, text_size[0]) : style.tooltip_min_width;
     var tooltip_height = 0;
     
     gmui.current_container = undefined;
     
-    var _font = font == -5 ? gmui.style.font : (font == undefined ? gmui.style.font_text : font);
     var wrap_width = tooltip_width;
     
     var lines = [];

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"cAnimTests",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"cAnimTests",
+  "parent":{
+    "name":"GMUI",
+    "path":"GMUI.yyp",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

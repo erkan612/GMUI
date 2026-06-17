@@ -6,13 +6,13 @@ function gmui_button(text, font = undefined) {
     var style = gmui.style;
     var widget = gmui_begin_widget("button");
     
-    var text_size = gmui_calculate_text_size(text);
+	var _font = gmui_resolve_font(widget, font);
+    var text_size = gmui_calculate_text_size(text, _font);
     
     widget.width = max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
     widget.height = max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
     
 	var released = false;
-	var _font = gmui_resolve_font(widget, font);
 	
 	if (gmui_widget_is_callable(widget)) {
 		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
@@ -71,13 +71,13 @@ function gmui_button_size(text, width, height, font = undefined) {
     var style = gmui.style;
     var widget = gmui_begin_widget("button");
     
-    var text_size = gmui_calculate_text_size(text);
+	var _font = gmui_resolve_font(widget, font);
+    var text_size = gmui_calculate_text_size(text, _font);
     
     widget.width = width > 0 ? max(style.button_min_width, width) : max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
     widget.height = height > 0 ? max(style.button_min_height, height) : max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
     
 	var released = false;
-	var _font = gmui_resolve_font(widget, font);
 	
 	if (gmui_widget_is_callable(widget)) {
 		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
@@ -179,13 +179,13 @@ function gmui_button_repeat(text, font = undefined) {
     var style = gmui.style;
     var widget = gmui_begin_widget("button");
     
-    var text_size = gmui_calculate_text_size(text);
+	var _font = gmui_resolve_font(widget, font);
+    var text_size = gmui_calculate_text_size(text, _font);
     
     widget.width = max(style.button_min_width, text_size[0] + style.button_padding_h * 2);
     widget.height = max(style.button_min_height, text_size[1] + style.button_padding_v * 2);
     
 	var active = false;
-	var _font = gmui_resolve_font(widget, font);
 	
 	if (gmui_widget_is_callable(widget)) {
 		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);
@@ -216,13 +216,13 @@ function gmui_button_invisible(text = "", width = 32, height = 32, trigger_visua
     var style = gmui.style;
     var widget = gmui_begin_widget("button");
     
-    var text_size = gmui_calculate_text_size(text);
+	var _font = gmui_resolve_font(widget, font);
+    var text_size = gmui_calculate_text_size(text, _font);
     
     widget.width = max(style.button_min_width, text_size[0] + style.button_padding_h * 2, width);
     widget.height = max(style.button_min_height, text_size[1] + style.button_padding_v * 2, height);
     
 	var released = false;
-	var _font = gmui_resolve_font(widget, font);
 	
 	if (gmui_widget_is_callable(widget)) {
 		var mouse_interaction = gmui_widget_mouse_interactive_behaviour(widget);

@@ -44,6 +44,7 @@
     {"id":{"name":"SampleBasicDebugRoom","path":"rooms/SampleBasicDebugRoom/SampleBasicDebugRoom.yy",},},
     {"id":{"name":"SampleBasicDemoRoom","path":"rooms/SampleBasicDemoRoom/SampleBasicDemoRoom.yy",},},
     {"id":{"name":"SampleRoomTemplate","path":"rooms/SampleRoomTemplate/SampleRoomTemplate.yy",},},
+    {"id":{"name":"cAnimTests","path":"scripts/cAnimTests/cAnimTests.yy",},},
     {"id":{"name":"GMUI_Animation","path":"scripts/GMUI_Animation/GMUI_Animation.yy",},},
     {"id":{"name":"GMUI_Calls","path":"scripts/GMUI_Calls/GMUI_Calls.yy",},},
     {"id":{"name":"GMUI_Color","path":"scripts/GMUI_Color/GMUI_Color.yy",},},

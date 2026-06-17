@@ -15,14 +15,15 @@ function gmui_calculate_text_size(text, font = undefined) {
 	return size;
 };
 
-function gmui_resolve_font(widget, font) {
+function gmui_resolve_font(widget, font = -1) {
 	var gmui = global.gmui;
 	var _type = widget.type;
+	var _target_in_style = variable_struct_get(gmui.style, "font_" + _type);
 	if (font == - 5) {
 		return gmui.style.font;
 	}
-	else if (font == undefined) {
-		return variable_struct_get(gmui.style, "font_" + _type);
+	else if (font == undefined && _target_in_style != undefined) {
+		return _target_in_style;
 	}
 	else {
 		return font;

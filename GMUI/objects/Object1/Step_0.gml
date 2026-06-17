@@ -3,6 +3,13 @@ gmui_demo();
 gmui_style_editor();
 gmui_animation_demo();
 
+if (gmui_begin("Demo", 100, 100, 360, 180)) {
+	toggle = gmui_animated_toggle(toggle);
+	
+	gmui_end();
+}
+
+/*
 if (gmui_begin("test window", 100, 100, 500, 500)) {
 	//if (gmui_begin_collapsing_header("test header")) {
 	//	if (gmui_begin_sleeper("optimized zone")) {

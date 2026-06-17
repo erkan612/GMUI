@@ -1132,6 +1132,8 @@ function gmui_scrolling_child(name, width, height, func) {
 
 function gmui_container_animation_detected(container = undefined) {
 	var _container = container ?? global.gmui.current_container;
+	if (global.gmui.current_container == undefined) { return; };
+	if (!_container.animation_flag) { return; };
 	var current = _container;
 	while (current != undefined) {
 		current.ignore_surface_flag_once = true;

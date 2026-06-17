@@ -991,7 +991,7 @@ function gmui_plot_heatmap(values, rows, cols, width = -1, height = -1, font = u
                 
                 if (style.plot_heatmap_show_values) {
                     var text = string_format(values[r][c], 1, 1);
-                    var text_size = gmui_calculate_text_size(text);
+                    var text_size = gmui_calculate_text_size(text, _font);
                     var tx = cx + (cell_size - text_size[0]) / 2;
                     var ty = cy + (cell_size - text_size[1]) / 2;
                     var text_color = t > 0.5 ? make_color_rgb(0, 0, 0) : style.plot_heatmap_text_color;
@@ -1324,7 +1324,7 @@ function gmui_plot_funnel(values, labels, count, width = -1, height = 200, font 
             if (style.plot_funnel_show_values) {
                 var text = is_undefined(labels) || i >= array_length(labels) ? "" : labels[i] + ": ";
                 text += string_format(values[i], 1, 0);
-                var text_size = gmui_calculate_text_size(text);
+                var text_size = gmui_calculate_text_size(text, _font);
                 var tx = widget.x + (plot_width - text_size[0]) / 2;
                 var ty = sy + (usable_height - text_size[1]) / 2;
                 gmui_add_text(text, tx, ty, style.plot_funnel_text_color, 1, _font);
