@@ -3,36 +3,41 @@ gmui_demo();
 gmui_style_editor();
 gmui_animation_demo();
 
+if (gmui_begin("WINS Demo", 100, 100, 720, 360)) {
+	if (gmui_begin_flex(gmui_split_dir.HORIZONTAL, [ 0.3, 0.4, 0.3 ])) {
+		if (gmui_begin_flex_child()) {
+			gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+			gmui_end_flex_child();
+		}
+		if (gmui_begin_flex(gmui_split_dir.VERTICAL, [ 0.3, 0.4, 0.3 ])) {
+			if (gmui_begin_flex_child()) {
+				gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+				gmui_end_flex_child();
+			}
+			if (gmui_begin_flex_child()) {
+				gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+				gmui_end_flex_child();
+			}
+			if (gmui_begin_flex_child()) {
+				gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+				gmui_end_flex_child();
+			}
+			gmui_end_flex();
+		}
+		if (gmui_begin_flex_child()) {
+			gmui_button_size("Click Me!", gmui_get_available_width(), gmui_get_available_height());
+			gmui_end_flex_child();
+		}
+		gmui_end_flex();
+	}
+	gmui_end();
+}
+
 if (gmui_begin("Demo", 100, 100, 360, 180)) {
 	toggle = gmui_animated_toggle(toggle);
 	
 	gmui_end();
 }
-
-/*
-if (gmui_begin("test window", 100, 100, 500, 500)) {
-	//if (gmui_begin_collapsing_header("test header")) {
-	//	if (gmui_begin_sleeper("optimized zone")) {
-	//		repeat (100) { gmui_button("Click Me!"); };
-	//		gmui_end_sleeper();
-	//	}
-	//	gmui_end_collapsing_header();
-	//}
-	gmui_sleeper_header(
-		"test sleeper header", 
-		function() {
-			str = gmui_textbox(str);
-			va = gmui_input_int(va);
-			vb = gmui_input_float(vb, 0.00000001, undefined, undefined, undefined, undefined, 8);
-			color = gmui_color_picker_3(color);
-			if (gmui_button("Click Me!")) { show_debug_message("Hello World!"); }
-		}
-	);
-	
-	gmui_button("test");
-	gmui_end();
-}
-
 
 if (gmui_begin_context_menu("Ctx_File", 300)) {
 	gmui_context_menu_item("New Project", "Ctrl+N");
@@ -119,46 +124,18 @@ if (gmui_begin("editor", 100, 100, 1280, 720)) {
 		gmui_menu_item("Help", "Ctx_Help"),
 	]);
 	
-	if (gmui_begin_child("toolbar", undefined, 32)) {
-		gmui_style_push("container_padding_h", 2);
-		gmui_style_push("element_spacing_h", 2);
-		gmui_cursor_set_x(2);
-		gmui_cursor_set_y(2);
-		
-		gmui_get().current_container.scrolling_enabled = false;
-		
-		gmui_button_icon1(GMUI_Icon);
-		gmui_sameline();
-		gmui_button_icon1(GMUI_Icon);
-		gmui_separator_vertical();
-		gmui_button_icon1(GMUI_Icon);
-		
-		gmui_style_pop("element_spacing_h");
-		gmui_style_pop("container_padding_h");
-		
-		gmui_end_child();
-	}
 	if (gmui_begin_wins("main_split", gmui_split_dir.HORIZONTAL, [ 0.7, 0.3 ])) {
 		if (gmui_begin_wins_pane(0)) {
 			if (gmui_begin_wins("top_split", gmui_split_dir.VERTICAL, [ 0.2, 0.5, 0.3 ])) {
 				if (gmui_begin_wins_pane(0)) {
-					left_panel_idx = gmui_tabs("left_panel", left_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
-					handle_pane(gmui_tab_get_label("left_panel", left_panel_idx));
-					
 					gmui_end_wins_pane();
 				}
 		
 				if (gmui_begin_wins_pane(1)) {
-					middle_panel_idx = gmui_tabs("middle_panel", middle_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
-					handle_pane(gmui_tab_get_label("middle_panel", middle_panel_idx));
-					
 					gmui_end_wins_pane();
 				}
 		
 				if (gmui_begin_wins_pane(2)) {
-					right_panel_idx = gmui_tabs("right_panel", right_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
-					handle_pane(gmui_tab_get_label("right_panel", right_panel_idx));
-					
 					gmui_end_wins_pane();
 				}
 		
@@ -169,9 +146,6 @@ if (gmui_begin("editor", 100, 100, 1280, 720)) {
 		}
 		
 		if (gmui_begin_wins_pane(1)) {
-			bottom_panel_idx = gmui_tabs("bottom_panel", bottom_panel_idx, undefined, undefined, "editor_global_tab_group", undefined, gmui_tab_flags.LEAVE_ONE);
-			handle_pane(gmui_tab_get_label("bottom_panel", bottom_panel_idx));
-			
 			gmui_end_wins_pane();
 		}
 		

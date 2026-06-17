@@ -12,6 +12,7 @@ function gmui_window_get(name) {
 		window.border_handler = gmui_default_window_border_handler;
 		window.z_interaction_enabled = true;
 		window.content_container = gmui_container_get(name + "_content_container", window);
+		window.content_container.ignore_round_style = true;
 	};
 	//window.background_draw_func = gmui_default_window_background_draw_call;
 	return window;

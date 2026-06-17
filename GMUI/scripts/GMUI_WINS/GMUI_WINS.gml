@@ -2,9 +2,22 @@
 
 // WINS
 function gmui_begin_wins_space() {
+	var gmui = global.gmui;
+	var style = gmui.style;
+	var container = gmui.current_container;
+	container.context.cursor_x -= style.container_padding_h;
+	container.context.cursor_y -= style.container_padding_v;
+	gmui_style_push_multi({
+		container_padding_h: 0,
+		container_padding_v: 0,
+	});
 };
 
 function gmui_end_wins_space() {
+	gmui_style_pop_multi([
+		"container_padding_h",
+		"container_padding_v",
+	]);
 };
 
 function gmui_begin_wins(name, direction, ratios = undefined) {
@@ -65,7 +78,11 @@ function gmui_begin_wins_pane(index, properties = undefined) {
         begin_result = gmui_begin_row(index, properties);
     }
 	
-	gmui_end_wins_space();
+	if (begin_result) {
+		gmui_end_wins_space();
+		gmui.current_container.context.cursor_x = gmui.style.container_padding_h;
+		gmui.current_container.context.cursor_y = gmui.style.container_padding_v;
+	}
 	
 	return begin_result;
 }
@@ -80,15 +97,13 @@ function gmui_end_wins_pane() {
     var split_id = "__split_" + last_name;
     var state = cache[? split_id];
 	
-	gmui_begin_wins_space();
-	//gmui.current_container.context.cursor_x += gmui.style.container_padding_h;
-	//gmui.current_container.context.cursor_y += gmui.style.container_padding_v;
-    
     if (state.direction == gmui_split_dir.VERTICAL) {
         gmui_end_column();
     } else {
         gmui_end_row();
     }
+	
+	gmui_begin_wins_space();
 }
 
 function gmui_end_wins() {

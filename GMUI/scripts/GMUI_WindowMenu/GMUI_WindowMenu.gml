@@ -6,8 +6,6 @@ function gmui_window_menu(menu_array) {
     var style = gmui.style;
     var widget = gmui_begin_widget("window_menu");
     var container = widget.container;
-	
-	gmui_container_animation_detected();
 
     widget.width  = gmui_get_available_width();
     widget.height = style.window_menu_height;

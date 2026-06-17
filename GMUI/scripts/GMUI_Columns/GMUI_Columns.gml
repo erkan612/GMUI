@@ -65,9 +65,11 @@ function gmui_begin_column(idx, properties = undefined) {
     var frame = gmui[$ "_col_stack"][array_length(gmui[$ "_col_stack"]) - 1];
     var state = frame.state;
     var sep_w = frame.sep_w;
-
+	
     frame.current_col = idx;
-
+	
+	var sep_inset = gmui.style.columns_separator_inset ?? 2;
+	
     var x_off = frame.origin_x;
     for (var i = 0; i < idx; i++) {
         x_off += floor(frame.avail_w * state.ratios[i]) + sep_w;
@@ -77,6 +79,11 @@ function gmui_begin_column(idx, properties = undefined) {
         : floor(frame.avail_w * state.ratios[idx]);
 	
 	col_w = round(col_w);
+	
+	var x_inset_left  = (idx > 0)                ? sep_inset : 0;
+	var x_inset_right = (idx < frame.count - 1)  ? sep_inset : 0;
+	x_off  += x_inset_left;
+	col_w  -= x_inset_left + x_inset_right;
 
     gmui.current_container = frame.parent;
 	var col = gmui_container_get("_col_" + frame.state_key + "_" + string(idx), gmui.current_container);

@@ -16,6 +16,7 @@ function gmui_begin_context_menu(name, width = 160) {
 		window.state[? "ctx_sub"] = undefined;
 		window.state[? "ctx_sub_state_key"] = undefined;
 		window.state[? "ctx_previous"] = undefined;
+		window.use_surface = false;
 		window.surface_flag = false;
 		window.content_container.surface_flag = false;
     };

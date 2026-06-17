@@ -134,7 +134,7 @@ function gmui_style_apply_ruler
 		spacing_large: 12,
 		spacing_xlarge: 16,
 		
-		rounding_container: 0,
+		rounding_container: 12,
 		rounding_widget: 4,
 		rounding_small: 2,
 		rounding_medium: 3,
@@ -513,6 +513,7 @@ function gmui_style_apply_ruler
 		columns_separator_color_active: _ruler.color_accent,
 		columns_separator_grab_pad:     4,
 		columns_min_ratio:              0.05,
+		columns_separator_inset:        0,
 		
 		// rows
 		rows_separator_height:			1,
@@ -523,6 +524,7 @@ function gmui_style_apply_ruler
 		rows_separator_color_active:	 _ruler.color_accent,
 		rows_separator_grab_pad:		4,
 		rows_min_ratio:					0.05,
+		rows_separator_inset:           0,
         
         // context menu
         context_menu_item_height: 22,

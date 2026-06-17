@@ -78,6 +78,8 @@ function gmui_container_get(name, parent = undefined) {
 			
 			state: ds_map_create(),
 			
+			ignore_round_style: false,
+			
 			background_enabled: true,
 			background_draw_func: gmui_default_background_draw_call,
 			
@@ -666,6 +668,7 @@ function gmui_container_early_exit_cleanup(container) {
 	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
 	if (variable_struct_exists(container, "_lb_counter")) { variable_struct_remove(container, "_lb_counter"); };
 	if (container.ignore_surface_flag_once) { container.ignore_surface_flag_once = false; };
+	if (container.ignore_round_style) { gmui_style_pop("container_rounding"); };
     for (var i = 0; i < array_length(container.containers_sorted); i++) {
         var c = container.containers_sorted[i];
         if (!c.is_active || !c.is_enabled) { continue; };
@@ -680,13 +683,15 @@ function gmui_draw_container(container) {
 	
 	if (!container.is_enabled || !container.is_active) { return; };
 	
+	if (container.ignore_round_style) { gmui_style_push("container_rounding", 0); };
+	
 	if (container.use_surface) { gmui_container_surface_create(container); if (container.mask_enabled && !surface_exists(container.mask_surface)) { container.mask_surface = surface_create(container.width, container.height); }; } 
 	else if (surface_exists(container.surface)) { gmui_container_surface_free(container); if (surface_exists(container.mask_surface)) { surface_free(container.mask_surface); }; };
 	
 	if (container.use_surface && (container.surface_flag && !container.ignore_surface_flag_once) && !container.surface_dirty) {
 	    draw_surface(container.surface, container.x + container.x_origin, container.y + container.y_origin);
 	    gmui_container_early_exit_cleanup(container);
-	    return;
+		return;
 	};
 	
 	if (container.parent != undefined && container.parent.use_surface && container.use_surface) { surface_reset_target(); };
@@ -767,6 +772,7 @@ function gmui_draw_container(container) {
 	
 	if ((container.surface_flag && !container.ignore_surface_flag_once)) { container.surface_dirty = false; };
 	if (container.ignore_surface_flag_once) { container.ignore_surface_flag_once = false; };
+	if (container.ignore_round_style) { gmui_style_pop("container_rounding"); };
 };
 
 function gmui_get_container_screen_offset(container) {

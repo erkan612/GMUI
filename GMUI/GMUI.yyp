@@ -58,6 +58,7 @@
     {"id":{"name":"GMUI_DragAndDrop","path":"scripts/GMUI_DragAndDrop/GMUI_DragAndDrop.yy",},},
     {"id":{"name":"GMUI_Draw","path":"scripts/GMUI_Draw/GMUI_Draw.yy",},},
     {"id":{"name":"GMUI_Enums","path":"scripts/GMUI_Enums/GMUI_Enums.yy",},},
+    {"id":{"name":"GMUI_Flex","path":"scripts/GMUI_Flex/GMUI_Flex.yy",},},
     {"id":{"name":"GMUI_Input","path":"scripts/GMUI_Input/GMUI_Input.yy",},},
     {"id":{"name":"GMUI_InputWidgets","path":"scripts/GMUI_InputWidgets/GMUI_InputWidgets.yy",},},
     {"id":{"name":"GMUI_Layout","path":"scripts/GMUI_Layout/GMUI_Layout.yy",},},

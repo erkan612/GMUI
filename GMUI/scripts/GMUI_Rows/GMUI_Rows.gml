@@ -65,9 +65,11 @@ function gmui_begin_row(idx, properties = undefined) {
     var frame = gmui[$ "_row_stack"][array_length(gmui[$ "_row_stack"]) - 1];
     var state = frame.state;
     var sep_h = frame.sep_h;
-
+	
     frame.current_row = idx;
-
+	
+	var sep_inset = gmui.style.rows_separator_inset ?? 2;
+	
     var y_off = frame.origin_y;
     for (var i = 0; i < idx; i++) {
         y_off += floor(frame.avail_h * state.ratios[i]) + sep_h;
@@ -77,7 +79,12 @@ function gmui_begin_row(idx, properties = undefined) {
         : floor(frame.avail_h * state.ratios[idx]);
 	
 	row_h = round(row_h);
-
+	
+	var y_inset_top    = (idx > 0)               ? sep_inset : 0;
+	var y_inset_bottom = (idx < frame.count - 1) ? sep_inset : 0;
+	y_off  += y_inset_top;
+	row_h  -= y_inset_top + y_inset_bottom;
+	
     gmui.current_container = frame.parent;
     var row = gmui_container_get("_row_" + frame.state_key + "_" + string(idx), gmui.current_container);
     if (!row.initialized) {
