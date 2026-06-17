@@ -61,7 +61,7 @@ function gmui_end_row() {
     gmui_end_container();
 };
 
-function gmui_begin_row(idx, properties = undefined) {
+function gmui_begin_row(idx, properties = undefined, flow = false) {
     var gmui  = global.gmui;
     var frame = gmui[$ "_row_stack"][array_length(gmui[$ "_row_stack"]) - 1];
     var state = frame.state;
@@ -110,7 +110,12 @@ function gmui_begin_row(idx, properties = undefined) {
     frame.parent.context.new_line_requested = false;
     frame.parent.context.ignore_cursor_advance_once = true;
 	
-	return gmui_begin_container("_row_" + frame.state_key + "_" + string(idx), 0, 0, frame.width, row_h);
+	if (flow) {
+		return gmui_begin_container_flow("_row_" + frame.state_key + "_" + string(idx), 0, 0, frame.width, row_h);
+	}
+	else{
+		return gmui_begin_container("_row_" + frame.state_key + "_" + string(idx), 0, 0, frame.width, row_h);
+	}
 }
 
 function gmui_end_rows() {

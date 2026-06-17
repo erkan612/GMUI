@@ -61,7 +61,7 @@ function gmui_end_column() {
     gmui_end_container();
 };
 
-function gmui_begin_column(idx, properties = undefined) {
+function gmui_begin_column(idx, properties = undefined, flow = false) {
     var gmui  = global.gmui;
     var frame = gmui[$ "_col_stack"][array_length(gmui[$ "_col_stack"]) - 1];
     var state = frame.state;
@@ -110,7 +110,12 @@ function gmui_begin_column(idx, properties = undefined) {
     frame.parent.context.new_line_requested = false;
     frame.parent.context.ignore_cursor_advance_once = true;
 	
-	return gmui_begin_container("_col_" + frame.state_key + "_" + string(idx), 0, 0, col_w, frame.height);
+	if (flow) {
+		return gmui_begin_container_flow("_col_" + frame.state_key + "_" + string(idx), 0, 0, col_w, frame.height);
+	}
+	else{
+		return gmui_begin_container("_col_" + frame.state_key + "_" + string(idx), 0, 0, col_w, frame.height);
+	}
 }
 
 function gmui_end_columns() {

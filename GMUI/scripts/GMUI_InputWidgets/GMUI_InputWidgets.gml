@@ -3351,6 +3351,7 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
 	
     var gmui = global.gmui;
     var style = gmui.style;
+	var widget_before = gmui.current_container.last_widget;
     var widget = gmui_begin_widget("scrollbar_vertical");
 	
 	widget.container.late_calls_enabled = true;
@@ -3448,6 +3449,7 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     gmui_end_widget(widget);
 	
 	widget.container.late_calls_enabled = false;
+	widget.container.last_widget = widget_before;
     
     return value;
 };
@@ -3457,6 +3459,7 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
 	
     var gmui = global.gmui;
     var style = gmui.style;
+	var widget_before = gmui.current_container.last_widget;
     var widget = gmui_begin_widget("scrollbar_horizontal");
 	
 	widget.container.late_calls_enabled = true;
@@ -3554,6 +3557,7 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     gmui_end_widget(widget);
 	
 	widget.container.late_calls_enabled = false;
+	widget.container.last_widget = widget_before;
     
     return value;
 };

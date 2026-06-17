@@ -59,7 +59,7 @@ function gmui_begin_wins(name, direction, ratios = undefined, resize_enabled = t
 	return begin_result;
 }
 
-function gmui_begin_wins_pane(index, properties = undefined) {
+function gmui_begin_wins_pane(index, properties = undefined, flow = false) {
     var gmui = global.gmui;
     var cache = gmui.cache;
     var stack = cache[? "__split_stack"];
@@ -73,9 +73,9 @@ function gmui_begin_wins_pane(index, properties = undefined) {
 	var begin_result = false;
 	
     if (state.direction == gmui_split_dir.VERTICAL) {
-        begin_result = gmui_begin_column(index, properties);
+        begin_result = gmui_begin_column(index, properties, flow);
     } else {
-        begin_result = gmui_begin_row(index, properties);
+        begin_result = gmui_begin_row(index, properties, flow);
     }
 	
 	if (begin_result) {

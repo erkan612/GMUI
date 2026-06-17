@@ -52,9 +52,11 @@ function gmui_container_get(name, parent = undefined) {
 				ignore_cursor_advance_once: false,
 				needs_horizontal_scrollbar: false,
 				needs_vertical_scrollbar: false,
+				flow: false,
 			},
 			
 			widgets: [ ],
+			last_widget: undefined,
 			focused_widget: undefined,
 			hovered_widget: undefined,
 			current_widget: undefined,
@@ -383,6 +385,7 @@ function gmui_begin_container(name, x = 0, y = 0, width = 100, height = 100) {
 	container.context.rows_counter = 0;
     container.context.indent_level = 0;
 	
+    container.last_widget = undefined;
 	container.is_active = true;
 	
 	gmui.current_container = container;
@@ -468,12 +471,15 @@ function gmui_end_container() {
 			
 			current_container.content_width = max(current_container.content_width, current_container.context.cursor_x - gmui.style.container_padding_h);
 			current_container.content_height = max(current_container.content_height, current_container.context.cursor_y + current_container.context.line_height - gmui.style.container_padding_v);
+			
 			current_container.context.needs_horizontal_scrollbar = current_container.content_width > current_container.width - gmui.style.container_padding_h * 2;
 			current_container.context.needs_vertical_scrollbar = current_container.content_height > current_container.height - gmui.style.container_padding_v * 2;
 		}
 		else {
 			current_container.context.ignore_cursor_advance_once = false;
 		};
+		
+		global.gmui.last_widget = previous_container;
     }
 };
 
@@ -524,8 +530,9 @@ function gmui_begin_container_plain(name, x, y, width, height) { // meant to be 
 	container.context.rows_counter = 0;
     container.context.ignore_cursor_advance_once = false;
     
-    container.content_width = 0;
-    container.content_height = 0;
+    //container.content_width = 0;
+    //container.content_height = 0;
+    container.last_widget = undefined;
     container.is_active = true;
     
     gmui.current_container = container;
@@ -591,6 +598,17 @@ function gmui_end_container_plain() {
     
     ds_stack_pop(gmui.container_stack);
     gmui.current_container = ds_stack_top(gmui.container_stack);
+};
+
+function gmui_begin_container_flow(name, x = 0, y = 0, width = 100, height = 100) {
+	var gmui = global.gmui;
+	var container = gmui_container_get(name, gmui.current_container);
+	container.context.flow = true;
+	return gmui_begin_container(name, x, y, width, height);
+};
+
+function gmui_end_container_flow() {
+	gmui_end_container();
 };
 
 function gmui_container_surface_create(container, format = surface_rgba8unorm, refresh = false) {
@@ -912,6 +930,9 @@ function gmui_container_cursor_advance(container = undefined) {
 	var c = container ?? global.gmui.current_container;
 	if (c == undefined) { return; };
 	var context = c.context;
+	if (c.last_widget != undefined && context.cursor_x + c.last_widget.width < c.width - global.gmui.style.container_padding_h * 2) { // as long as it fits, keep it on the same line
+		gmui_sameline();
+	}
 	if (context.new_line_requested && !context.ignore_cursor_advance_once) { // new line
 		context.cursor_y += context.line_height + global.gmui.style.element_spacing_v;
 		context.line_height = 0;

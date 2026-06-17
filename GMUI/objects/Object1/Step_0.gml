@@ -3,6 +3,18 @@ gmui_update();
 //gmui_style_editor();
 //gmui_animation_demo();
 
+if (gmui_begin("Flow Demo", 100, 100, 360, 180)) {
+	global.gmui.current_container.context.flow = true;
+	gmui_button("Click Me!");
+	gmui_button("Click Me!");
+	gmui_button("Click Me!");
+	gmui_button("Click Me!");
+	gmui_button("Click Me!");
+	gmui_button("Click Me!");
+	
+	gmui_end();
+}
+
 if (gmui_begin("WINS Demo", 100, 100, 720, 360)) {
 	if (gmui_begin_flex(gmui_split_dir.HORIZONTAL, [ 0.3, 0.4, 0.3 ], undefined, gmui_flow_direction.UP)) {
 		if (gmui_begin_flex_child()) {
@@ -24,9 +36,9 @@ if (gmui_begin("WINS Demo", 100, 100, 720, 360)) {
 			}
 			gmui_end_flex();
 		}
-		if (gmui_begin_flex_child()) {
-			gmui_button_size("Button on child 2!", gmui_get_available_width(), gmui_get_available_height());
-			gmui_end_flex_child();
+		if (gmui_begin_flex_child_flow()) {
+			repeat (10) { gmui_button("Click Me!"); };
+			gmui_end_flex_child_flow();
 		}
 		gmui_end_flex();
 	}

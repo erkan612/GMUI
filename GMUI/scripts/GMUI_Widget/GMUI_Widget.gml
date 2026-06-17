@@ -77,6 +77,7 @@ function gmui_end_widget(widget, is_interactive = false) {
 	};
     
 	global.gmui.last_widget = widget;
+	widget.container.last_widget = widget;
 	
 	var gmui = widget.gmui;
 	var offset = gmui_get_container_screen_offset(widget.container);
