@@ -97,6 +97,8 @@ function gmui_init(init_profile = gmui_get_default_profile(), visual_calls = und
 	
 	global.gmui.visual_calls = gmui_get_default_visual_calls();
 	gmui_append_structure(global.gmui.visual_calls, visual_calls);
+	
+	gmui_animation_init();
 };
 
 function gmui_get() {

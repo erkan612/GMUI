@@ -23,7 +23,7 @@ function gmui_docking_create_dockspace(name) {
 	array_push(global.gmui.cache[? "__dockspace_names"], name);
 }
 
-function gmui_docking_add_tab(dock_name, pane, label, ratio = 0.25) {
+function gmui_docking_add_pane(dock_name, pane, ratio = 0.25) {
     var window = gmui_window_get(dock_name);
     var dock   = window.state[? "__dock"];
     if (dock == undefined) { return; }
@@ -36,6 +36,18 @@ function gmui_docking_add_tab(dock_name, pane, label, ratio = 0.25) {
         if (pane != gmui_docking_pane_dir.PANE_CENTER && !array_contains(dock.pane_order, pane)) {
             array_push(dock.pane_order, pane);
         }
+    } else {
+        dock.panes[? pane].ratio = ratio;
+    }
+}
+
+function gmui_docking_add_tab(dock_name, pane, label) {
+    var window = gmui_window_get(dock_name);
+    var dock   = window.state[? "__dock"];
+    if (dock == undefined) { return; }
+
+    if (!ds_map_exists(dock.panes, pane)) {
+        gmui_docking_init_dock(dock_name, pane);
     }
 
     var tab_name = dock_name + "_pane_" + string(pane) + "_tabs";

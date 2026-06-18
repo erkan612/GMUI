@@ -930,7 +930,7 @@ function gmui_container_cursor_advance(container = undefined) {
 	var c = container ?? global.gmui.current_container;
 	if (c == undefined) { return; };
 	var context = c.context;
-	if (c.last_widget != undefined && context.cursor_x + c.last_widget.width < c.width - global.gmui.style.container_padding_h * 2) { // as long as it fits, keep it on the same line
+	if (c.context.flow && c.last_widget != undefined && context.cursor_x + c.last_widget.width < c.width - global.gmui.style.container_padding_h * 2) { // as long as it fits, keep it on the same line
 		gmui_sameline();
 	}
 	if (context.new_line_requested && !context.ignore_cursor_advance_once) { // new line

@@ -18,6 +18,7 @@ function gmui_demo() {
                 gmui_text_wrap("This is wrapped text that automatically breaks lines when it exceeds the container width. Useful for longer descriptions and help text.");
                 gmui_text_label("FPS Counter", floor(fps_real));
                 gmui_text_label("Mouse Position", string(device_mouse_x_to_gui(0)) + ", " + string(device_mouse_y_to_gui(0)));
+				gmui_newline();
                 gmui_end_collapsing_header();
             }
             
