@@ -21,10 +21,12 @@ gmui_docking_add_pane("My Editor", gmui_docking_pane_dir.PANE_CENTER, 0.25);
 gmui_docking_add_pane("My Editor", gmui_docking_pane_dir.PANE_LEFT, 0.25);
 gmui_docking_add_pane("My Editor", gmui_docking_pane_dir.PANE_BOTTOM, 0.25);
 
-gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_CENTER, "Scene");
-gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_CENTER, "Settings");
-gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_RIGHT, "Inspector");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_LEFT,   "Hierarchy");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_LEFT,   "Materials");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_BOTTOM, "Assets");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_BOTTOM, "Output");
+gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_RIGHT, "Inspector");
+gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_CENTER, "Scene");
+gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_CENTER, "Settings");
+
+color = gmui_make_color_rgba(100, 255, 100, 255);

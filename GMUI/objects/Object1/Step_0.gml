@@ -95,7 +95,8 @@ gmui_dockspace(
 		} break;
 		case "Scene": {
 			gmui_text("Scene content");
-			mti = gmui_textbox_multiline(mti);
+			mti = gmui_textbox_multiline(mti, "put\nsome\nmulti\nline\ntext here!!", 240, 140);
+			color = gmui_color_edit_4(color, "test width");
 		} break;
 		case "Assets": {
 			gmui_text("Assets content");
@@ -136,6 +137,6 @@ gmui_dockspace(
 		}
 	},
 	0, 0,
-	1280, 720,
-	gmui_window_flags.NONE
+	1920, 1080,
+	gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS
 );

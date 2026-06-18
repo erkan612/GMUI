@@ -4450,9 +4450,10 @@ function gmui_color_button(color, size = -1, is_rgba = true, tooltip = true) {
     var style = gmui.style;
     var widget = gmui_begin_widget("color_button");
     
-    var btn_size = size > 0 ? size : style.color_button_size;
-    widget.width = btn_size;
-    widget.height = btn_size;
+	var width = size == -1 ? style.color_button_size : (is_array(size) ? size[0] : size);
+	var height = size == -1 ? style.color_button_size : (is_array(size) ? size[1] : size);
+    widget.width = width;
+    widget.height = height;
     
     var pressed = false;
     var color_id = widget.id;
@@ -4485,13 +4486,13 @@ function gmui_color_button(color, size = -1, is_rgba = true, tooltip = true) {
         var border_color = style.color_button_border_color;
         if (hovered) border_color = style.color_button_hover_border_color;
         
-        gmui_add_shader_rect(widget.x, widget.y, widget.x + btn_size, widget.y + btn_size, GMUI_SHADER_CHECKERBOARD, [
-            { type: "vec2", name: "u_size", value: [btn_size, btn_size] }
+        gmui_add_shader_rect(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, GMUI_SHADER_CHECKERBOARD, [
+            { type: "vec2", name: "u_size", value: [widget.width, widget.height] }
         ]);
         
-        gmui_add_rectangle(widget.x, widget.y, widget.x + btn_size, widget.y + btn_size, false, make_color_rgb(r, g, b), a / 255);
+        gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, false, make_color_rgb(r, g, b), a / 255);
         
-        gmui_add_rectangle(widget.x, widget.y, widget.x + btn_size, widget.y + btn_size, true, border_color, 1);
+        gmui_add_rectangle(widget.x, widget.y, widget.x + widget.width, widget.y + widget.height, true, border_color, 1);
     }
     
     gmui_end_widget(widget, true);
@@ -4842,7 +4843,7 @@ function gmui_color_picker_rgb(color, open_id) {
 };
 
 // color pick
-function gmui_color_pick(color, id = "") {
+function gmui_color_pick(color, id = "", button_size = -1) {
     var gmui = global.gmui;
     var style = gmui.style;
     var container = gmui.current_container;
@@ -4861,7 +4862,7 @@ function gmui_color_pick(color, id = "") {
     
 	var pc = gmui.containers[? picker_id + "_dd"];
 	
-    if (gmui_color_button(color)) {
+    if (gmui_color_button(color, button_size)) {
         open = !open;
         container.state[? picker_id + "_open"] = open;
 		if (pc != undefined) {
@@ -4935,7 +4936,7 @@ function gmui_color_pick(color, id = "") {
     return new_color;
 };
 
-function gmui_color_pick_rgb(color, id = "") {
+function gmui_color_pick_rgb(color, id = "", button_size = -1) {
     var gmui = global.gmui;
     var style = gmui.style;
     var container = gmui.current_container;
@@ -4954,7 +4955,7 @@ function gmui_color_pick_rgb(color, id = "") {
     
 	var pc = gmui.containers[? picker_id + "_dd"];
 	
-    if (gmui_color_button(color, undefined, false)) {
+    if (gmui_color_button(color, button_size, false)) {
         open = !open;
         container.state[? picker_id + "_open"] = open;
 		if (pc != undefined) {
@@ -5029,26 +5030,32 @@ function gmui_color_pick_rgb(color, id = "") {
     return new_color;
 };
 
-function gmui_color_picker_4(color) {
-	return gmui_color_pick(color);
+function gmui_color_picker_4(color, button_size = -1) {
+	return gmui_color_pick(color, undefined, button_size);
 };
 
-function gmui_color_picker_3(color) {
-	return gmui_color_pick_rgb(color);
+function gmui_color_picker_3(color, button_size = -1) {
+	return gmui_color_pick_rgb(color, undefined, button_size);
 };
 
-function gmui_color_edit_3(color, label = "", font_label = undefined, font_input = undefined) {
+function gmui_color_edit_3(color, label = "", total_width = 240, font_label = undefined, font_input = undefined) {
     var new_color = color;
     
+	var button_height = global.gmui.style.color_button_size;
+	var target_width = total_width - global.gmui.style.element_spacing_h * 3;
+	var input_target_width = target_width - button_height;
+	var input_width = input_target_width / 3;
+	var button_width = target_width - input_width * 3;
+	
     var rgb = gmui_color_rgb_to_array(new_color);
-    rgb[0] = gmui_input_int(rgb[0], 1, 0, 255, 50, c_red, font_input);
+    rgb[0] = gmui_input_int(rgb[0], 1, 0, 255, input_width, c_red, font_input);
     gmui_sameline();
-    rgb[1] = gmui_input_int(rgb[1], 1, 0, 255, 50, c_green, font_input);
+    rgb[1] = gmui_input_int(rgb[1], 1, 0, 255, input_width, c_green, font_input);
     gmui_sameline();
-    rgb[2] = gmui_input_int(rgb[2], 1, 0, 255, 50, c_blue, font_input);
+    rgb[2] = gmui_input_int(rgb[2], 1, 0, 255, input_width, c_blue, font_input);
 	
     gmui_sameline();
-	new_color = gmui_color_picker_3(make_color_rgb(rgb[0], rgb[1], rgb[2]));
+	new_color = gmui_color_picker_3(make_color_rgb(rgb[0], rgb[1], rgb[2]), [ button_width, global.gmui.style.color_button_size ]);
     
     if (label != "") {
         gmui_sameline();
@@ -5058,20 +5065,26 @@ function gmui_color_edit_3(color, label = "", font_label = undefined, font_input
     return new_color;
 };
 
-function gmui_color_edit_4(color, label = "", font_label = undefined, font_input = undefined) {
+function gmui_color_edit_4(color, label = "", total_width = 240, font_label = undefined, font_input = undefined) {
     var new_color = color;
+    
+	var button_height = global.gmui.style.color_button_size;
+	var target_width = total_width - global.gmui.style.element_spacing_h * 4;
+	var input_target_width = target_width - button_height;
+	var input_width = input_target_width / 4;
+	var button_width = target_width - input_width * 4;
 	
     var rgba = gmui_color_rgba_to_array(new_color);
-    rgba[0] = gmui_input_int(rgba[0], 1, 0, 255, 50, c_red, font_input);
+    rgba[0] = gmui_input_int(rgba[0], 1, 0, 255, input_width, c_red, font_input);
     gmui_sameline();
-    rgba[1] = gmui_input_int(rgba[1], 1, 0, 255, 50, c_green, font_input);
+    rgba[1] = gmui_input_int(rgba[1], 1, 0, 255, input_width, c_green, font_input);
     gmui_sameline();
-    rgba[2] = gmui_input_int(rgba[2], 1, 0, 255, 50, c_blue, font_input);
+    rgba[2] = gmui_input_int(rgba[2], 1, 0, 255, input_width, c_blue, font_input);
     gmui_sameline();
-    rgba[3] = gmui_input_int(rgba[3], 1, 0, 255, 50, c_white, font_input);
+    rgba[3] = gmui_input_int(rgba[3], 1, 0, 255, input_width, c_white, font_input);
 	
     gmui_sameline();
-	new_color = gmui_color_picker_4(gmui_color_rgba_from_array(rgba));
+	new_color = gmui_color_picker_4(gmui_color_rgba_from_array(rgba), [ button_width, global.gmui.style.color_button_size ]);
     
     if (label != "") {
         gmui_sameline();

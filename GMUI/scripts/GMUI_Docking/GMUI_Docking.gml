@@ -74,19 +74,28 @@ function gmui_docking_remove_tab(dock_name, pane, label) {
 }
 
 function gmui_begin_dockspace(dock_name, handler, x = 0, y = 0, width = 1280, height = 720, flags = 0, vertical_shift = 0) {
-	var begin_result = gmui_begin(dock_name, x, y, width, height, flags);
-	if (!begin_result) { return false; };
-	global.gmui.cache[? "__dockspace_avaiting_handler"] = handler;
-	global.gmui.cache[? "__dockspace_avaiting_vertical_shift"] = vertical_shift;
-	return true;
-};
+    var begin_result = gmui_begin(dock_name, x, y, width, height, flags);
+    if (!begin_result) { return false; }
+    var cache = global.gmui.cache;
+    if (!ds_map_exists(cache, "__dockspace_stack")) {
+        cache[? "__dockspace_stack"] = [ ];
+    }
+    array_push(cache[? "__dockspace_stack"], {
+        handler:        handler,
+        vertical_shift: vertical_shift,
+    });
+    return true;
+}
 
 function gmui_end_dockspace() {
-	gmui_docking_handle_dock(global.gmui.cache[? "__dockspace_avaiting_handler"], global.gmui.cache[? "__dockspace_avaiting_vertical_shift"]);
-	global.gmui.cache[? "__dockspace_avaiting_handler"] = undefined;
-	global.gmui.cache[? "__dockspace_avaiting_vertical_shift"] = 0;
-	gmui_end();
-};
+    var cache = global.gmui.cache;
+    var stack = cache[? "__dockspace_stack"];
+    if (stack == undefined || array_length(stack) == 0) { gmui_end(); return; }
+    var top = stack[array_length(stack) - 1];
+    array_pop(stack);
+    gmui_docking_handle_dock(top.handler, top.vertical_shift);
+    gmui_end();
+}
 
 function gmui_dockspace(dock_name, handler, window_menus = undefined, toolbar_st = undefined, x = 0, y = 0, width = 1280, height = 720, flags = 0) {
 	var vertical_shift = 0;
@@ -167,7 +176,7 @@ function gmui_docking_handle_dock(handler, vertical_shift = 0) {
 	    var is_last_pane = (i == array_length(dock.pane_order) - 1);
 	    var ratio_override = pane_data.ratio;
 	    if (is_last_pane && !center_has_tabs) {
-	        ratio_override = 0.999;
+	        ratio_override = 1;
 	    }
 
         switch (pane_dir) {
