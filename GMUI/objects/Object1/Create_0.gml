@@ -8,7 +8,7 @@
 * it does not aim to demonstrate anything
 */
 
-gmui_init(gmui_get_default_profile(gmui_default_profile.ANIMATION));
+gmui_init(gmui_get_default_profile(gmui_default_profile.BALANCED));
 
 mti = "this\nis some\nveeeeeeeerryy looooonggg\nconteeeeeexxttttt";
 
@@ -17,16 +17,14 @@ math_set_epsilon(0.00000001);
 gmui_docking_create_dockspace("My Editor");
 
 gmui_docking_add_pane("My Editor", gmui_docking_pane_dir.PANE_RIGHT, 0.25);
-gmui_docking_add_pane("My Editor", gmui_docking_pane_dir.PANE_TOP, 0.25);
 gmui_docking_add_pane("My Editor", gmui_docking_pane_dir.PANE_CENTER, 0.25);
 gmui_docking_add_pane("My Editor", gmui_docking_pane_dir.PANE_LEFT, 0.25);
 gmui_docking_add_pane("My Editor", gmui_docking_pane_dir.PANE_BOTTOM, 0.25);
 
-gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_RIGHT, "Inspector");
-gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_TOP, "Toolbar");
+gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_CENTER, "Scene");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_CENTER, "Settings");
+gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_RIGHT, "Inspector");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_LEFT,   "Hierarchy");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_LEFT,   "Materials");
-gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_CENTER, "Scene");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_BOTTOM, "Assets");
 gmui_docking_add_tab("My Editor", gmui_docking_pane_dir.PANE_BOTTOM, "Output");

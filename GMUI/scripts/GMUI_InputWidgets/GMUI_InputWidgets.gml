@@ -2634,6 +2634,8 @@ function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 2
     if (gmui_begin_child(state_prefix + "_container", width, height)) {
         var textbox_container = gmui.current_container;
         textbox_container.background_enabled = false;
+		textbox_container.surface_flag = false; // bounds to its/widgets parent
+		textbox_container.surface_sleep = false;
 
         gmui_style_push_multi({
             container_padding_h: 0,
@@ -2905,10 +2907,12 @@ function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 2
         if (is_focused) border_color = style.textbox_focused_border_color;
         else if (hovered) border_color = make_color_rgb(100, 100, 100);
 
+		gmui_add_scrolling_disable();
         gmui_add_roundrect(1, 1, width, height,
                            false, bg_color, 1, style.textbox_rounding);
         gmui_add_roundrect(1, 1, width, height,
                            true, border_color, 1, style.textbox_rounding);
+		gmui_add_scrolling_enable();
 
         var clip_x = widget.x + padding_h;
         var clip_y = widget.y + padding_v;
@@ -2963,7 +2967,7 @@ function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 2
 
         gmui_add_scissor_end();
         gmui_end_widget(widget);
-        gmui_end_container();
+        gmui_end_child();
     }
 
     gmui_style_pop_multi([

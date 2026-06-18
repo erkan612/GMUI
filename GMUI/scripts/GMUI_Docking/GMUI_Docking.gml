@@ -88,6 +88,37 @@ function gmui_end_dockspace() {
 	gmui_end();
 };
 
+function gmui_dockspace(dock_name, handler, window_menus = undefined, toolbar_st = undefined, x = 0, y = 0, width = 1280, height = 720, flags = 0) {
+	var vertical_shift = 0;
+	if (window_menus != undefined) { vertical_shift += global.gmui.style.window_menu_height; };
+	if (toolbar_st != undefined) { vertical_shift += toolbar_st.height; };
+	if (gmui_begin_dockspace(dock_name, handler, x, y, width, height, flags, vertical_shift)) {
+		if (vertical_shift != 0) {
+			gmui_style_push("container_padding_h", 0);
+			gmui_style_push("container_padding_v", 0);
+			gmui_cursor_set(0, 0);
+			if (window_menus != undefined) {
+				gmui_window_menu(window_menus);
+				if (toolbar_st != undefined) { gmui_cursor_set(0, global.gmui.style.window_menu_height); };
+			}
+			if (toolbar_st != undefined) {
+				if (window_menus == undefined) { gmui_cursor_set(0, 0); };
+				if (gmui_begin_child(dock_name + "_toolbar", gmui_get_available_width(), toolbar_st.height)) {
+					gmui_style_push("element_spacing_h", 2);
+					global.gmui.current_container.context.flow = true;
+					gmui_cursor_set(0, 0);
+					toolbar_st.handler();
+					gmui_style_pop("element_spacing_h");
+					gmui_end_child();
+				};
+			}
+			gmui_style_pop("container_padding_h");
+			gmui_style_pop("container_padding_v");
+		}
+		gmui_end_dockspace();
+	}
+};
+
 function gmui_docking_handle_dock(handler, vertical_shift = 0) {
     var gmui    = global.gmui;
     var style   = gmui.style;
