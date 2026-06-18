@@ -503,88 +503,126 @@ function gmui_docking_draw_drop_zones(dock_name) {
     fallback[? gmui_docking_pane_dir.PANE_BOTTOM] = [cx + fsw,      cy + ch - fsh, cx + cw - fsw,  cy + ch        ];
     fallback[? gmui_docking_pane_dir.PANE_CENTER] = [cx + fsw,      cy + fsh,      cx + cw - fsw,  cy + ch - fsh  ];
 
-    var zones = [];
-    for (var i = 0; i < array_length(zone_dirs); i++) {
-        var dir = zone_dirs[i];
-        array_push(zones, [fallback[? dir][0], fallback[? dir][1], fallback[? dir][2], fallback[? dir][3], dir, 0, 0, 0, 0]);
-    }
+	var arrow_offset_x = (cw * 0.3);
+	var arrow_offset_y = (ch * 0.3);
 
-    ds_map_destroy(fallback);
-    ds_map_destroy(pane_rects);
+	var zones = [];
+	for (var i = 0; i < array_length(zone_dirs); i++) {
+	    var dir = zone_dirs[i];
+	    array_push(zones, [fallback[? dir][0], fallback[? dir][1], fallback[? dir][2], fallback[? dir][3], dir, 0, 0, 0, 0]);
+	}
 
-    var arrow = 12;
-    var pad   = 10;
-    for (var i = 0; i < array_length(zones); i++) {
-        var z     = zones[i];
-        var mid_x = (z[0] + z[2]) / 2;
-        var mid_y = (z[1] + z[3]) / 2;
-        z[5] = mid_x - arrow - pad;
-        z[6] = mid_y - arrow - pad;
-        z[7] = mid_x + arrow + pad;
-        z[8] = mid_y + arrow + pad;
-    }
+	ds_map_destroy(fallback);
+	ds_map_destroy(pane_rects);
 
-    var hovered_zone = -1;
-    for (var i = 0; i < array_length(zones); i++) {
-        var z = zones[i];
-        if (point_in_rectangle(input.m_x, input.m_y, z[5], z[6], z[7], z[8])) {
-            hovered_zone = z[4];
-            break;
-        }
-    }
+	var arrow = 12;
+	var pad   = 10;
+	for (var i = 0; i < array_length(zones); i++) {
+	    var z     = zones[i];
+	    var mid_x = (z[0] + z[2]) / 2;
+	    var mid_y = (z[1] + z[3]) / 2;
+    
+	    switch (z[4]) {
+	        case gmui_docking_pane_dir.PANE_LEFT:
+	            mid_x += arrow_offset_x;
+	            break;
+	        case gmui_docking_pane_dir.PANE_RIGHT:
+	            mid_x -= arrow_offset_x;
+	            break;
+	        case gmui_docking_pane_dir.PANE_TOP:
+	            mid_y += arrow_offset_y;
+	            break;
+	        case gmui_docking_pane_dir.PANE_BOTTOM:
+	            mid_y -= arrow_offset_y;
+	            break;
+	        // center should stay same
+	    }
+    
+	    z[5] = mid_x - arrow - pad;
+	    z[6] = mid_y - arrow - pad;
+	    z[7] = mid_x + arrow + pad;
+	    z[8] = mid_y + arrow + pad;
+	}
 
-    if (!ds_map_exists(cache, "_dock_drop_zone")) { cache[? "_dock_drop_zone"] = ds_map_create(); }
-    cache[? "_dock_drop_zone"][? dock_name] = hovered_zone;
+	var hovered_zone = -1;
+	for (var i = 0; i < array_length(zones); i++) {
+	    var z = zones[i];
+	    if (point_in_rectangle(input.m_x, input.m_y, z[5], z[6], z[7], z[8])) {
+	        hovered_zone = z[4];
+	        break;
+	    }
+	}
 
-    var font_prev = draw_get_font();
-    draw_set_font(style.font_text ?? style.font);
+	if (!ds_map_exists(cache, "_dock_drop_zone")) { cache[? "_dock_drop_zone"] = ds_map_create(); }
+	cache[? "_dock_drop_zone"][? dock_name] = hovered_zone;
 
-    for (var i = 0; i < array_length(zones); i++) {
-        var z          = zones[i];
-        var is_hovered = (z[4] == hovered_zone);
-        var mid_x      = (z[0] + z[2]) / 2;
-        var mid_y      = (z[1] + z[3]) / 2;
-        var box_x1     = z[5]; var box_y1 = z[6];
-        var box_x2     = z[7]; var box_y2 = z[8];
+	var font_prev = draw_get_font();
+	draw_set_font(style.font_text ?? style.font);
 
-        if (is_hovered) {
-            draw_set_alpha(0.25);
-            draw_set_color(style.color_accent);
-            //draw_rectangle(z[0], z[1], z[2], z[3], false); // tired of this bs, doesnt work properly
-        }
+	for (var i = 0; i < array_length(zones); i++) {
+	    var z          = zones[i];
+	    var is_hovered = (z[4] == hovered_zone);
+    
+	    var draw_mid_x = (z[0] + z[2]) / 2;
+	    var draw_mid_y = (z[1] + z[3]) / 2;
+    
+	    switch (z[4]) {
+	        case gmui_docking_pane_dir.PANE_LEFT:
+	            draw_mid_x += arrow_offset_x;
+	            break;
+	        case gmui_docking_pane_dir.PANE_RIGHT:
+	            draw_mid_x -= arrow_offset_x;
+	            break;
+	        case gmui_docking_pane_dir.PANE_TOP:
+	            draw_mid_y += arrow_offset_y;
+	            break;
+	        case gmui_docking_pane_dir.PANE_BOTTOM:
+	            draw_mid_y -= arrow_offset_y;
+	            break;
+	    }
+    
+	    var box_x1 = draw_mid_x - arrow - pad;
+	    var box_y1 = draw_mid_y - arrow - pad;
+	    var box_x2 = draw_mid_x + arrow + pad;
+	    var box_y2 = draw_mid_y + arrow + pad;
 
-        // arrow box
-        draw_set_alpha(is_hovered ? 0.9 : 0.4);
-        draw_set_color(style.color_accent);
-        draw_rectangle(box_x1, box_y1, box_x2, box_y2, false);
-        draw_set_alpha(is_hovered ? 1.0 : 0.7);
-        draw_rectangle(box_x1, box_y1, box_x2, box_y2, true);
+	    if (is_hovered) {
+	        draw_set_alpha(0.25);
+	        draw_set_color(style.color_accent);
+	    }
 
-        // arrow
-        draw_set_alpha(is_hovered ? 1.0 : 0.6);
-        draw_set_color(is_hovered ? style.color_accent : style.text_color);
-        switch (z[4]) {
-            case gmui_docking_pane_dir.PANE_LEFT:
-                draw_triangle(mid_x - arrow, mid_y, mid_x + arrow, mid_y - arrow, mid_x + arrow, mid_y + arrow, false);
-                break;
-            case gmui_docking_pane_dir.PANE_RIGHT:
-                draw_triangle(mid_x + arrow, mid_y, mid_x - arrow, mid_y - arrow, mid_x - arrow, mid_y + arrow, false);
-                break;
-            case gmui_docking_pane_dir.PANE_TOP:
-                draw_triangle(mid_x, mid_y - arrow, mid_x - arrow, mid_y + arrow, mid_x + arrow, mid_y + arrow, false);
-                break;
-            case gmui_docking_pane_dir.PANE_BOTTOM:
-                draw_triangle(mid_x, mid_y + arrow, mid_x - arrow, mid_y - arrow, mid_x + arrow, mid_y - arrow, false);
-                break;
-            case gmui_docking_pane_dir.PANE_CENTER: {
-                var cs = arrow / 2;
-                draw_rectangle(mid_x - cs, mid_y - arrow, mid_x + cs, mid_y + arrow, false);
-                draw_rectangle(mid_x - arrow, mid_y - cs, mid_x + arrow, mid_y + cs, false);
-            } break;
-        }
-    }
+	    // arrow box
+	    draw_set_alpha(is_hovered ? 0.9 : 0.4);
+	    draw_set_color(style.color_accent);
+	    draw_rectangle(box_x1, box_y1, box_x2, box_y2, false);
+	    draw_set_alpha(is_hovered ? 1.0 : 0.7);
+	    draw_rectangle(box_x1, box_y1, box_x2, box_y2, true);
 
-    draw_set_alpha(1);
-    draw_set_color(c_white);
-    draw_set_font(font_prev);
+	    // arrow
+	    draw_set_alpha(is_hovered ? 1.0 : 0.6);
+	    draw_set_color(is_hovered ? style.color_accent : style.text_color);
+	    switch (z[4]) {
+	        case gmui_docking_pane_dir.PANE_LEFT:
+	            draw_triangle(draw_mid_x - arrow, draw_mid_y, draw_mid_x + arrow, draw_mid_y - arrow, draw_mid_x + arrow, draw_mid_y + arrow, false);
+	            break;
+	        case gmui_docking_pane_dir.PANE_RIGHT:
+	            draw_triangle(draw_mid_x + arrow, draw_mid_y, draw_mid_x - arrow, draw_mid_y - arrow, draw_mid_x - arrow, draw_mid_y + arrow, false);
+	            break;
+	        case gmui_docking_pane_dir.PANE_TOP:
+	            draw_triangle(draw_mid_x, draw_mid_y - arrow, draw_mid_x - arrow, draw_mid_y + arrow, draw_mid_x + arrow, draw_mid_y + arrow, false);
+	            break;
+	        case gmui_docking_pane_dir.PANE_BOTTOM:
+	            draw_triangle(draw_mid_x, draw_mid_y + arrow, draw_mid_x - arrow, draw_mid_y - arrow, draw_mid_x + arrow, draw_mid_y - arrow, false);
+	            break;
+	        case gmui_docking_pane_dir.PANE_CENTER: {
+	            var cs = arrow / 2;
+	            draw_rectangle(draw_mid_x - cs, draw_mid_y - arrow, draw_mid_x + cs, draw_mid_y + arrow, false);
+	            draw_rectangle(draw_mid_x - arrow, draw_mid_y - cs, draw_mid_x + arrow, draw_mid_y + cs, false);
+	        } break;
+	    }
+	}
+
+	draw_set_alpha(1);
+	draw_set_color(c_white);
+	draw_set_font(font_prev);
 }
