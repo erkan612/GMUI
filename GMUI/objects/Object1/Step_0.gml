@@ -82,12 +82,30 @@ if (gmui_begin_context_menu("Ctx_Help", 300)) {
 
 if (gmui_begin_dockspace("My Editor", function(tab_name) {
         switch (tab_name) {
-            case "Hierarchy": { gmui_text("hierarchy content"); } break;
-            case "Materials": { gmui_text("materials content"); } break;
-            case "Scene":     { gmui_text("scene content");     } break;
-            case "Settings":  { gmui_text("settings content");  } break;
-            case "Assets":    { gmui_text("assets content");    } break;
-            case "Output":    { gmui_text("output content");    } break;
+            case "Hierarchy": {
+				gmui_text("Hierarchy content");
+			} break;
+            case "Toolbar": {
+				gmui_text("Toolbar content");
+			} break;
+            case "Materials": {
+				gmui_text("Materials content");
+			} break;
+            case "Settings": {
+				gmui_text("Settings content");
+			} break;
+            case "Scene": {
+				gmui_text("Scene content");
+			} break;
+            case "Assets": {
+				gmui_text("Assets content");
+			} break;
+            case "Output": {
+				gmui_text("Output content");
+			} break;
+            case "Inspector": {
+				gmui_text("Inspector content");
+			} break;
         }
     }, 0, 0, 1280, 720, 0, 24)) {
 	gmui_cursor_set(0, 0);

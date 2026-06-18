@@ -3830,7 +3830,7 @@ function gmui_combo(selected_index, items, item_count, placeholder = "Select..."
         if (hovered && gmui_input_mouse_pressed()) {
             container.state[? "_combo_pressed"] = combo_id;
         }
-        
+		
         if (gmui_input_mouse_released() && container.state[? "_combo_pressed"] == combo_id && hovered) {
             var dd_name = combo_id + "_dd";
             var dd_container = gmui_container_get(dd_name, undefined);
@@ -3892,6 +3892,8 @@ function gmui_combo(selected_index, items, item_count, placeholder = "Select..."
     gmui_end_widget(widget, true);
     
     if (open) {
+		gmui_container_animation_detected();
+		
 	    var dd_name = combo_id + "_dd";
 	    var dd_width = width;
 	    var dd_height = min(style.combo_dropdown_max_height, item_count * style.combo_item_height);
@@ -3913,6 +3915,11 @@ function gmui_combo(selected_index, items, item_count, placeholder = "Select..."
 	    dd_x = max(0, dd_x);
 	    dd_y = max(0, dd_y);
 		
+		gmui_style_push_multi({
+			container_padding_h: 0,
+			container_padding_v: 0,
+		});
+		
 		if (gmui_begin_container_plain(dd_name, dd_x, dd_y, dd_width, dd_height)) {
 		    var dd = gmui.current_container;
 			dd.layer = gmui_layer.POPUP;
@@ -3933,6 +3940,8 @@ function gmui_combo(selected_index, items, item_count, placeholder = "Select..."
 		    dd.context.line_height = 0;
 		    dd.context.new_line_requested = false;
 		    dd.context.indent_level = 0;
+			
+			gmui_container_animation_detected();
     
 		    gmui_add_rectangle(0, 0, dd_width, dd_height, false, style.combo_color, 1);
 		    gmui_add_rectangle(0, 0, dd_width, dd_height, true, style.combo_border_color, 1);
@@ -3980,6 +3989,11 @@ function gmui_combo(selected_index, items, item_count, placeholder = "Select..."
 		    dd.content_height = dd.context.cursor_y;
 		    gmui_end_container_plain();
 		}
+		
+		gmui_style_pop_multi([
+			"container_padding_h",
+			"container_padding_v",
+		]);
     }
     
     return new_index;

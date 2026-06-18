@@ -70,16 +70,17 @@ function gmui_begin_dockspace(dock_name, handler, x = 0, y = 0, width = 1280, he
 };
 
 function gmui_end_dockspace() {
-	gmui_docking_handle_dock(global.gmui.current_container.parent.name, global.gmui.cache[? "__dockspace_avaiting_handler"], global.gmui.cache[? "__dockspace_avaiting_vertical_shift"]);
+	gmui_docking_handle_dock(global.gmui.cache[? "__dockspace_avaiting_handler"], global.gmui.cache[? "__dockspace_avaiting_vertical_shift"]);
 	global.gmui.cache[? "__dockspace_avaiting_handler"] = undefined;
 	global.gmui.cache[? "__dockspace_avaiting_vertical_shift"] = 0;
 	gmui_end();
 };
 
-function gmui_docking_handle_dock(dock_name, handler, vertical_shift = 0) {
+function gmui_docking_handle_dock(handler, vertical_shift = 0) {
     var gmui    = global.gmui;
     var style   = gmui.style;
     var input   = gmui.input;
+	var dock_name = gmui.current_container.parent.name;
     var window  = gmui_window_get(dock_name);
     var dock    = window.state[? "__dock"];
     if (dock == undefined) { return; }
@@ -309,6 +310,10 @@ function _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, px, py, pw, ph, 
     pane_container.context.cursor_y = style.tab_bar_height + style.element_spacing_v;
     pane_container.context.new_line_requested  = false;
     pane_container.context.ignore_cursor_advance_once = true;
+	
+	var content_c = gmui_container_get(pane_name + "_content", pane_container);
+	content_c.surface_flag = false; // its bound to its parent
+	content_c.surface_sleep = false;
 
     if (gmui_begin_container(pane_name + "_content", 0, 0, pw, content_h)) {
         gmui.current_container.use_scissor      = true;
