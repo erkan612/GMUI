@@ -5,106 +5,6 @@ function gmui_style_init() {
 	gmui_style_apply_ruler();
 };
 
-function gmui_style_apply_theme_dark() {
-	var ruler = {
-		color_bg_dominant: make_color_rgb(24, 24, 24),
-		color_bg_secondary: make_color_rgb(30, 30, 30),
-		color_bg_tertiary: make_color_rgb(36, 36, 36),
-		color_front_base: make_color_rgb(225, 225, 225),
-		color_front_hover: make_color_rgb(255, 255, 255),
-		color_front_active: make_color_rgb(190, 190, 190),
-		color_widget_base: make_color_rgb(42, 42, 42),
-		color_widget_hover: make_color_rgb(48, 48, 48),
-		color_widget_active: make_color_rgb(36, 36, 36),
-		color_accent: make_color_rgb(70, 130, 180),
-		color_accent_hover: make_color_rgb(100, 160, 210),
-		color_accent_pressed: make_color_rgb(50, 100, 150),
-		color_accent_alt: make_color_rgb(90, 150, 200),
-		color_accent_dark: make_color_rgb(40, 90, 140),
-		color_accent_light: make_color_rgb(130, 180, 220),
-		color_text_primary: make_color_rgb(225, 225, 225),
-		color_text_secondary: make_color_rgb(170, 170, 170),
-		color_text_disabled: make_color_rgb(110, 110, 110),
-		color_text_bright: make_color_rgb(255, 255, 255),
-		color_border: make_color_rgb(52, 52, 52),
-		color_border_light: make_color_rgb(68, 68, 68),
-		color_border_dark: make_color_rgb(40, 40, 40),
-		toast_success: make_color_rgb(60, 160, 90),
-		toast_error: make_color_rgb(210, 80, 80),
-		toast_info: make_color_rgb(80, 130, 220),
-		toast_warning: make_color_rgb(220, 180, 70),
-		spacing_tiny: 2,
-		spacing_small: 4,
-		spacing_medium: 8,
-		spacing_large: 12,
-		spacing_xlarge: 16,
-		rounding_container: 12,
-		rounding_widget: 4,
-		rounding_small: 2,
-		rounding_medium: 3,
-		rounding_large: 4,
-		rounding_pill: 12,
-		scroll_speed: 30,
-		drag_sensitivity: 0.1,
-		knob_sensitivity: 0.004,
-		tooltip_delay: 500,
-		toast_duration: 3000,
-		toast_position: "top-center",
-		color_deepest: c_black,
-	};
-	gmui_style_apply_ruler(ruler);
-};
-
-function gmui_style_apply_theme_light() {
-	var ruler = {
-        color_bg_dominant: make_color_rgb(240, 240, 240),
-        color_bg_secondary: make_color_rgb(235, 235, 235),
-        color_bg_tertiary: make_color_rgb(225, 225, 225),
-        color_front_base: make_color_rgb(30, 30, 30),
-        color_front_hover: make_color_rgb(0, 0, 0),
-        color_front_active: make_color_rgb(60, 60, 60),
-        color_widget_base: make_color_rgb(215, 215, 215),
-        color_widget_hover: make_color_rgb(205, 205, 205),
-        color_widget_active: make_color_rgb(225, 225, 225),
-        color_accent: make_color_rgb(70, 130, 180),
-        color_accent_hover: make_color_rgb(90, 150, 200),
-        color_accent_pressed: make_color_rgb(50, 110, 160),
-        color_accent_alt: make_color_rgb(85, 145, 195),
-        color_accent_dark: make_color_rgb(45, 95, 145),
-        color_accent_light: make_color_rgb(120, 170, 215),
-        color_text_primary: make_color_rgb(30, 30, 30),
-        color_text_secondary: make_color_rgb(80, 80, 80),
-        color_text_disabled: make_color_rgb(140, 140, 140),
-        color_text_bright: make_color_rgb(255, 255, 255),
-        color_border: make_color_rgb(200, 200, 200),
-        color_border_light: make_color_rgb(215, 215, 215),
-        color_border_dark: make_color_rgb(180, 180, 180),
-        toast_success: make_color_rgb(60, 160, 90),
-        toast_error: make_color_rgb(210, 80, 80),
-        toast_info: make_color_rgb(80, 130, 220),
-        toast_warning: make_color_rgb(220, 180, 70),
-        spacing_tiny: 2,
-        spacing_small: 4,
-        spacing_medium: 8,
-        spacing_large: 12,
-        spacing_xlarge: 16,
-        rounding_container: 12,
-        rounding_widget: 4,
-        rounding_small: 2,
-        rounding_medium: 3,
-        rounding_large: 4,
-        rounding_pill: 12,
-        scroll_speed: 30,
-        drag_sensitivity: 0.1,
-        knob_sensitivity: 0.004,
-        tooltip_delay: 500,
-        toast_duration: 3000,
-        toast_position: "top-center",
-		color_deepest: c_white,
-    };
-	gmui_style_apply_ruler(ruler);
-};
-
 function gmui_style_apply_ruler
 (
 	_ruler = undefined
@@ -1023,6 +923,311 @@ function gmui_style_apply_ruler
         tree_item_text_color: _text_primary,
         tree_item_selected_text_color: _text_bright,
     };
+};
+
+function gmui_style_apply_theme_dark() {
+	var ruler = {
+		color_bg_dominant: make_color_rgb(24, 24, 24),
+		color_bg_secondary: make_color_rgb(30, 30, 30),
+		color_bg_tertiary: make_color_rgb(36, 36, 36),
+		color_front_base: make_color_rgb(225, 225, 225),
+		color_front_hover: make_color_rgb(255, 255, 255),
+		color_front_active: make_color_rgb(190, 190, 190),
+		color_widget_base: make_color_rgb(42, 42, 42),
+		color_widget_hover: make_color_rgb(48, 48, 48),
+		color_widget_active: make_color_rgb(36, 36, 36),
+		color_accent: make_color_rgb(70, 130, 180),
+		color_accent_hover: make_color_rgb(100, 160, 210),
+		color_accent_pressed: make_color_rgb(50, 100, 150),
+		color_accent_alt: make_color_rgb(90, 150, 200),
+		color_accent_dark: make_color_rgb(40, 90, 140),
+		color_accent_light: make_color_rgb(130, 180, 220),
+		color_text_primary: make_color_rgb(225, 225, 225),
+		color_text_secondary: make_color_rgb(170, 170, 170),
+		color_text_disabled: make_color_rgb(110, 110, 110),
+		color_text_bright: make_color_rgb(255, 255, 255),
+		color_border: make_color_rgb(52, 52, 52),
+		color_border_light: make_color_rgb(68, 68, 68),
+		color_border_dark: make_color_rgb(40, 40, 40),
+		toast_success: make_color_rgb(60, 160, 90),
+		toast_error: make_color_rgb(210, 80, 80),
+		toast_info: make_color_rgb(80, 130, 220),
+		toast_warning: make_color_rgb(220, 180, 70),
+		spacing_tiny: 2,
+		spacing_small: 4,
+		spacing_medium: 8,
+		spacing_large: 12,
+		spacing_xlarge: 16,
+		rounding_container: 12,
+		rounding_widget: 4,
+		rounding_small: 2,
+		rounding_medium: 3,
+		rounding_large: 4,
+		rounding_pill: 12,
+		scroll_speed: 30,
+		drag_sensitivity: 0.1,
+		knob_sensitivity: 0.004,
+		tooltip_delay: 500,
+		toast_duration: 3000,
+		toast_position: "top-center",
+		color_deepest: c_black,
+	};
+	gmui_style_apply_ruler(ruler);
+};
+
+function gmui_style_apply_theme_light() {
+	var ruler = {
+        color_bg_dominant: make_color_rgb(240, 240, 240),
+        color_bg_secondary: make_color_rgb(235, 235, 235),
+        color_bg_tertiary: make_color_rgb(225, 225, 225),
+        color_front_base: make_color_rgb(30, 30, 30),
+        color_front_hover: make_color_rgb(0, 0, 0),
+        color_front_active: make_color_rgb(60, 60, 60),
+        color_widget_base: make_color_rgb(215, 215, 215),
+        color_widget_hover: make_color_rgb(205, 205, 205),
+        color_widget_active: make_color_rgb(225, 225, 225),
+        color_accent: make_color_rgb(70, 130, 180),
+        color_accent_hover: make_color_rgb(90, 150, 200),
+        color_accent_pressed: make_color_rgb(50, 110, 160),
+        color_accent_alt: make_color_rgb(85, 145, 195),
+        color_accent_dark: make_color_rgb(45, 95, 145),
+        color_accent_light: make_color_rgb(120, 170, 215),
+        color_text_primary: make_color_rgb(30, 30, 30),
+        color_text_secondary: make_color_rgb(80, 80, 80),
+        color_text_disabled: make_color_rgb(140, 140, 140),
+        color_text_bright: make_color_rgb(255, 255, 255),
+        color_border: make_color_rgb(200, 200, 200),
+        color_border_light: make_color_rgb(215, 215, 215),
+        color_border_dark: make_color_rgb(180, 180, 180),
+        toast_success: make_color_rgb(60, 160, 90),
+        toast_error: make_color_rgb(210, 80, 80),
+        toast_info: make_color_rgb(80, 130, 220),
+        toast_warning: make_color_rgb(220, 180, 70),
+        spacing_tiny: 2,
+        spacing_small: 4,
+        spacing_medium: 8,
+        spacing_large: 12,
+        spacing_xlarge: 16,
+        rounding_container: 12,
+        rounding_widget: 4,
+        rounding_small: 2,
+        rounding_medium: 3,
+        rounding_large: 4,
+        rounding_pill: 12,
+        scroll_speed: 30,
+        drag_sensitivity: 0.1,
+        knob_sensitivity: 0.004,
+        tooltip_delay: 500,
+        toast_duration: 3000,
+        toast_position: "top-center",
+		color_deepest: c_white,
+    };
+	gmui_style_apply_ruler(ruler);
+};
+
+function gmui_style_apply_theme_dark_gray() {
+	var ruler = {
+		color_bg_dominant: make_color_rgb(26, 26, 26),
+		color_bg_secondary: make_color_rgb(32, 32, 32),
+		color_bg_tertiary: make_color_rgb(38, 38, 38),
+
+		color_front_base: make_color_rgb(225, 225, 225),
+		color_front_hover: make_color_rgb(255, 255, 255),
+		color_front_active: make_color_rgb(190, 190, 190),
+
+		color_widget_base: make_color_rgb(44, 44, 44),
+		color_widget_hover: make_color_rgb(50, 50, 50),
+		color_widget_active: make_color_rgb(38, 38, 38),
+
+		color_accent: make_color_rgb(120, 120, 120),
+		color_accent_hover: make_color_rgb(145, 145, 145),
+		color_accent_pressed: make_color_rgb(95, 95, 95),
+		color_accent_alt: make_color_rgb(135, 135, 135),
+		color_accent_dark: make_color_rgb(85, 85, 85),
+		color_accent_light: make_color_rgb(170, 170, 170),
+
+		color_text_primary: make_color_rgb(225, 225, 225),
+		color_text_secondary: make_color_rgb(170, 170, 170),
+		color_text_disabled: make_color_rgb(110, 110, 110),
+		color_text_bright: make_color_rgb(255, 255, 255),
+
+		color_border: make_color_rgb(54, 54, 54),
+		color_border_light: make_color_rgb(70, 70, 70),
+		color_border_dark: make_color_rgb(40, 40, 40),
+
+		toast_success: make_color_rgb(60, 160, 90),
+		toast_error: make_color_rgb(210, 80, 80),
+		toast_info: make_color_rgb(80, 130, 220),
+		toast_warning: make_color_rgb(220, 180, 70),
+
+		color_deepest: c_black
+	};
+
+	gmui_style_apply_ruler(ruler);
+};
+
+function gmui_style_apply_theme_cyan() {
+	var ruler = {
+		color_bg_dominant: make_color_rgb(22, 24, 25),
+		color_bg_secondary: make_color_rgb(28, 31, 32),
+		color_bg_tertiary: make_color_rgb(34, 38, 39),
+
+		color_front_base: make_color_rgb(225, 225, 225),
+		color_front_hover: make_color_rgb(255, 255, 255),
+		color_front_active: make_color_rgb(190, 190, 190),
+
+		color_widget_base: make_color_rgb(40, 45, 46),
+		color_widget_hover: make_color_rgb(46, 51, 52),
+		color_widget_active: make_color_rgb(34, 38, 39),
+
+		color_accent: make_color_rgb(50, 165, 185),
+		color_accent_hover: make_color_rgb(75, 190, 210),
+		color_accent_pressed: make_color_rgb(38, 130, 145),
+		color_accent_alt: make_color_rgb(60, 175, 195),
+		color_accent_dark: make_color_rgb(30, 105, 120),
+		color_accent_light: make_color_rgb(105, 215, 235),
+
+		color_text_primary: make_color_rgb(225, 225, 225),
+		color_text_secondary: make_color_rgb(170, 170, 170),
+		color_text_disabled: make_color_rgb(110, 110, 110),
+		color_text_bright: make_color_rgb(255, 255, 255),
+
+		color_border: make_color_rgb(50, 56, 58),
+		color_border_light: make_color_rgb(64, 72, 74),
+		color_border_dark: make_color_rgb(38, 42, 44),
+
+		toast_success: make_color_rgb(60, 160, 90),
+		toast_error: make_color_rgb(210, 80, 80),
+		toast_info: make_color_rgb(80, 130, 220),
+		toast_warning: make_color_rgb(220, 180, 70),
+
+		color_deepest: c_black
+	};
+
+	gmui_style_apply_ruler(ruler);
+};
+
+function gmui_style_apply_theme_emerald() {
+	var ruler = {
+		color_bg_dominant: make_color_rgb(22, 24, 24),
+		color_bg_secondary: make_color_rgb(28, 31, 31),
+		color_bg_tertiary: make_color_rgb(34, 38, 38),
+
+		color_front_base: make_color_rgb(225, 225, 225),
+		color_front_hover: make_color_rgb(255, 255, 255),
+		color_front_active: make_color_rgb(190, 190, 190),
+
+		color_widget_base: make_color_rgb(40, 45, 45),
+		color_widget_hover: make_color_rgb(46, 52, 52),
+		color_widget_active: make_color_rgb(34, 39, 39),
+
+		color_accent: make_color_rgb(52, 168, 118),
+		color_accent_hover: make_color_rgb(72, 188, 138),
+		color_accent_pressed: make_color_rgb(42, 138, 98),
+		color_accent_alt: make_color_rgb(62, 178, 128),
+		color_accent_dark: make_color_rgb(38, 118, 82),
+		color_accent_light: make_color_rgb(92, 208, 158),
+
+		color_text_primary: make_color_rgb(225, 225, 225),
+		color_text_secondary: make_color_rgb(170, 170, 170),
+		color_text_disabled: make_color_rgb(110, 110, 110),
+		color_text_bright: make_color_rgb(255, 255, 255),
+
+		color_border: make_color_rgb(50, 56, 56),
+		color_border_light: make_color_rgb(66, 72, 72),
+		color_border_dark: make_color_rgb(38, 42, 42),
+
+		toast_success: make_color_rgb(60, 160, 90),
+		toast_error: make_color_rgb(210, 80, 80),
+		toast_info: make_color_rgb(80, 130, 220),
+		toast_warning: make_color_rgb(220, 180, 70),
+
+		color_deepest: c_black
+	};
+
+	gmui_style_apply_ruler(ruler);
+};
+
+function gmui_style_apply_theme_amber() {
+	var ruler = {
+		color_bg_dominant: make_color_rgb(25, 24, 22),
+		color_bg_secondary: make_color_rgb(31, 30, 28),
+		color_bg_tertiary: make_color_rgb(38, 36, 34),
+
+		color_front_base: make_color_rgb(225, 225, 225),
+		color_front_hover: make_color_rgb(255, 255, 255),
+		color_front_active: make_color_rgb(190, 190, 190),
+
+		color_widget_base: make_color_rgb(46, 43, 40),
+		color_widget_hover: make_color_rgb(52, 49, 46),
+		color_widget_active: make_color_rgb(40, 38, 35),
+
+		color_accent: make_color_rgb(210, 145, 65),
+		color_accent_hover: make_color_rgb(230, 165, 85),
+		color_accent_pressed: make_color_rgb(180, 120, 50),
+		color_accent_alt: make_color_rgb(220, 155, 75),
+		color_accent_dark: make_color_rgb(145, 95, 35),
+		color_accent_light: make_color_rgb(245, 190, 120),
+
+		color_text_primary: make_color_rgb(225, 225, 225),
+		color_text_secondary: make_color_rgb(170, 170, 170),
+		color_text_disabled: make_color_rgb(110, 110, 110),
+		color_text_bright: make_color_rgb(255, 255, 255),
+
+		color_border: make_color_rgb(58, 52, 46),
+		color_border_light: make_color_rgb(72, 66, 60),
+		color_border_dark: make_color_rgb(42, 38, 34),
+
+		toast_success: make_color_rgb(60, 160, 90),
+		toast_error: make_color_rgb(210, 80, 80),
+		toast_info: make_color_rgb(80, 130, 220),
+		toast_warning: make_color_rgb(220, 180, 70),
+
+		color_deepest: c_black
+	};
+
+	gmui_style_apply_ruler(ruler);
+};
+
+function gmui_style_apply_theme_crimson() {
+	var ruler = {
+		color_bg_dominant: make_color_rgb(24, 22, 23),
+		color_bg_secondary: make_color_rgb(30, 28, 29),
+		color_bg_tertiary: make_color_rgb(36, 34, 35),
+
+		color_front_base: make_color_rgb(225, 225, 225),
+		color_front_hover: make_color_rgb(255, 255, 255),
+		color_front_active: make_color_rgb(190, 190, 190),
+
+		color_widget_base: make_color_rgb(44, 41, 42),
+		color_widget_hover: make_color_rgb(50, 47, 48),
+		color_widget_active: make_color_rgb(38, 35, 36),
+
+		color_accent: make_color_rgb(180, 70, 85),
+		color_accent_hover: make_color_rgb(205, 90, 105),
+		color_accent_pressed: make_color_rgb(145, 55, 70),
+		color_accent_alt: make_color_rgb(195, 80, 95),
+		color_accent_dark: make_color_rgb(120, 45, 58),
+		color_accent_light: make_color_rgb(225, 120, 135),
+
+		color_text_primary: make_color_rgb(225, 225, 225),
+		color_text_secondary: make_color_rgb(170, 170, 170),
+		color_text_disabled: make_color_rgb(110, 110, 110),
+		color_text_bright: make_color_rgb(255, 255, 255),
+
+		color_border: make_color_rgb(54, 48, 50),
+		color_border_light: make_color_rgb(68, 62, 64),
+		color_border_dark: make_color_rgb(40, 36, 37),
+
+		toast_success: make_color_rgb(60, 160, 90),
+		toast_error: make_color_rgb(210, 80, 80),
+		toast_info: make_color_rgb(80, 130, 220),
+		toast_warning: make_color_rgb(220, 180, 70),
+
+		color_deepest: c_black
+	};
+
+	gmui_style_apply_ruler(ruler);
 };
 
 function gmui_style_push(key, value) {
