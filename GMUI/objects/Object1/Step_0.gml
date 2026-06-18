@@ -1,4 +1,5 @@
 gmui_update();
+gmui_demo();
 
 gmui_dockspace(
 	"My Editor",

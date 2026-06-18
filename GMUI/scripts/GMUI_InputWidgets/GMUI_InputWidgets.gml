@@ -2918,7 +2918,6 @@ function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 2
         var clip_y = widget.y + padding_v;
         var clip_w = width - padding_h * 2;
         var clip_h = height - padding_v * 2;
-        gmui_add_scissor_begin_isolated(clip_x, clip_y, clip_w, clip_h);
 
         if (is_focused && cursor != cursor_start) {
             var s = min(cursor, cursor_start);
@@ -2965,7 +2964,6 @@ function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 2
                                false, style.textbox_cursor_color, cursor_alpha);
         }
 
-        gmui_add_scissor_end();
         gmui_end_widget(widget);
         gmui_end_child();
     }
@@ -4427,7 +4425,7 @@ function gmui_combo_disabled(selected_index, items, item_count, placeholder = "S
 };
 
 // color button
-function gmui_color_button(color, size = -1, is_rgba = true) {
+function gmui_color_button(color, size = -1, is_rgba = true, tooltip = true) {
     var gmui = global.gmui;
     var style = gmui.style;
     var widget = gmui_begin_widget("color_button");
@@ -4477,6 +4475,53 @@ function gmui_color_button(color, size = -1, is_rgba = true) {
     }
     
     gmui_end_widget(widget, true);
+	
+	if (tooltip) {
+		/*
+		  ╭──────────────────────────────────────────────────╮
+		  │  ╭──────╮  #FF72FF                               │
+		  │  │██████│  R:255  G:114  B:255  A:255            │
+		  │  │██████│  (1.000, 0.447, 1.000, 1.000)          │
+		  │  ╰──────╯                                        │
+		  ╰──────────────────────────────────────────────────╯
+		*/
+		var str_r = "";
+		var str_g = "";
+		var str_b = "";
+		var str_a = "";
+		var real_r = 0;
+		var real_g = 0;
+		var real_b = 0;
+		var real_a = 0;
+		if (is_rgba) {
+			str_r = string(gmui_color_rgba_get_red(color));
+			str_g = string(gmui_color_rgba_get_green(color));
+			str_b = string(gmui_color_rgba_get_blue(color));
+			str_a = string(gmui_color_rgba_get_alpha(color));
+			
+			real_r = string_format(gmui_color_rgba_get_red(color) / 255, 1, 3);
+			real_g = string_format(gmui_color_rgba_get_green(color) / 255, 1, 3);
+			real_b = string_format(gmui_color_rgba_get_blue(color) / 255, 1, 3);
+			real_a = string_format(gmui_color_rgba_get_alpha(color) / 255, 1, 3);
+		}
+		else {
+			str_r = string(color_get_red(color));
+			str_g = string(color_get_green(color));
+			str_b = string(color_get_blue(color));
+			
+			real_r = string_format(color_get_red(color) / 255, 1, 3);
+			real_g = string_format(color_get_green(color) / 255, 1, 3);
+			real_b = string_format(color_get_blue(color) / 255, 1, 3);
+		}
+		var tooltip_text = "";
+		tooltip_text += is_rgba ? gmui_color_rgba_to_hex(color) : gmui_color_rgba_to_hex(gmui_color_rgba_to_rgb(color));
+		tooltip_text += "\n";
+		tooltip_text += "R:" + str_r + ",  G:" + str_g + ",  B:" + str_b + (is_rgba ? ",  A:" + str_a : "");
+		tooltip_text += "\n";
+		tooltip_text += "(" + real_r + ",  " + real_g + ",  " + real_b + (is_rgba ? ",  " + real_a : "") + ")";
+		gmui_tooltip(tooltip_text, widget, -1, is_rgba ? gmui_color_rgba_to_rgb(color) : color);
+	}
+	
     return pressed;
 };
 

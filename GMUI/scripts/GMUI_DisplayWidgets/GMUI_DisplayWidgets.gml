@@ -549,7 +549,7 @@ function gmui_progress_percent(percent, width = -1, show_text = true, font = und
 };
 
 // tooltip
-function gmui_tooltip(text, widget, width = -1, font = undefined) {
+function gmui_tooltip(text, widget = undefined, width = -1, color = undefined, font = undefined) {
 	var gmui = global.gmui;
 	var style = gmui.style;
 	var input = gmui.input;
@@ -557,20 +557,23 @@ function gmui_tooltip(text, widget, width = -1, font = undefined) {
 	
 	var _font = gmui_resolve_font({ type: "tooltip" });
 	var text_size = gmui_calculate_text_size(text, _font);
-    var tooltip_width = width > style.tooltip_min_width ? min(width, text_size[0]) : style.tooltip_min_width;
+    var tooltip_width = width > 0 ? width : text_size[0];
     var tooltip_height = 0;
+	var _widget = widget ?? gmui_widget_get_last();
 	
-	var hovered = gmui_widget_is_hovered(widget);
+	if (_widget == undefined) { return; };
+	
+	var hovered = gmui_widget_is_hovered(_widget);
 	
 	if (hovered) {
-        if (gmui.cache[? widget.id + "_tt_start_time"] == undefined) {
-            gmui.cache[? widget.id + "_tt_start_time"] = current_time;
+        if (gmui.cache[? _widget.id + "_tt_start_time"] == undefined) {
+            gmui.cache[? _widget.id + "_tt_start_time"] = current_time;
         }
     } else {
-        gmui.cache[? widget.id + "_tt_start_time"] = current_time;
+        gmui.cache[? _widget.id + "_tt_start_time"] = current_time;
     }
     
-    var show_tooltip = hovered && current_time - gmui.cache[? widget.id + "_tt_start_time"] >= style.tooltip_delay;
+    var show_tooltip = hovered && current_time - gmui.cache[? _widget.id + "_tt_start_time"] >= style.tooltip_delay;
 	
 	gmui.current_container = undefined;
 	
@@ -583,6 +586,14 @@ function gmui_tooltip(text, widget, width = -1, font = undefined) {
 	    var total_height = 0;
 	    var max_line_width = 0;
 	    var line_height = text_size[1];
+        
+        var swatch_size   = 0;
+        var swatch_margin = 0;
+        if (color != undefined) {
+            swatch_size   = line_height;
+            swatch_margin = style.tooltip_padding_h;
+        }
+        var text_offset_x = swatch_size + (swatch_size > 0 ? swatch_margin : 0);
     
 	    for (var i = 0; i < array_length(words); i++) {
 	        var test_line = current_line == "" ? words[i] : current_line + " " + words[i];
@@ -605,25 +616,36 @@ function gmui_tooltip(text, widget, width = -1, font = undefined) {
 	    total_height += line_height;
 		
 		tooltip_height = string_replace_all(string_replace_all(text, "\n", ""), "\r", "") == "" ? style.tooltip_padding_v * 2 : total_height;
-    
-		var tx = input.m_x;
-		var ty = input.m_y;
-		var sw = surface_get_width(application_surface);
-		var sh = surface_get_height(application_surface);
-		
-		if (tx + tooltip_width  > sw) { tx -= tooltip_width  + style.tooltip_mouse_padding_h; } else { tx += style.tooltip_mouse_padding_v; };
-		if (ty + tooltip_height > sh) { ty -= tooltip_height + style.tooltip_mouse_padding_v; } else { ty += style.tooltip_mouse_padding_h; };
-		
-		gmui_add_roundrect(tx, ty, tx + tooltip_width + style.tooltip_padding_h * 2, ty + tooltip_height + style.tooltip_padding_v * 2,
+
+        var tx = input.m_x;
+        var ty = input.m_y;
+        var sw = surface_get_width(application_surface);
+        var sh = surface_get_height(application_surface);
+        
+        var full_width = tooltip_width + text_offset_x;
+        
+        if (tx + full_width  > sw) { tx -= full_width  + style.tooltip_mouse_padding_h; } else { tx += style.tooltip_mouse_padding_v; }
+        if (ty + tooltip_height > sh) { ty -= tooltip_height + style.tooltip_mouse_padding_v; } else { ty += style.tooltip_mouse_padding_h; }
+
+        gmui_add_roundrect(tx, ty, tx + full_width + style.tooltip_padding_h * 2, ty + tooltip_height + style.tooltip_padding_v * 2,
                           false, style.tooltip_background_color, 1, style.tooltip_rounding);
-        gmui_add_roundrect(tx, ty, tx + tooltip_width + style.tooltip_padding_h * 2, ty + tooltip_height + style.tooltip_padding_v * 2,
+        gmui_add_roundrect(tx, ty, tx + full_width + style.tooltip_padding_h * 2, ty + tooltip_height + style.tooltip_padding_v * 2,
                           true, style.tooltip_border_color, 1, style.tooltip_rounding);
-    
-	    var line_y = ty + style.tooltip_padding_v;
-	    for (var i = 0; i < array_length(lines); i++) {
-	        gmui_add_text(lines[i], tx + style.tooltip_padding_h, line_y, style.text_color, style.text_alpha, _font);
-	        line_y += line_height + style.element_spacing_v;
-	    }
+
+        if (color != undefined) {
+            var swatch_x = tx + style.tooltip_padding_h;
+            var swatch_y = ty + style.tooltip_padding_v;
+            gmui_add_roundrect(swatch_x, swatch_y, swatch_x + swatch_size, swatch_y + swatch_size,
+                              false, gmui_color_rgb_to_rgba(color, 255), 1, 2);
+            gmui_add_roundrect(swatch_x, swatch_y, swatch_x + swatch_size, swatch_y + swatch_size,
+                              true, style.tooltip_border_color, 1, 2);
+        }
+
+        var line_y = ty + style.tooltip_padding_v;
+        for (var i = 0; i < array_length(lines); i++) {
+            gmui_add_text(lines[i], tx + style.tooltip_padding_h + text_offset_x, line_y, style.text_color, style.text_alpha, _font);
+            line_y += line_height + style.element_spacing_v;
+        }
 	}
 	
 	gmui.current_container = container;

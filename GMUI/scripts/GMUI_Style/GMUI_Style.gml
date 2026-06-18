@@ -584,7 +584,7 @@ function gmui_style_apply_ruler
         tooltip_line_padding_v: _sp_small,
         tooltip_rounding: _round_widget,
         tooltip_delay: _ruler.tooltip_delay,
-        tooltip_min_width: 100,
+        tooltip_min_width: 100, // [[DEPRECATED]]
         
         // progress bar
         progress_bar_height: 20,
