@@ -80,11 +80,10 @@ function gmui_docking_handle_dock(handler, vertical_shift = 0) {
     var gmui    = global.gmui;
     var style   = gmui.style;
     var input   = gmui.input;
-	var dock_name = gmui.current_container.parent.name;
+    var dock_name = gmui.current_container.parent.name;
     var window  = gmui_window_get(dock_name);
     var dock    = window.state[? "__dock"];
     if (dock == undefined) { return; }
-	//show_debug_message(string(dock.pane_order));
 
     if (!variable_struct_exists(dock, "drag_pane"))  { dock.drag_pane  = -1; }
     if (!variable_struct_exists(dock, "drag_start")) { dock.drag_start = 0;  }
@@ -103,69 +102,86 @@ function gmui_docking_handle_dock(handler, vertical_shift = 0) {
     var grab_pad     = style.columns_separator_grab_pad;
     var min_ratio    = style.columns_min_ratio;
 
-    for (var i = 0; i < array_length(dock.pane_order); i++) {
+    var center_has_tabs = false;
+    if (ds_map_exists(dock.panes, gmui_docking_pane_dir.PANE_CENTER)) {
+        var tab_name_center = dock_name + "_pane_" + string(gmui_docking_pane_dir.PANE_CENTER) + "_tabs";
+        var center_data = gmui_tab_get_data(tab_name_center);
+        center_has_tabs = (center_data != undefined && variable_struct_exists(center_data, "labels") 
+                       && array_length(center_data.labels) > 0);
+    }
+	
+    var pane_order_len = array_length(dock.pane_order);
+
+	for (var i = 0; i < array_length(dock.pane_order); i++) {
 	    var pane_dir  = dock.pane_order[i];
 	    var pane_data = dock.panes[? pane_dir];
 	    var tab_name  = dock_name + "_pane_" + string(pane_dir) + "_tabs";
-    
+
 	    if (array_length(gmui_tab_get_data(tab_name).labels) == 0) { continue; }
 
 	    gmui.current_container = content;
 
+	    var is_last_pane = (i == array_length(dock.pane_order) - 1);
+	    var ratio_override = pane_data.ratio;
+	    if (is_last_pane && !center_has_tabs) {
+	        ratio_override = 1.0;
+	    }
+
         switch (pane_dir) {
-            case gmui_docking_pane_dir.PANE_LEFT: {
-			    var pw    = floor(cw * pane_data.ratio);
-			    var inset = style.columns_separator_inset ?? 2;
-			    _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx, cy, pw - inset, ch, pane_data, handler);
-			    array_push(splitters, {
-			        pane_dir: pane_dir, x: cx + pw - inset, y: cy,
-			        w: sep_w, h: ch, is_vertical: true, avail: cw,
-			    });
-			    cx += pw + inset; cw -= pw + inset * 2;
-			} break;
+        case gmui_docking_pane_dir.PANE_LEFT: {
+            var pw    = floor(cw * ratio_override);
+            var inset = style.columns_separator_inset ?? 2;
+            _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx, cy, pw - inset, ch, pane_data, handler);
+            array_push(splitters, {
+                pane_dir: pane_dir, x: cx + pw - inset, y: cy,
+                w: sep_w, h: ch, is_vertical: true, avail: cw,
+            });
+            cx += pw + inset; cw -= pw + inset * 2;
+        } break;
 
-			case gmui_docking_pane_dir.PANE_RIGHT: {
-			    var pw    = floor(cw * pane_data.ratio);
-			    var inset = style.columns_separator_inset ?? 2;
-			    _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx + cw - pw + inset, cy, pw - inset, ch, pane_data, handler);
-			    array_push(splitters, {
-			        pane_dir: pane_dir, x: cx + cw - pw - inset, y: cy,
-			        w: sep_w, h: ch, is_vertical: true, avail: cw,
-			    });
-			    cw -= pw + inset * 2;
-			} break;
+        case gmui_docking_pane_dir.PANE_RIGHT: {
+            var pw    = floor(cw * ratio_override);
+            var inset = style.columns_separator_inset ?? 2;
+            _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx + cw - pw + inset, cy, pw - inset, ch, pane_data, handler);
+            array_push(splitters, {
+                pane_dir: pane_dir, x: cx + cw - pw - inset, y: cy,
+                w: sep_w, h: ch, is_vertical: true, avail: cw,
+            });
+            cw -= pw + inset * 2;
+        } break;
 
-			case gmui_docking_pane_dir.PANE_TOP: {
-			    var ph    = floor(ch * pane_data.ratio);
-			    var inset = style.rows_separator_inset ?? 2;
-			    _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx, cy, cw, ph - inset, pane_data, handler);
-			    array_push(splitters, {
-			        pane_dir: pane_dir, x: cx, y: cy + ph - inset,
-			        w: cw, h: sep_h, is_vertical: false, avail: ch,
-			    });
-			    cy += ph + inset; ch -= ph + inset * 2;
-			} break;
+        case gmui_docking_pane_dir.PANE_TOP: {
+            var ph    = floor(ch * ratio_override);
+            var inset = style.rows_separator_inset ?? 2;
+            _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx, cy, cw, ph - inset, pane_data, handler);
+            array_push(splitters, {
+                pane_dir: pane_dir, x: cx, y: cy + ph - inset,
+                w: cw, h: sep_h, is_vertical: false, avail: ch,
+            });
+            cy += ph + inset; ch -= ph + inset * 2;
+        } break;
 
-			case gmui_docking_pane_dir.PANE_BOTTOM: {
-			    var ph    = floor(ch * pane_data.ratio);
-			    var inset = style.rows_separator_inset ?? 2;
-			    _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx, cy + ch - ph + inset, cw, ph - inset, pane_data, handler);
-			    array_push(splitters, {
-			        pane_dir: pane_dir, x: cx, y: cy + ch - ph - inset,
-			        w: cw, h: sep_h, is_vertical: false, avail: ch,
-			    });
-			    ch -= ph + inset * 2;
-			} break;
+        case gmui_docking_pane_dir.PANE_BOTTOM: {
+            var ph    = floor(ch * ratio_override);
+            var inset = style.rows_separator_inset ?? 2;
+            _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx, cy + ch - ph + inset, cw, ph - inset, pane_data, handler);
+            array_push(splitters, {
+                pane_dir: pane_dir, x: cx, y: cy + ch - ph - inset,
+                w: cw, h: sep_h, is_vertical: false, avail: ch,
+            });
+            ch -= ph + inset * 2;
+        } break;
+        case gmui_docking_pane_dir.PANE_CENTER: {
+            _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, cx, cy, cw, ch, pane_data, handler);
+        } break;
         }
     }
 
-    if (ds_map_exists(dock.panes, gmui_docking_pane_dir.PANE_CENTER)) {
+    if (center_has_tabs) {
         var pane_data = dock.panes[? gmui_docking_pane_dir.PANE_CENTER];
         var tab_name  = dock_name + "_pane_" + string(gmui_docking_pane_dir.PANE_CENTER) + "_tabs";
-        if (array_length(gmui_tab_get_data(tab_name).labels) > 0) {
-            gmui.current_container = content;
-            _gmui_docking_draw_pane(dock_name, gmui_docking_pane_dir.PANE_CENTER, tab_name, cx, cy, cw, ch, pane_data, handler);
-        }
+        gmui.current_container = content;
+        _gmui_docking_draw_pane(dock_name, gmui_docking_pane_dir.PANE_CENTER, tab_name, cx, cy, cw, ch, pane_data, handler);
     }
 
     gmui.current_container = content;
@@ -250,9 +266,10 @@ function _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, px, py, pw, ph, 
     pane_container.use_scissor      = true;
     pane_container.scrolling_enabled = false;
 
-	var tab_flags = (pane_dir == gmui_docking_pane_dir.PANE_CENTER) 
-	    ? gmui_tab_flags.LEAVE_ONE 
-	    : 0;
+	//var tab_flags = (pane_dir == gmui_docking_pane_dir.PANE_CENTER) 
+	//    ? gmui_tab_flags.LEAVE_ONE 
+	//    : 0;
+	var tab_flags = 0;
 
 	pane_data.tab_idx = gmui_tabs(
 	    tab_name,
@@ -279,23 +296,40 @@ function _gmui_docking_draw_pane(dock_name, pane_dir, tab_name, px, py, pw, ph, 
 			    gmui_docking_remove_tab(dock_name, pane_dir, detached_label);
 			    gmui_docking_add_tab(dock_name, target_pane, detached_label, def_ratio);
 			}),
-	        on_bar_attach: method({ dock_name: dock_name, pane_dir: pane_dir }, function(tab_data, detached_label) {
-			    var cache       = global.gmui.cache;
-			    var drop_zones  = cache[? "_dock_drop_zone"];
-			    var target_pane = (drop_zones != undefined) ? drop_zones[? dock_name] : -1;
+			on_bar_attach: method({ dock_name: dock_name, pane_dir: pane_dir }, function(tab_data, other_data) {
+			    var window = gmui_window_get(dock_name);
+			    var dock   = window.state[? "__dock"];
+			    var cache  = global.gmui.cache;
+    
+			    var target_pane = -1;
+			    var all_dirs = [
+			        gmui_docking_pane_dir.PANE_LEFT,
+			        gmui_docking_pane_dir.PANE_RIGHT,
+			        gmui_docking_pane_dir.PANE_TOP,
+			        gmui_docking_pane_dir.PANE_BOTTOM,
+			        gmui_docking_pane_dir.PANE_CENTER,
+			    ];
+			    for (var i = 0; i < array_length(all_dirs); i++) {
+			        var dir      = all_dirs[i];
+			        var tn       = dock_name + "_pane_" + string(dir) + "_tabs";
+			        var ck       = "_tabs_data_" + tn;
+			        if (!ds_map_exists(cache, ck)) { continue; }
+			        if (cache[? ck] == other_data) {
+			            target_pane = dir;
+			            break;
+			        }
+			    }
 
-			    if (target_pane == undefined) {
-					return;
-				}
+			    if (target_pane < 0 || target_pane == pane_dir) { return; }
 
-			    var window    = gmui_window_get(dock_name);
-			    var dock      = window.state[? "__dock"];
+			    var moved_label = other_data.labels[other_data.selected];
+
 			    var def_ratio = 0.25;
 			    if (ds_map_exists(dock.panes, target_pane)) {
 			        def_ratio = dock.panes[? target_pane].ratio;
 			    }
-			    gmui_docking_remove_tab(dock_name, pane_dir, detached_label);
-			    gmui_docking_add_tab(dock_name, target_pane, detached_label, def_ratio);
+			    gmui_docking_remove_tab(dock_name, pane_dir, moved_label);
+			    gmui_docking_add_tab(dock_name, target_pane, moved_label, def_ratio);
 			}),
 	        on_tab_select:   undefined,
 	        on_tab_close: method({ dock_name: dock_name, pane_dir: pane_dir }, function(tab_data, closed_label) {
