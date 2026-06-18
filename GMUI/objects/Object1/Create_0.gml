@@ -10,7 +10,7 @@
 
 gmui_init(gmui_get_default_profile(gmui_default_profile.BALANCED));
 
-mti = "this\nis some\nveeeeeeeerryy looooonggg\nconteeeeeexxttttt";
+mti = "multi\nline\ntextbox!!!!";
 
 math_set_epsilon(0.00000001);
 

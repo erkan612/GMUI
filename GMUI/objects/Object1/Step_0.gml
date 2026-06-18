@@ -1,68 +1,5 @@
 gmui_update();
 
-gmui_dockspace(
-	"My Editor",
-	function(tab_name) {
-		switch (tab_name) {
-		case "Hierarchy": {
-			gmui_text("Hierarchy content");
-		} break;
-		case "Toolbar": {
-			gmui_text("Toolbar content");
-		} break;
-		case "Materials": {
-			gmui_text("Materials content");
-		} break;
-		case "Settings": {
-			gmui_text("Settings content");
-		} break;
-		case "Scene": {
-			gmui_text("Scene content");
-			mti = gmui_textbox_multiline(mti);
-		} break;
-		case "Assets": {
-			gmui_text("Assets content");
-		} break;
-		case "Output": {
-			gmui_text("Output content");
-		} break;
-		case "Inspector": {
-			gmui_text("Inspector content");
-		} break;
-		}
-	},
-	[
-		gmui_menu_item("File", "Ctx_File"),
-		gmui_menu_item("Edit", "Ctx_Edit"),
-		gmui_menu_item("Windows", "Ctx_Windows"),
-		gmui_menu_item("Help", "Ctx_Help"),
-	],
-	{
-		height: 28, 
-		handler: function() {
-			gmui_cursor_set_x(4);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_separator_vertical();
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_separator_vertical();
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-			gmui_separator_vertical();
-			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
-		}
-	},
-	0, 0,
-	1280, 720,
-	gmui_window_flags.NONE
-);
-
 if (gmui_begin_context_menu("Ctx_File", 300)) {
 	gmui_context_menu_item("New Project", "Ctrl+N");
 	gmui_context_menu_item("Open Project", "Ctrl+O");
@@ -139,3 +76,66 @@ if (gmui_begin_context_menu("Ctx_Help", 300)) {
 	
 	gmui_end_context_menu();
 }
+
+gmui_dockspace(
+	"My Editor",
+	function(tab_name) {
+		switch (tab_name) {
+		case "Hierarchy": {
+			gmui_text("Hierarchy content");
+		} break;
+		case "Toolbar": {
+			gmui_text("Toolbar content");
+		} break;
+		case "Materials": {
+			gmui_text("Materials content");
+		} break;
+		case "Settings": {
+			gmui_text("Settings content");
+		} break;
+		case "Scene": {
+			gmui_text("Scene content");
+			mti = gmui_textbox_multiline(mti);
+		} break;
+		case "Assets": {
+			gmui_text("Assets content");
+		} break;
+		case "Output": {
+			gmui_text("Output content");
+		} break;
+		case "Inspector": {
+			gmui_text("Inspector content");
+		} break;
+		}
+	},
+	[
+		gmui_menu_item("File", "Ctx_File"),
+		gmui_menu_item("Edit", "Ctx_Edit"),
+		gmui_menu_item("Windows", "Ctx_Windows"),
+		gmui_menu_item("Help", "Ctx_Help"),
+	],
+	{
+		height: 28, 
+		handler: function() {
+			gmui_cursor_set_x(4);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_separator_vertical();
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_separator_vertical();
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_separator_vertical();
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+		}
+	},
+	0, 0,
+	1280, 720,
+	gmui_window_flags.NONE
+);
