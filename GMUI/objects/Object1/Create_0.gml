@@ -9,6 +9,7 @@
 */
 
 gmui_init(gmui_get_default_profile(gmui_default_profile.BALANCED));
+gmui_style_apply_theme_dark();
 
 mti = "this\nis some\nveeeeeeeerryy looooonggg\nconteeeeeexxttttt";
 
