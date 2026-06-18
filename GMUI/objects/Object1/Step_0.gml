@@ -41,21 +41,21 @@ gmui_dockspace(
 		height: 28, 
 		handler: function() {
 			gmui_cursor_set_x(4);
-			gmui_button_icon1(GMUI_Icon);
-			gmui_button_icon1(GMUI_Icon);
-			gmui_button_icon1(GMUI_Icon);
-			gmui_button_icon1(GMUI_Icon);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
 			gmui_separator_vertical();
-			gmui_button_icon1(GMUI_Icon);
-			gmui_button_icon1(GMUI_Icon);
-			gmui_button_icon1(GMUI_Icon);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
 			gmui_separator_vertical();
-			gmui_button_icon1(GMUI_Icon);
-			gmui_button_icon1(GMUI_Icon);
-			gmui_button_icon1(GMUI_Icon);
-			gmui_button_icon1(GMUI_Icon);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
 			gmui_separator_vertical();
-			gmui_button_icon1(GMUI_Icon);
+			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
 		}
 	},
 	0, 0,

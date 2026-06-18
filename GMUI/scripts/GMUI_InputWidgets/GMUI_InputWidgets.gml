@@ -318,7 +318,7 @@ function gmui_button_icon(sprite, subimg = 0, width = 32, height = 32) {
 	return released;
 };
 
-function gmui_button_icon1(sprite, subimg = 0, width = -1, height = -1, tilt = c_white, alpha = 1) {
+function gmui_button_icon1(sprite, subimg = 0, width = -1, height = -1, tint = c_white, alpha = 1) {
 	var gmui = global.gmui;
 	var style = gmui.style;
 	var widget = gmui_begin_widget("button_icon");
@@ -353,7 +353,7 @@ function gmui_button_icon1(sprite, subimg = 0, width = -1, height = -1, tilt = c
 		
 		var sx = widget.x + (widget.width - img_w) / 2;
 		var sy = widget.y + (widget.height - img_h) / 2;
-		gmui_add_sprite_ext(sprite, subimg, sx, sy, xscale, yscale, 0, tilt, alpha);
+		gmui_add_sprite_ext(sprite, subimg, sx, sy, xscale, yscale, 0, tint, alpha);
 	}
 	gmui_end_widget(widget, true);
 	return released;
