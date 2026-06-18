@@ -82,8 +82,8 @@
   "resourceType":"GMProject",
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
-    {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
     {"roomId":{"name":"SampleBasicDemoRoom","path":"rooms/SampleBasicDemoRoom/SampleBasicDemoRoom.yy",},},
+    {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
     {"roomId":{"name":"SampleBasicDebugRoom","path":"rooms/SampleBasicDebugRoom/SampleBasicDebugRoom.yy",},},
     {"roomId":{"name":"SampleRoomTemplate","path":"rooms/SampleRoomTemplate/SampleRoomTemplate.yy",},},
   ],

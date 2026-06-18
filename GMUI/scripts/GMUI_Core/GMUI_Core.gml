@@ -354,7 +354,8 @@ function gmui_end() {
 };
 
 function gmui_begin_child(name, width = -1, height = -1) {
-	return gmui_begin_container(name, -1, -1, width <=0 ? gmui_get_available_width() : width, height <= 0 ? gmui_get_available_height() : height);
+	gmui_container_cursor_advance();
+	return gmui_begin_container(name, -1, -1, width <= 0 ? gmui_get_available_width() : width, height <= 0 ? gmui_get_available_height() : height);
 };
 
 function gmui_end_child() {

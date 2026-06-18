@@ -3004,6 +3004,7 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         variable_struct_set(container, state_prefix + "cursor_start", 0);
         variable_struct_set(container, state_prefix + "scroll_x", 0);
         variable_struct_set(container, state_prefix + "text", string_format(value, 1, dec));
+		variable_struct_set(container, state_prefix + "last_ext_value", value);
     }
     
     var cursor = variable_struct_get(container, state_prefix + "cursor");
@@ -3019,9 +3020,18 @@ function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000
         cursor = string_length(text);
     }
 	
-	variable_struct_set(container, state_prefix + "text", string_format(value, 1, dec));
+	if (!is_focused && !is_dragging) {
+	    variable_struct_set(container, state_prefix + "text", string_format(value, 1, dec));
+	    text = string(value);
+	} else {
+	    var _last_val = variable_struct_get(container, state_prefix + "last_ext_value");
+	    if (_last_val != value) {
+	        variable_struct_set(container, state_prefix + "text", string(value));
+	        text = string(value);
+	    }
+	}
 	value = clamp(value, min_val, max_val);
-    text = string(value);
+	variable_struct_set(container, state_prefix + "last_ext_value", value);
     
     if (gmui_widget_is_callable(widget)) {
         var hovered = gmui_widget_is_hovered(widget);
@@ -3314,6 +3324,7 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
         variable_struct_set(container, state_prefix + "cursor_start", 0);
         variable_struct_set(container, state_prefix + "scroll_x", 0);
         variable_struct_set(container, state_prefix + "text", string(value));
+		variable_struct_set(container, state_prefix + "last_ext_value", value);
     }
 	
     var cursor = variable_struct_get(container, state_prefix + "cursor");
@@ -3329,9 +3340,18 @@ function gmui_input_int(value, step = 1, min_val = -1000000, max_val = 1000000, 
         cursor = string_length(text);
     }
 	
-	variable_struct_set(container, state_prefix + "text", string(value));
+	if (!is_focused && !is_dragging) {
+	    variable_struct_set(container, state_prefix + "text", string(value));
+	    text = string(value);
+	} else {
+	    var _last_val = variable_struct_get(container, state_prefix + "last_ext_value");
+	    if (_last_val != value) {
+	        variable_struct_set(container, state_prefix + "text", string(value));
+	        text = string(value);
+	    }
+	}
 	value = clamp(value, min_val, max_val);
-    text = string(value);
+	variable_struct_set(container, state_prefix + "last_ext_value", value);
     
     if (gmui_widget_is_callable(widget)) {
         var hovered = gmui_widget_is_hovered(widget);
@@ -5021,11 +5041,11 @@ function gmui_color_edit_3(color, label = "", font_label = undefined, font_input
     var new_color = color;
     
     var rgb = gmui_color_rgb_to_array(new_color);
-    rgb[0] = gmui_input_int(rgb[0], 1, 0, 255, 40, c_red, font_input);
+    rgb[0] = gmui_input_int(rgb[0], 1, 0, 255, 50, c_red, font_input);
     gmui_sameline();
-    rgb[1] = gmui_input_int(rgb[1], 1, 0, 255, 40, c_green, font_input);
+    rgb[1] = gmui_input_int(rgb[1], 1, 0, 255, 50, c_green, font_input);
     gmui_sameline();
-    rgb[2] = gmui_input_int(rgb[2], 1, 0, 255, 40, c_blue, font_input);
+    rgb[2] = gmui_input_int(rgb[2], 1, 0, 255, 50, c_blue, font_input);
 	
     gmui_sameline();
 	new_color = gmui_color_picker_3(make_color_rgb(rgb[0], rgb[1], rgb[2]));
@@ -5042,13 +5062,13 @@ function gmui_color_edit_4(color, label = "", font_label = undefined, font_input
     var new_color = color;
 	
     var rgba = gmui_color_rgba_to_array(new_color);
-    rgba[0] = gmui_input_int(rgba[0], 1, 0, 255, 40, c_red, font_input);
+    rgba[0] = gmui_input_int(rgba[0], 1, 0, 255, 50, c_red, font_input);
     gmui_sameline();
-    rgba[1] = gmui_input_int(rgba[1], 1, 0, 255, 40, c_green, font_input);
+    rgba[1] = gmui_input_int(rgba[1], 1, 0, 255, 50, c_green, font_input);
     gmui_sameline();
-    rgba[2] = gmui_input_int(rgba[2], 1, 0, 255, 40, c_blue, font_input);
+    rgba[2] = gmui_input_int(rgba[2], 1, 0, 255, 50, c_blue, font_input);
     gmui_sameline();
-    rgba[3] = gmui_input_int(rgba[3], 1, 0, 255, 40, c_white, font_input);
+    rgba[3] = gmui_input_int(rgba[3], 1, 0, 255, 50, c_white, font_input);
 	
     gmui_sameline();
 	new_color = gmui_color_picker_4(gmui_color_rgba_from_array(rgba));
