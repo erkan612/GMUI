@@ -96,6 +96,7 @@ if (gmui_begin_dockspace("My Editor", function(tab_name) {
 			} break;
             case "Scene": {
 				gmui_text("Scene content");
+				mti = gmui_textbox_multiline(mti);
 			} break;
             case "Assets": {
 				gmui_text("Assets content");

@@ -10,7 +10,7 @@
 
 gmui_init(gmui_get_default_profile(gmui_default_profile.ANIMATION));
 
-toggle = true;
+mti = "this\nis some\nveeeeeeeerryy looooonggg\nconteeeeeexxttttt";
 
 math_set_epsilon(0.00000001);
 

@@ -2581,6 +2581,399 @@ function gmui_textbox_disabled_password(text, placeholder = "", width = 200, fon
 	return gmui_textbox_disabled(text, placeholder, width, true, font);
 };
 
+function _gmui_multiline_index_to_line(lines, index) {
+    var total = array_length(lines);
+    var cum = 0;
+    for (var i = 0; i < total; i++) {
+        var len = string_length(lines[i]);
+        if (index <= cum + len) {
+            return { line: i, col: clamp(index - cum, 0, len) };
+        }
+        cum += len + 1;
+    }
+    var last = max(0, total - 1);
+    return { line: last, col: string_length(lines[last]) };
+}
+
+function _gmui_multiline_col_to_index(lines, line, col) {
+    var total = array_length(lines);
+    line = clamp(line, 0, total - 1);
+    col = clamp(col, 0, string_length(lines[line]));
+    var index = 0;
+    for (var i = 0; i < line; i++) {
+        index += string_length(lines[i]) + 1;
+    }
+    return index + col;
+}
+
+function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 200, font = undefined) {
+    var gmui = global.gmui;
+    var style = gmui.style;
+    var _font = gmui_resolve_font({type: "textbox"}, font);
+    var padding_h = style.textbox_padding_h;
+    var padding_v = style.textbox_padding_v;
+    var container = gmui.current_container;
+
+    if (!variable_struct_exists(container, "_tb_counter")) {
+        container._tb_counter = 0;
+    }
+    var tb_id = container._tb_counter;
+    container._tb_counter++;
+    var state_prefix = "_tbml" + string(tb_id) + "_";
+
+    if (!variable_struct_exists(container, state_prefix + "cursor")) {
+        variable_struct_set(container, state_prefix + "cursor", string_length(text));
+        variable_struct_set(container, state_prefix + "cursor_start", string_length(text));
+        variable_struct_set(container, state_prefix + "preferred_col", -1);
+    }
+
+    var cursor        = variable_struct_get(container, state_prefix + "cursor");
+    var cursor_start  = variable_struct_get(container, state_prefix + "cursor_start");
+    var preferred_col = variable_struct_get(container, state_prefix + "preferred_col");
+
+    if (gmui_begin_child(state_prefix + "_container", width, height)) {
+        var textbox_container = gmui.current_container;
+        textbox_container.background_enabled = false;
+
+        gmui_style_push_multi({
+            container_padding_h: 0,
+            container_padding_v: 0
+        });
+        gmui_cursor_set(0, 0);
+
+        var lines = string_split(text, "\n");
+        if (lines == undefined) lines = [text];
+        var line_count = array_length(lines);
+        var line_height = gmui_calculate_text_size("W", _font)[1] + 2; // 2px spacing
+        var total_text_height = line_count * line_height + padding_v * 2;
+
+        var hovered = gmui.input.hovered_container == textbox_container && gmui.input.hovered_widget_id == undefined;
+
+        var widget = gmui_begin_widget("textbox");
+        var textbox_id = widget.id;
+        var is_focused = (gmui.input.focused_widget_id == textbox_id);
+		
+		var text_size = gmui_calculate_text_size(text, _font);
+
+        widget.width = text_size[0];
+        widget.height = text_size[1];
+        var offset = gmui_get_container_screen_offset(textbox_container);
+
+        if (hovered && gmui_input_mouse_pressed()) {
+            gmui.input.focused_widget_id = textbox_id;
+            is_focused = true;
+
+            var click_x = gmui.input.m_x - offset[0] + textbox_container.scroll_x - widget.x - padding_h;
+            var click_y = gmui.input.m_y - offset[1] + textbox_container.scroll_y - widget.y - padding_v;
+
+            var line_index = clamp(floor(click_y / line_height), 0, line_count - 1);
+            var line_text = lines[line_index];
+            var col = _gmui_textbox_get_cursor_pos(line_text, click_x);
+            cursor = _gmui_multiline_col_to_index(lines, line_index, col);
+            cursor_start = cursor;
+            preferred_col = -1;
+        }
+
+        if (is_focused && gmui_input_mouse_held()) {
+            var click_x = gmui.input.m_x - offset[0] + textbox_container.scroll_x - widget.x - padding_h;
+            var click_y = gmui.input.m_y - offset[1] + textbox_container.scroll_y - widget.y - padding_v;
+
+            var line_index = clamp(floor(click_y / line_height), 0, line_count - 1);
+            var line_text = lines[line_index];
+            var col = _gmui_textbox_get_cursor_pos(line_text, click_x);
+            cursor = _gmui_multiline_col_to_index(lines, line_index, col);
+        }
+
+        if (gmui_input_mouse_pressed() && !hovered && is_focused) {
+            gmui.input.focused_widget_id = undefined;
+            is_focused = false;
+        }
+
+        if (is_focused) {
+            gmui_container_animation_detected();
+
+            if (gmui_input_key_pressed()) {
+                var char    = gmui_input_lastchar();
+                var key     = gmui_input_key();
+                var keycode = gmui_input_lastkey();
+                var ctrl    = gmui_input_ctrl();
+                var shift   = gmui_input_shift();
+
+                var is_modifier = (keycode == vk_shift || keycode == vk_lshift || keycode == vk_rshift ||
+                                   keycode == vk_control || keycode == vk_lcontrol || keycode == vk_rcontrol ||
+                                   keycode == vk_alt || keycode == vk_lalt || keycode == vk_ralt ||
+                                   keycode == 20);
+
+                if (!is_modifier) {
+                    if (ctrl && gmui_input_key_pressed()) {
+                        var s = min(cursor, cursor_start);
+                        var e = max(cursor, cursor_start);
+                        var count = e - s;
+
+                        switch (key) {
+                            case ord("A"):
+                                cursor_start = 0;
+                                cursor = string_length(text);
+                                break;
+                            case ord("C"):
+                                if (count > 0) {
+                                    clipboard_set_text(string_copy(text, s + 1, count));
+                                } else if (text != "") {
+                                    clipboard_set_text(text);
+                                }
+                                break;
+                            case ord("X"):
+                                if (count > 0) {
+                                    clipboard_set_text(string_copy(text, s + 1, count));
+                                    text = string_delete(text, s + 1, count);
+                                    cursor = s;
+                                    cursor_start = cursor;
+                                } else if (text != "") {
+                                    clipboard_set_text(text);
+                                    text = "";
+                                    cursor = 0;
+                                    cursor_start = 0;
+                                }
+                                break;
+                            case ord("V"):
+                                if (count > 0) {
+                                    text = string_delete(text, s + 1, count);
+                                    cursor = s;
+                                    cursor_start = cursor;
+                                }
+                                var paste = clipboard_get_text();
+                                if (paste != "") {
+                                    text = string_insert(paste, text, cursor + 1);
+                                    cursor += string_length(paste);
+                                    cursor_start = cursor;
+                                }
+                                break;
+                        }
+                    }
+
+                    switch (key) {
+                        case vk_backspace:
+                            if (cursor != cursor_start) {
+                                var s = min(cursor, cursor_start);
+                                var e = max(cursor, cursor_start);
+                                text = string_delete(text, s + 1, e - s);
+                                cursor = s;
+                            } else if (cursor > 0) {
+                                text = string_delete(text, cursor, 1);
+                                cursor--;
+                            }
+                            cursor_start = cursor;
+                            preferred_col = -1;
+                            break;
+
+                        case vk_delete:
+                            if (cursor != cursor_start) {
+                                var s = min(cursor, cursor_start);
+                                var e = max(cursor, cursor_start);
+                                text = string_delete(text, s + 1, e - s);
+                                cursor = s;
+                            } else if (cursor < string_length(text)) {
+                                text = string_delete(text, cursor + 1, 1);
+                            }
+                            cursor_start = cursor;
+                            preferred_col = -1;
+                            break;
+
+                        case vk_left:
+                            if (cursor > 0) {
+                                cursor--;
+                                if (!shift) cursor_start = cursor;
+                            }
+                            preferred_col = -1;
+                            break;
+
+                        case vk_right:
+                            if (cursor < string_length(text)) {
+                                cursor++;
+                                if (!shift) cursor_start = cursor;
+                            }
+                            preferred_col = -1;
+                            break;
+
+                        case vk_up:
+                            {
+                                var cur = _gmui_multiline_index_to_line(lines, cursor);
+                                if (cur.line > 0) {
+                                    var new_line = cur.line - 1;
+                                    var col = (preferred_col >= 0) ? preferred_col : cur.col;
+                                    col = clamp(col, 0, string_length(lines[new_line]));
+                                    cursor = _gmui_multiline_col_to_index(lines, new_line, col);
+                                    if (!shift) cursor_start = cursor;
+                                    preferred_col = col;
+                                }
+                            }
+                            break;
+
+                        case vk_down:
+                            {
+                                var cur = _gmui_multiline_index_to_line(lines, cursor);
+                                if (cur.line < line_count - 1) {
+                                    var new_line = cur.line + 1;
+                                    var col = (preferred_col >= 0) ? preferred_col : cur.col;
+                                    col = clamp(col, 0, string_length(lines[new_line]));
+                                    cursor = _gmui_multiline_col_to_index(lines, new_line, col);
+                                    if (!shift) cursor_start = cursor;
+                                    preferred_col = col;
+                                }
+                            }
+                            break;
+
+                        case vk_home:
+                            {
+                                var cur = _gmui_multiline_index_to_line(lines, cursor);
+                                cursor = _gmui_multiline_col_to_index(lines, cur.line, 0);
+                                if (!shift) cursor_start = cursor;
+                                preferred_col = -1;
+                            }
+                            break;
+
+                        case vk_end:
+                            {
+                                var cur = _gmui_multiline_index_to_line(lines, cursor);
+                                cursor = _gmui_multiline_col_to_index(lines, cur.line, string_length(lines[cur.line]));
+                                if (!shift) cursor_start = cursor;
+                                preferred_col = -1;
+                            }
+                            break;
+
+                        case vk_enter:
+                            if (cursor != cursor_start) {
+                                var s = min(cursor, cursor_start);
+                                var e = max(cursor, cursor_start);
+                                text = string_delete(text, s + 1, e - s);
+                                cursor = s;
+                                cursor_start = cursor;
+                            }
+                            text = string_insert("\n", text, cursor + 1);
+                            cursor++;
+                            cursor_start = cursor;
+                            preferred_col = -1;
+                            break;
+
+                        default:
+                            var byte = string_byte_at(char, 1);
+                            if (char != "" && byte >= 32 && byte <= 126) {
+                                if (cursor != cursor_start) {
+                                    var s = min(cursor, cursor_start);
+                                    var e = max(cursor, cursor_start);
+                                    text = string_delete(text, s + 1, e - s);
+                                    cursor = s;
+                                    cursor_start = cursor;
+                                }
+                                text = string_insert(char, text, cursor + 1);
+                                cursor++;
+                                cursor_start = cursor;
+                                preferred_col = -1;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            cursor = clamp(cursor, 0, string_length(text));
+            cursor_start = clamp(cursor_start, 0, string_length(text));
+            lines = string_split(text, "\n");
+            line_count = array_length(lines);
+            total_text_height = line_count * line_height + padding_v * 2;
+
+            var cur_line_info = _gmui_multiline_index_to_line(lines, cursor);
+            var cursor_y_top = cur_line_info.line * line_height;
+            var cursor_y_bottom = cursor_y_top + line_height;
+            var view_h = height;
+            var scroll_y = textbox_container.scroll_y;
+
+            //if (cursor_y_top < scroll_y) {
+            //    textbox_container.scroll_y = cursor_y_top;
+            //} else if (cursor_y_bottom > scroll_y + view_h) {
+            //    textbox_container.scroll_y = cursor_y_bottom - view_h;
+            //}
+            //var max_scroll = max(0, total_text_height - height);
+            //textbox_container.scroll_y = clamp(textbox_container.scroll_y, 0, max_scroll);
+        }
+
+        variable_struct_set(container, state_prefix + "cursor", cursor);
+        variable_struct_set(container, state_prefix + "cursor_start", cursor_start);
+        variable_struct_set(container, state_prefix + "preferred_col", preferred_col);
+
+        var bg_color = style.textbox_color;
+        var border_color = style.textbox_border_color;
+        if (is_focused) border_color = style.textbox_focused_border_color;
+        else if (hovered) border_color = make_color_rgb(100, 100, 100);
+
+        gmui_add_roundrect(1, 1, width, height,
+                           false, bg_color, 1, style.textbox_rounding);
+        gmui_add_roundrect(1, 1, width, height,
+                           true, border_color, 1, style.textbox_rounding);
+
+        var clip_x = widget.x + padding_h;
+        var clip_y = widget.y + padding_v;
+        var clip_w = width - padding_h * 2;
+        var clip_h = height - padding_v * 2;
+        gmui_add_scissor_begin_isolated(clip_x, clip_y, clip_w, clip_h);
+
+        if (is_focused && cursor != cursor_start) {
+            var s = min(cursor, cursor_start);
+            var e = max(cursor, cursor_start);
+            var sel_start = _gmui_multiline_index_to_line(lines, s);
+            var sel_end   = _gmui_multiline_index_to_line(lines, e);
+
+            for (var i = sel_start.line; i <= sel_end.line; i++) {
+                var line_text = lines[i];
+                var start_col = (i == sel_start.line) ? sel_start.col : 0;
+                var end_col   = (i == sel_end.line)   ? sel_end.col   : string_length(line_text);
+                if (start_col < end_col) {
+                    var sx = widget.x + padding_h + string_width(string_copy(line_text, 1, start_col));
+                    var ex = widget.x + padding_h + string_width(string_copy(line_text, 1, end_col));
+                    var sy = widget.y + padding_v + i * line_height;
+                    var ey = sy + line_height;
+                    gmui_add_rectangle(sx, sy, ex, ey, false, style.textbox_selection_color, 1);
+                }
+            }
+        }
+
+        for (var i = 0; i < line_count; i++) {
+            var line_text = lines[i];
+            var draw_color = style.textbox_text_color;
+            var _draw_text = line_text;
+
+            if (text == "" && !is_focused && place_holder != "" && i == 0) {
+                _draw_text = place_holder;
+                draw_color = style.textbox_placeholder_color;
+            }
+
+            var line_y = widget.y + padding_v + i * line_height;
+            gmui_add_text(_draw_text, widget.x + padding_h, line_y, draw_color, 1, _font);
+        }
+
+        if (is_focused) {
+            var cur_line_info = _gmui_multiline_index_to_line(lines, cursor);
+            var cur_line = lines[cur_line_info.line];
+            var cur_col = cur_line_info.col;
+            var cur_x = widget.x + padding_h + string_width(string_copy(cur_line, 1, cur_col));
+            var cur_y = widget.y + padding_v + cur_line_info.line * line_height;
+            var cursor_alpha = ((sin(current_time / 200) + 1) / 2) * 0.7 + 0.3;
+            gmui_add_rectangle(cur_x, cur_y, cur_x + style.textbox_cursor_width, cur_y + line_height,
+                               false, style.textbox_cursor_color, cursor_alpha);
+        }
+
+        gmui_add_scissor_end();
+        gmui_end_widget(widget);
+        gmui_end_container();
+    }
+
+    gmui_style_pop_multi([
+        "container_padding_h",
+        "container_padding_v"
+    ]);
+
+    return text;
+}
+
 function gmui_input_float(value, step = 1, min_val = -1000000, max_val = 1000000, width = 150, color_identifier = undefined, dec = 8, font = undefined) {
     var gmui = global.gmui;
     var style = gmui.style;
