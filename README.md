@@ -26,19 +26,19 @@ GMUI brings the immediate-mode GUI paradigm to GameMaker. Instead of retaining U
 ## Quick Example
 
 ```gml
-if (gmui_begin("Debug", 100, 100, 290, 150)) {
+if (gmui_begin("Debug", 100, 100, 290, 154)) {
 	gmui_text($"Hello, world {123}");
 	if (gmui_button("Save")) {
 		/* Do stuff */
 	}
 	str = gmui_textbox_label(str, "string");
-	float = gmui_slidebar_label(float, $"float", 0, 1);
+	float = gmui_slidebar_label(float, "float", 0, 1);
 	gmui_end();
 }
 ```
 
-<img width="302" height="161" alt="BasicDebug_Dark" src="https://github.com/user-attachments/assets/a019353d-912c-48e2-abc3-b3f381afbc3b" />
-<img width="299" height="162" alt="BasicDebug_Light" src="https://github.com/user-attachments/assets/4ee0eb89-ae5b-433b-a2cf-0ab8e23b6ee2" />
+<img width="298" height="162" alt="BasicDebug_Dark" src="https://github.com/user-attachments/assets/4bd5dd23-815d-4b40-b0d0-b73a8950f61e" />
+<img width="297" height="162" alt="BasicDebug_Light" src="https://github.com/user-attachments/assets/081a9359-af61-4bb6-8034-0b6876edca9c" />
 
 ```gml
 // Create a context menu to be used by window menu.
@@ -78,7 +78,7 @@ if (gmui_begin("My First Tool", 100, 100, 500, 500)) {
 }
 ```
 
-<img width="510" height="511" alt="BasicDemo" src="https://github.com/user-attachments/assets/18249e4c-e26c-47db-9aa8-715d606f140a" />
+<img width="676" height="537" alt="BasicDemoGif" src="https://github.com/user-attachments/assets/93aa4644-ca4c-4186-8252-95eda415928f" />
 
 ---
 
