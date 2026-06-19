@@ -4626,6 +4626,7 @@ function gmui_color_picker(color, open_id) {
         }
         
         if (container.state[? "_cp_dragging"] == "sb" && gmui.input.m_held) {
+			gmui_container_animation_detected();
             saturation = clamp((gmui.input.m_x - screen_x) / picker_w, 0, 1);
             brightness = clamp(1 - (gmui.input.m_y - screen_y) / picker_h, 0, 1);
         }
@@ -4644,6 +4645,7 @@ function gmui_color_picker(color, open_id) {
         }
         
         if (container.state[? "_cp_dragging"] == "hue" && gmui.input.m_held) {
+			gmui_container_animation_detected();
             hue = clamp((gmui.input.m_x - screen_x) / picker_w, 0, 1);
         }
         
@@ -4668,6 +4670,7 @@ function gmui_color_picker(color, open_id) {
         }
         
         if (container.state[? "_cp_dragging"] == "alpha" && gmui.input.m_held) {
+			gmui_container_animation_detected();
             _alpha = clamp((gmui.input.m_x - screen_x) / picker_w * 255, 0, 255);
         }
         
@@ -4769,6 +4772,7 @@ function gmui_color_picker_rgb(color, open_id) {
         }
         
         if (container.state[? "_cp_dragging"] == "sb" && gmui.input.m_held) {
+			gmui_container_animation_detected();
             saturation = clamp((gmui.input.m_x - screen_x) / picker_w, 0, 1);
             brightness = clamp(1 - (gmui.input.m_y - screen_y) / picker_h, 0, 1);
         }
@@ -4787,6 +4791,7 @@ function gmui_color_picker_rgb(color, open_id) {
         }
         
         if (container.state[? "_cp_dragging"] == "hue" && gmui.input.m_held) {
+			gmui_container_animation_detected();
             hue = clamp((gmui.input.m_x - screen_x) / picker_w, 0, 1);
         }
         

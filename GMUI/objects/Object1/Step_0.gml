@@ -78,7 +78,7 @@ if (gmui_begin_context_menu("Ctx_Help", 300)) {
 }
 
 gmui_dockspace(
-	"My Editor",
+	"editor",
 	function(tab_name) {
 		switch (tab_name) {
 		case "Hierarchy": {
@@ -138,5 +138,5 @@ gmui_dockspace(
 	},
 	0, 0,
 	1920, 1080,
-	gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS
+	0//gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS
 );
