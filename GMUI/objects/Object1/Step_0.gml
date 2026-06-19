@@ -3,6 +3,10 @@ gmui_update();
 if (gmui_begin("test window", 100, 100, 500, 500)) {
 	mti = gmui_textbox_multiline(mti);
 	color = gmui_color_edit_3(color, "test");
+	if (gmui_begin_child("test bug")) {
+		gmui_button("test");
+		gmui_end_child();
+	}
 	gmui_end();
 }
 

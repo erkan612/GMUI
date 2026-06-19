@@ -341,22 +341,32 @@ function gmui_docking_handle_dock(dock_name, handler, vertical_shift = 0) {
     }
 
     for (var i = 0; i < array_length(dock._splitters); i++) {
-        var sp   = dock._splitters[i];
-        var node = sp.node;
-        if (node.drag_sep != sp.sep_idx) { continue; }
-        if (!input.m_held) { node.drag_sep = -1; continue; }
+	    var sp   = dock._splitters[i];
+	    var node = sp.node;
+	    if (node.drag_sep != sp.sep_idx) { continue; }
+	    if (!input.m_held) { node.drag_sep = -1; continue; }
 
-        var delta = sp.is_vertical
-            ? (input.m_x - node.drag_start) / sp.avail
-            : (input.m_y - node.drag_start) / sp.avail;
-        node.drag_start = sp.is_vertical ? input.m_x : input.m_y;
+	    var delta = sp.is_vertical
+	        ? (input.m_x - node.drag_start) / sp.avail
+	        : (input.m_y - node.drag_start) / sp.avail;
+	    node.drag_start = sp.is_vertical ? input.m_x : input.m_y;
 
-        var a = sp.sep_idx;
-        var b = sp.sep_idx + 1;
-        var combined = node.ratios[a] + node.ratios[b];
-        node.ratios[a] = clamp(node.ratios[a] + delta, min_ratio, combined - min_ratio);
-        node.ratios[b] = combined - node.ratios[a];
-    }
+	    var a = sp.sep_idx;
+	    var b = sp.sep_idx + 1;
+	    var combined = node.ratios[a] + node.ratios[b];
+
+	    var old_a_px = node.ratios[a] * sp.avail;
+	    var old_b_px = node.ratios[b] * sp.avail;
+
+	    node.ratios[a] = clamp(node.ratios[a] + delta, min_ratio, combined - min_ratio);
+	    node.ratios[b] = combined - node.ratios[a];
+
+	    var new_a_px = node.ratios[a] * sp.avail;
+	    var new_b_px = node.ratios[b] * sp.avail;
+
+	    _gmui_dock_compensate_edge(node.children[a], old_a_px, new_a_px, "last", sp.is_vertical);
+	    _gmui_dock_compensate_edge(node.children[b], old_b_px, new_b_px, "first", sp.is_vertical);
+	}
     if (!input.m_held) {
         var keys = ds_map_keys_to_array(dock.node_map);
         for (var i = 0; i < array_length(keys); i++) {
@@ -534,8 +544,9 @@ function _gmui_dock_render_leaf(dock_name, dock, node, content, px, py, pw, ph, 
     pane_container.context.ignore_cursor_advance_once = true;
 
     var content_c = gmui_container_get(pane_name + "_content", pane_container);
-    content_c.surface_flag  = false;
-    content_c.surface_sleep = false;
+    content_c.surface_flag  = true;
+    content_c.surface_sleep = true;
+    content_c.widget_flag   = true;
 
     if (gmui_begin_container(pane_name + "_content", 0, 0, pw, max(1, content_h))) {
         gmui.current_container.use_scissor      = true;
@@ -748,4 +759,48 @@ function _gmui_dock_get_node_rect(dock, node, target, sx, sy, sw, sh) {
         cursor += size + sep_size;
     }
     return undefined;
+}
+
+function _gmui_dock_compensate_edge(node, old_px, new_px, edge, is_horiz) {
+    if (node == undefined) { return; }
+    if (node.type != gmui_docking_node_type.SPLIT) { return; }
+    if (node.direction != (is_horiz ? gmui_docking_split_axis.HORIZONTAL : gmui_docking_split_axis.VERTICAL)) { return; }
+
+    var n = array_length(node.children);
+    if (n < 2) { return; }
+
+    var style    = global.gmui.style;
+    var sep_size = is_horiz ? style.columns_separator_width : style.rows_separator_height;
+    var old_usable = old_px - sep_size * (n - 1);
+    var new_usable = new_px - sep_size * (n - 1);
+    if (old_usable <= 0 || new_usable <= 0) { return; }
+
+    var edge_idx = (edge == "last") ? n - 1 : 0;
+    var min_r    = style.columns_min_ratio;
+
+    var fixed_px = 0;
+    for (var i = 0; i < n; i++) {
+        if (i != edge_idx) {
+            fixed_px += node.ratios[i] * old_usable;
+        }
+    }
+    var edge_px_new = max(min_r * new_usable, new_usable - fixed_px);
+
+    for (var i = 0; i < n; i++) {
+        if (i != edge_idx) {
+            node.ratios[i] = (node.ratios[i] * old_usable) / new_usable;
+        } else {
+            node.ratios[i] = edge_px_new / new_usable;
+        }
+    }
+
+    var sum = 0;
+    for (var i = 0; i < n; i++) { sum += node.ratios[i]; }
+    if (sum > 0) {
+        for (var i = 0; i < n; i++) { node.ratios[i] /= sum; }
+    }
+
+    var old_edge_px = node.ratios[edge_idx] * old_usable;
+    var new_edge_px = node.ratios[edge_idx] * new_usable;
+    _gmui_dock_compensate_edge(node.children[edge_idx], old_edge_px, new_edge_px, edge, is_horiz);
 }

@@ -1206,4 +1206,5 @@ function gmui_container_animation_detected(container = undefined) {
 		current.ignore_surface_flag_once = true;
 		current = current.parent;
 	};
+	global.gmui.ignore_widget_flag_once = true;
 };
