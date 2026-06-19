@@ -1,5 +1,12 @@
 gmui_update();
 
+if (gmui_begin("test window", 100, 100, 500, 500)) {
+	mti = gmui_textbox_multiline(mti);
+	color = gmui_color_edit_3(color, "test");
+	gmui_end();
+}
+
+/*
 if (gmui_begin_context_menu("Ctx_File", 300)) {
 	gmui_context_menu_item("New Project", "Ctrl+N");
 	gmui_context_menu_item("Open Project", "Ctrl+O");
@@ -138,5 +145,5 @@ gmui_dockspace(
 	},
 	0, 0,
 	1920, 1080,
-	0//gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS
+	gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS
 );

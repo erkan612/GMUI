@@ -48,9 +48,11 @@ enum gmui_split_dir {
 };
 enum gmui_default_profile {
 	ANIMATION						= 0,
-	CACHED1							= 1,
-	CACHED2							= 2,
-	BALANCED						= 3,
+	CACHED_LEVEL1					= 1,
+	CACHED_LEVEL2					= 2,
+	CACHED_LEVEL3					= 3,
+	CACHED_LEVEL4					= 4, // for future surface batching
+	BALANCED						= 5,
 };
 
 enum gmui_flow_direction {

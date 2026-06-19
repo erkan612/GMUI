@@ -6,11 +6,11 @@ function gmui_add_call(type, params) {
 	if (current_container == undefined) {
 		calls_array = gmui.calls;
 	}
-	//else if (current_container.widget_flag && current_container.current_widget != undefined) {
-	//	calls_array = current_container.current_widget.calls;
-	//}
 	else if (current_container.late_calls_enabled) {
 		calls_array = current_container.late_calls;
+	}
+	else if (current_container.widget_flag && current_container.current_widget != undefined) {
+		calls_array = current_container.current_widget.calls;
 	}
 	else {
 		calls_array = current_container.calls;

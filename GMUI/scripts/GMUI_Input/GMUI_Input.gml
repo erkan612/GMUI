@@ -6,6 +6,8 @@ function gmui_update_input() {
 	var input = gmui.input;
 	
 	input.m_wheel = mouse_wheel_up() - mouse_wheel_down();
+	input.m_x_p = input.m_x;
+	input.m_y_p = input.m_y;
 	input.m_x = device_mouse_x_to_gui(0);
 	input.m_y = device_mouse_y_to_gui(0);
 	input.m_pressed = mouse_check_button_pressed(mb_left);

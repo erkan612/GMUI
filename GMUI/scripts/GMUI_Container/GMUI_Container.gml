@@ -47,6 +47,7 @@ function gmui_container_get(name, parent = undefined) {
 				same_line_requested: false,
 				indent_level: 0,
 				widget_counter: 0,
+				previous_widget_counter: 0,
 				columns_counter: 0,
 				rows_counter: 0,
 				ignore_cursor_advance_once: false,
@@ -60,6 +61,9 @@ function gmui_container_get(name, parent = undefined) {
 			focused_widget: undefined,
 			hovered_widget: undefined,
 			current_widget: undefined,
+			widget_flag: false,
+			widget_map: ds_map_create(),
+			widget_flag_layout_changed: false,
 			
 			is_active: false,
 			is_enabled: true,
@@ -650,6 +654,28 @@ function gmui_handle_container_calls(container) {
 		gmui_handle_call(call, origin_x, origin_y);
 	};
 	
+	for (var i = 0; i < array_length(container.widgets); i++) {
+		var widget = container.widgets[i];
+		if (!gmui_widget_is_visible(widget) || !widget.is_active) { continue; }
+		for (var j = 0; j < array_length(widget.calls); j++) {
+			var call = widget.calls[j];
+			var origin_x = 0;
+			var origin_y = 0;
+	
+			if (!surface_exists(container.surface)) {
+			    origin_x = container.x + container.x_origin;
+			    origin_y = container.y + container.y_origin;
+			}
+			if (container.scrolling_enabled) {
+			    origin_x -= container.scroll_x;
+			    origin_y -= container.scroll_y;
+			}
+	
+			gmui_handle_call(call, origin_x, origin_y);
+		};
+		widget.is_active = false;
+	};
+	
 	gmui.current_container = undefined;
 	
 	for (var i = 0; i < array_length(container.containers_sorted); i++) {
@@ -680,7 +706,11 @@ function gmui_handle_container_calls(container) {
 };
 
 function gmui_container_early_exit_cleanup(container) {
-    container.widgets = [ ];
+	if (container.context.previous_widget_counter != container.context.widget_counter) {
+		container.widget_flag_layout_changed = true;
+	};
+	container.context.previous_widget_counter = container.context.widget_counter;
+    if (!container.widget_flag) { container.widgets = [ ]; ds_map_clear(container.widget_map); };
 	container.calls = [ ];
 	container.late_calls = [ ];
 	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
@@ -759,7 +789,11 @@ function gmui_draw_container(container) {
 	
 	gmui_handle_container_calls(container);
 	
-	container.widgets = [ ];
+	if (container.context.previous_widget_counter != container.context.widget_counter) {
+		container.widget_flag_layout_changed = true;
+	};
+	container.context.previous_widget_counter = container.context.widget_counter;
+    if (!container.widget_flag) { container.widgets = [ ]; ds_map_clear(container.widget_map); };
 	container.calls = [ ];
 	container.late_calls = [ ];
 	if (variable_struct_exists(container, "_tb_counter")) { variable_struct_remove(container, "_tb_counter"); };
@@ -791,6 +825,11 @@ function gmui_draw_container(container) {
 	if ((container.surface_flag && !container.ignore_surface_flag_once)) { container.surface_dirty = false; };
 	if (container.ignore_surface_flag_once) { container.ignore_surface_flag_once = false; };
 	if (container.ignore_round_style) { gmui_style_pop("container_rounding"); };
+	if (container.widget_flag_layout_changed) {
+		container.widgets = [ ];
+		ds_map_clear(container.widget_map);
+		container.widget_flag_layout_changed = false;
+	};
 };
 
 function gmui_get_container_screen_offset(container) {
@@ -971,6 +1010,7 @@ function gmui_container_destroy(container) {
     }
     
     ds_map_destroy(container.containers);
+    ds_map_destroy(container.widget_map);
     ds_map_destroy(container.state);
 };
 

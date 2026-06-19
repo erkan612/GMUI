@@ -57,9 +57,12 @@ function gmui_init(init_profile = gmui_get_default_profile(), visual_calls = und
 	    },
 		window_tab_connection_counter: 0,
 		profile: init_profile,
+		ignore_widget_flag_once: false,
 		
 		input: {
 			// mouse
+			m_x_p: 0,
+			m_y_p: 0,
 			m_x: 0,
 			m_y: 0,
 			m_pressed: false,
@@ -146,7 +149,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 			},
 		};
 	} break;
-	case gmui_default_profile.CACHED1: {
+	case gmui_default_profile.CACHED_LEVEL1: {
 		profile = {
 			column_row_properties: {
 				background_enabled: false,
@@ -166,7 +169,7 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 			},
 		};
 	} break;
-	case gmui_default_profile.CACHED2: {
+	case gmui_default_profile.CACHED_LEVEL2: {
 		profile = {
 			column_row_properties: {
 				background_enabled: false,
@@ -184,6 +187,28 @@ function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
 				use_scissor: true,
 				animation_flag: false,
 				mask_enabled: false,
+			},
+		};
+	} break;
+	case gmui_default_profile.CACHED_LEVEL3: {
+		profile = {
+			column_row_properties: {
+				background_enabled: false,
+				use_surface: true,
+				surface_flag: true,
+				surface_sleep: true,
+				use_scissor: true,
+				animation_flag: false,
+				mask_enabled: true,
+			},
+			container_properties: {
+				use_surface: true,
+				surface_flag: true,
+				surface_sleep: true,
+				use_scissor: true,
+				animation_flag: false,
+				mask_enabled: false,
+				widget_flag: true,
 			},
 		};
 	} break;
@@ -335,6 +360,9 @@ function gmui_draw_gui() {
 	        gmui.cache[? "__dnd_pending_widget"] = undefined;
 	    }
 	}
+	
+	if (gmui.ignore_widget_flag_once) { gmui.ignore_widget_flag_once = false; }
+	if ((gmui_input_mouse_pressed() || gmui_input_mouse_released() || (input.m_x != input.m_x_p || input.m_y != input.m_y_p))) { gmui.ignore_widget_flag_once = true; };
 };
 
 function gmui_get_font() {

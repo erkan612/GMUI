@@ -2636,6 +2636,7 @@ function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 2
         textbox_container.background_enabled = false;
 		textbox_container.surface_flag = false; // bounds to its/widgets parent
 		textbox_container.surface_sleep = false;
+		textbox_container.widget_flag = false;
 
         gmui_style_push_multi({
             container_padding_h: 0,
@@ -3766,10 +3767,15 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
 	
     var gmui = global.gmui;
     var style = gmui.style;
+	var container = gmui.current_container;
 	var widget_before = gmui.current_container.last_widget;
-    var widget = gmui_begin_widget("scrollbar_vertical");
+    var widget = gmui_begin_widget("scrollbar_vertical", "main_scrollbar_" + container.name + "_vertical");
 	
-	widget.container.late_calls_enabled = true;
+	var old_widget_flag = container.widget_flag;
+	var old_late_calls = container.late_calls_enabled;
+	
+	container.widget_flag = false;
+	container.late_calls_enabled = true;
     
     var sb_thickness = thickness == undefined ? style.scrollbar_width : thickness;
     var sb_padding = style.scrollbar_padding;
@@ -3863,7 +3869,8 @@ function gmui_scrollbar_vertical(value, min_val, max_val, length, thickness = un
     
     gmui_end_widget(widget);
 	
-	widget.container.late_calls_enabled = false;
+	container.late_calls_enabled = old_late_calls;
+	container.widget_flag = old_widget_flag;
 	widget.container.last_widget = widget_before;
     
     return value;
@@ -3874,10 +3881,15 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
 	
     var gmui = global.gmui;
     var style = gmui.style;
+	var container = gmui.current_container;
 	var widget_before = gmui.current_container.last_widget;
-    var widget = gmui_begin_widget("scrollbar_horizontal");
+    var widget = gmui_begin_widget("scrollbar_horizontal", "main_scrollbar_" + container.name + "_horizontal");
 	
-	widget.container.late_calls_enabled = true;
+	var old_widget_flag = container.widget_flag;
+	var old_late_calls = container.late_calls_enabled;
+	
+	container.widget_flag = false;
+	container.late_calls_enabled = true;
     
     var sb_thickness = thickness == undefined ? style.scrollbar_width : thickness;
     var sb_padding = style.scrollbar_padding;
@@ -3971,7 +3983,8 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
     
     gmui_end_widget(widget);
 	
-	widget.container.late_calls_enabled = false;
+	container.late_calls_enabled = old_late_calls;
+	container.widget_flag = old_widget_flag;
 	widget.container.last_widget = widget_before;
     
     return value;

@@ -1,37 +1,108 @@
 
 
 // WIDGETS
-function gmui_begin_widget(type = "unnamed") {
+function gmui_begin_widget(type = "unnamed", id = undefined) {
 	var gmui = global.gmui;
 	var container = gmui.current_container;
 	var context = container.context;
 	
 	gmui_container_cursor_advance();
     
-    var widget_id = context.widget_counter;
-    context.widget_counter++;
+	var _id = "undefined";
 	
-	var _id = "widget_" + type + "_id_" + container.name + "_" + string(widget_id);
+	if (id == undefined) {
+	    var widget_id = context.widget_counter;
+	    context.widget_counter++;
+		_id = "widget_" + type + "_id_" + container.name + "_" + string(widget_id);
+	}
+	else {
+		_id = id;
+	}
 	
 	var widget = undefined;
+	var widget_exists = ds_map_exists(container.widget_map, _id);
 	
-	widget = {
-		gmui: gmui,
-		container: container,
-		context: container.context,
-		x: container.context.cursor_x,
-		y: container.context.cursor_y,
-		width: 0,
-		height: 0,
-		type: type,
-		id: _id,
-	};
-	array_push(container.widgets, widget);
+	if (container.widget_flag) {
+		if (!widget_exists) {
+			widget = {
+				gmui: gmui,
+				container: container,
+				context: container.context,
+				x: container.context.cursor_x,
+				y: container.context.cursor_y,
+				width: 0,
+				height: 0,
+				type: type,
+				id: _id,
+				calls: [ ],
+				is_dirty: true,
+				is_active: true,
+			};
+			array_push(container.widgets, widget);
+			container.widget_map[? _id] = widget;
+			//show_debug_message($"registered widget: {_id}");
+		}
+		else {
+			widget = container.widget_map[? _id];
+		}
+	}
+	else {
+		widget = {
+			gmui: gmui,
+			container: container,
+			context: container.context,
+			x: container.context.cursor_x,
+			y: container.context.cursor_y,
+			width: 0,
+			height: 0,
+			type: type,
+			id: _id,
+			calls: [ ],
+			is_dirty: true,
+			is_active: true,
+		};
+		array_push(container.widgets, widget);
+		//show_debug_message($"created widget: {_id}");
+	}
 	
 	container.current_widget = widget;
 	
+	widget.is_active = true;
+	
 	return widget;
 };
+
+//function gmui_begin_widget(type = "unnamed") {
+//	var gmui = global.gmui;
+//	var container = gmui.current_container;
+//	var context = container.context;
+	
+//	gmui_container_cursor_advance();
+    
+//    var widget_id = context.widget_counter;
+//    context.widget_counter++;
+	
+//	var _id = "widget_" + type + "_id_" + container.name + "_" + string(widget_id);
+	
+//	var widget = undefined;
+	
+//	widget = {
+//		gmui: gmui,
+//		container: container,
+//		context: container.context,
+//		x: container.context.cursor_x,
+//		y: container.context.cursor_y,
+//		width: 0,
+//		height: 0,
+//		type: type,
+//		id: _id,
+//	};
+//	array_push(container.widgets, widget);
+	
+//	container.current_widget = widget;
+	
+//	return widget;
+//};
 
 //function gmui_end_widget(widget) {
 //	widget.context.cursor_x += widget.width + widget.gmui.style.element_spacing_h;
@@ -94,7 +165,19 @@ function gmui_end_widget(widget, is_interactive = false) {
 };
 
 function gmui_widget_is_callable(widget) {
-	return gmui_widget_is_visible(widget);
+	if (!gmui_widget_is_visible(widget)) { return false; };
+	if (gmui_widget_is_hovered(widget)) { widget.is_dirty = true; };
+	if (widget.container.widget_flag_layout_changed) { widget.is_dirty = true; };
+	if (global.gmui.ignore_widget_flag_once) { widget.is_dirty = true; };
+	
+	if (widget.is_dirty) {
+		widget.calls = [ ];
+		widget.is_dirty = false;
+		return true;
+	}
+	else {
+		return false;
+	}
 };
 
 function gmui_widget_is_visible(widget) {
