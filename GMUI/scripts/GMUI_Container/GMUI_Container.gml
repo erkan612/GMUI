@@ -654,27 +654,29 @@ function gmui_handle_container_calls(container) {
 		gmui_handle_call(call, origin_x, origin_y);
 	};
 	
-	for (var i = 0; i < array_length(container.widgets); i++) {
-		var widget = container.widgets[i];
-		if (!gmui_widget_is_visible(widget) || !widget.is_active) { continue; }
-		for (var j = 0; j < array_length(widget.calls); j++) {
-			var call = widget.calls[j];
-			var origin_x = 0;
-			var origin_y = 0;
+	if (container.widget_flag) {
+		for (var i = 0; i < array_length(container.widgets); i++) {
+			var widget = container.widgets[i];
+			if (!gmui_widget_is_visible(widget) || !widget.is_active) { continue; }
+			for (var j = 0; j < array_length(widget.calls); j++) {
+				var call = widget.calls[j];
+				var origin_x = 0;
+				var origin_y = 0;
 	
-			if (!surface_exists(container.surface)) {
-			    origin_x = container.x + container.x_origin;
-			    origin_y = container.y + container.y_origin;
-			}
-			if (container.scrolling_enabled) {
-			    origin_x -= container.scroll_x;
-			    origin_y -= container.scroll_y;
-			}
+				if (!surface_exists(container.surface)) {
+				    origin_x = container.x + container.x_origin;
+				    origin_y = container.y + container.y_origin;
+				}
+				if (container.scrolling_enabled) {
+				    origin_x -= container.scroll_x;
+				    origin_y -= container.scroll_y;
+				}
 	
-			gmui_handle_call(call, origin_x, origin_y);
+				gmui_handle_call(call, origin_x, origin_y);
+			};
+			widget.is_active = false;
 		};
-		widget.is_active = false;
-	};
+	}
 	
 	gmui.current_container = undefined;
 	
@@ -1200,7 +1202,7 @@ function gmui_scrolling_child(name, width, height, func) {
 function gmui_container_animation_detected(container = undefined) {
 	var _container = container ?? global.gmui.current_container;
 	if (global.gmui.current_container == undefined) { return; };
-	if (!_container.animation_flag) { return; };
+	//if (!_container.animation_flag) { return; };
 	var current = _container;
 	while (current != undefined) {
 		current.ignore_surface_flag_once = true;

@@ -3912,7 +3912,7 @@ function gmui_scrollbar_horizontal(value, min_val, max_val, length, thickness = 
 	var active = mouse_interaction.is_active;
 	var released = mouse_interaction.is_pressed;
     var scrollbar_id = widget.id;
-    
+	
     var offset = gmui_get_container_screen_offset(widget.container);
     var screen_thumb_x = offset[0] + widget.x + (track_width - thumb_width) * thumb_ratio;
     var screen_thumb_y = offset[1] + widget.y + sb_padding;

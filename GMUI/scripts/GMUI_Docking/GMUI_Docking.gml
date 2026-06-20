@@ -543,10 +543,10 @@ function _gmui_dock_render_leaf(dock_name, dock, node, content, px, py, pw, ph, 
     pane_container.context.new_line_requested  = false;
     pane_container.context.ignore_cursor_advance_once = true;
 
-    var content_c = gmui_container_get(pane_name + "_content", pane_container);
-    content_c.surface_flag  = false;
-    content_c.surface_sleep = false;
-    content_c.widget_flag   = false;
+    //var content_c = gmui_container_get(pane_name + "_content", pane_container);
+    //content_c.surface_flag  = true;
+    //content_c.surface_sleep = true;
+    //content_c.widget_flag   = true;
 
     if (gmui_begin_container(pane_name + "_content", 0, 0, pw, max(1, content_h))) {
         gmui.current_container.use_scissor      = true;
