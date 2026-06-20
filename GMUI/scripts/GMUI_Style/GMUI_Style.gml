@@ -1309,3 +1309,7 @@ function gmui_with_style_multi(style_map, func) {
     var keys = variable_struct_get_names(style_map);
     gmui_style_pop_multi(keys);
 };
+
+function gmui_get_style() {
+	return global.gmui.style;
+};

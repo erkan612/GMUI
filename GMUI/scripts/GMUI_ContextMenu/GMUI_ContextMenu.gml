@@ -16,9 +16,14 @@ function gmui_begin_context_menu(name, width = 160) {
 		window.state[? "ctx_sub"] = undefined;
 		window.state[? "ctx_sub_state_key"] = undefined;
 		window.state[? "ctx_previous"] = undefined;
-		window.use_surface = false;
-		window.surface_flag = false;
-		window.content_container.surface_flag = false;
+		window.use_surface    = false;
+		window.surface_flag   = false;
+		window.surface_sleep  = false;
+		window.widget_flag    = false;
+		window.content_container.use_surface   = false;
+		window.content_container.surface_flag  = false;
+		window.content_container.surface_sleep = false;
+		window.content_container.widget_flag   = false;
     };
     
     if (!window.is_enabled) { return false; };

@@ -8,7 +8,7 @@
 * it does not aim to demonstrate anything
 */
 
-gmui_init(gmui_get_default_profile(gmui_default_profile.CACHED_LEVEL3));
+gmui_init(gmui_get_default_profile(gmui_default_profile.REAL_TIME));
 
 mti = "multi\nline\ntextbox!!!!";
 color = gmui_make_color_rgba(100, 255, 100, 255);

@@ -4,6 +4,7 @@
 function gmui_window_menu(menu_array) {
     var gmui = global.gmui;
     var style = gmui.style;
+    var input  = gmui.input;
     var widget = gmui_begin_widget("window_menu");
     var container = widget.container;
 
@@ -36,7 +37,6 @@ function gmui_window_menu(menu_array) {
 
     if (gmui_widget_is_callable(widget)) {
         var offset = gmui_get_container_screen_offset(container);
-        var input  = gmui.input;
 
         var origin_sx = offset[0] - container.scroll_x;
         var origin_sy = offset[1] - container.scroll_y;

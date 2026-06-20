@@ -276,7 +276,7 @@ function gmui_widget_mouse_interactive_behaviour(widget) {
 	var active = gmui_widget_is_active(widget);
     
 	var released = hovered && active && gmui_input_mouse_released();
-	
+    
 	return {
 		is_hovering: hovered,
 		is_active: active,

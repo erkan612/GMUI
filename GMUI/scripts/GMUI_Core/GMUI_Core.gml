@@ -153,7 +153,7 @@ function gmui_update() {
 	        array_sort(gmui.containers_sorted, function(a, b) { return a.z_index - b.z_index; });
 	    }
     
-	    for (var i = 0; i < array_length(gmui.containers_sorted); i++) {
+	    for (var i = 0, n = array_length(gmui.containers_sorted); i < n; i++) {
 	        var container = gmui.containers_sorted[i];
 	        if (!container.is_enabled || !container.is_active) { continue; };
 	        gmui_container_sort_z_index(container);
@@ -169,7 +169,7 @@ function gmui_update() {
     gmui_handle_scroll_bubble();
 	
 	var update_calls = gmui.cache[? "__update_calls"];
-	for (var i = 0; i < array_length(update_calls); i++) {
+	for (var i = 0, n = array_length(update_calls); i < n; i++) {
 		var call = update_calls[i];
 		call();
 	};
@@ -183,7 +183,7 @@ function gmui_draw_gui() {
 	
 	var old_blend_mode = gpu_get_blendmode();
 	
-	for (var i = 0; i < array_length(gmui.containers_sorted); i++) {
+	for (var i = 0, n = array_length(gmui.containers_sorted); i < n; i++) {
 		var container = gmui.containers_sorted[i];
 		if (!container.is_active || !container.is_enabled) { continue; };
 		//gmui.highest_z_index = max(container.z_index, gmui.highest_z_index);
@@ -194,7 +194,7 @@ function gmui_draw_gui() {
 	_gmui_draw_detached_tab();
 	
 	var dockspaces = gmui.cache[? "__dockspace_names"];
-	for (var i = 0; i < array_length(dockspaces); i++) {
+	for (var i = 0, n = array_length(dockspaces); i < n; i++) {
 		var dockspace_name = dockspaces[i];
 		gmui_docking_draw_drop_zones(dockspace_name);
 	};
@@ -207,13 +207,13 @@ function gmui_draw_gui() {
 		widget_drag_draw(widget_drag_info, widget_drag_widget);
 	}
 	
-	for (var i = 0; i < array_length(gmui.calls); i++) {
+	for (var i = 0, n = array_length(gmui.calls); i < n; i++) {
 		var call = gmui.calls[i];
 		gmui_handle_call(call);
 	};
 	
 	var draw_calls = gmui.cache[? "__draw_calls"];
-	for (var i = 0; i < array_length(draw_calls); i++) {
+	for (var i = 0, n = array_length(draw_calls); i < n; i++) {
 		var call = draw_calls[i];
 		call();
 	};
@@ -250,7 +250,7 @@ function gmui_draw_gui() {
 	}
 	
 	if (gmui.ignore_widget_flag_once) { gmui.ignore_widget_flag_once = false; }
-	if ((gmui_input_mouse_pressed() || gmui_input_mouse_released() || (input.m_x != input.m_x_p || input.m_y != input.m_y_p))) { gmui.ignore_widget_flag_once = true; };
+	if ((gmui_input_mouse_pressed() || gmui_input_mouse_released())  || (input.m_x != input.m_x_p || input.m_y != input.m_y_p)) { gmui.ignore_widget_flag_once = true; };
 };
 
 function gmui_get_font() {

@@ -637,7 +637,7 @@ function gmui_handle_container_calls(container) {
 	
 	gmui.current_container = container;
 	var calls = container.calls;
-	for (var i = 0; i < array_length(calls); i++) {
+	for (var i = 0, n = array_length(calls); i < n; i++) {
 	    var call = calls[i];
 		var origin_x = 0;
 		var origin_y = 0;
@@ -655,7 +655,7 @@ function gmui_handle_container_calls(container) {
 	};
 	
 	if (container.widget_flag) {
-		for (var i = 0; i < array_length(container.widgets); i++) {
+		for (var i = 0, n = array_length(container.widgets); i < n; i++) {
 			var widget = container.widgets[i];
 			if (!gmui_widget_is_visible(widget) || !widget.is_active) { continue; }
 			for (var j = 0; j < array_length(widget.calls); j++) {
@@ -680,7 +680,7 @@ function gmui_handle_container_calls(container) {
 	
 	gmui.current_container = undefined;
 	
-	for (var i = 0; i < array_length(container.containers_sorted); i++) {
+	for (var i = 0, n = array_length(container.containers_sorted); i < n; i++) {
 		var c = container.containers_sorted[i];
 		if (!c.is_active || !c.is_enabled) { continue; };
 	
@@ -689,7 +689,7 @@ function gmui_handle_container_calls(container) {
 	
 	gmui.current_container = container;
 	var late_calls = container.late_calls;
-	for (var i = 0; i < array_length(late_calls); i++) {
+	for (var i = 0, n = array_length(late_calls); i < n; i++) {
 	    var call = late_calls[i];
 		var origin_x = 0;
 		var origin_y = 0;
@@ -719,7 +719,7 @@ function gmui_container_early_exit_cleanup(container) {
 	if (variable_struct_exists(container, "_lb_counter")) { variable_struct_remove(container, "_lb_counter"); };
 	if (container.ignore_surface_flag_once) { container.ignore_surface_flag_once = false; };
 	if (container.ignore_round_style) { gmui_style_pop("container_rounding"); };
-    for (var i = 0; i < array_length(container.containers_sorted); i++) {
+    for (var i = 0, n = array_length(container.containers_sorted); i < n; i++) {
         var c = container.containers_sorted[i];
         if (!c.is_active || !c.is_enabled) { continue; };
         gmui_container_early_exit_cleanup(c);

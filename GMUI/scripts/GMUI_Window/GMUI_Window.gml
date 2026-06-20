@@ -72,10 +72,14 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	//gmui_add_rectangle(0, 0, window.width, window.height, false, style.window_title_color_idle, 1);
 	
 	// title bar
-	window.title_handler(window);
+	if (has_title && window.title_handler != undefined) {
+		window.title_handler(window);
+	}
 	
 	// border
-	window.border_handler(window);
+	if (has_title && window.border_handler != undefined) {
+		window.border_handler(window);
+	}
 	
 	// update inputs
 	if (window.is_title_dragging) {

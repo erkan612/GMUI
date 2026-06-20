@@ -1,10 +1,10 @@
 
 
 // PROFILE
-function gmui_get_default_profile(type = gmui_default_profile.ANIMATION) {
+function gmui_get_default_profile(type = gmui_default_profile.REAL_TIME) {
 	var profile = undefined;
 	switch (type) {
-	case gmui_default_profile.ANIMATION: {
+	case gmui_default_profile.REAL_TIME: {
 		profile = {
 			column_row_properties: {
 				background_enabled: false,

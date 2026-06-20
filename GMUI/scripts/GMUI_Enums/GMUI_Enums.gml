@@ -47,7 +47,7 @@ enum gmui_split_dir {
 	VERTICAL						= 1,
 };
 enum gmui_default_profile {
-	ANIMATION						= 0,
+	REAL_TIME						= 0,
 	CACHED_LEVEL1					= 1,
 	CACHED_LEVEL2					= 2,
 	CACHED_LEVEL3					= 3,
