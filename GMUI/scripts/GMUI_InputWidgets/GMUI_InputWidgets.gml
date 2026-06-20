@@ -5572,6 +5572,7 @@ function gmui_tabs(name, selected_index, width = -1, height = -1, group = "", ha
 	    tabs_container.use_surface = false;
 	    tabs_container.surface_flag = false;
 	    tabs_container.surface_sleep = false;
+	    tabs_container.widget_flag = false;
 	    tabs_container.use_scissor = true;
 	    tabs_container.background_enabled = false;
 	}

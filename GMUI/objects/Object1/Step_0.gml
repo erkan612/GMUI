@@ -1,16 +1,5 @@
 gmui_update();
 
-if (gmui_begin("test window", 100, 100, 500, 500)) {
-	mti = gmui_textbox_multiline(mti);
-	color = gmui_color_edit_3(color, "test");
-	if (gmui_begin_child("test bug")) {
-		gmui_button("test");
-		gmui_end_child();
-	}
-	gmui_end();
-}
-
-/*
 if (gmui_begin_context_menu("Ctx_File", 300)) {
 	gmui_context_menu_item("New Project", "Ctrl+N");
 	gmui_context_menu_item("Open Project", "Ctrl+O");

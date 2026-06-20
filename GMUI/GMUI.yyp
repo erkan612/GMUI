@@ -65,6 +65,7 @@
     {"id":{"name":"GMUI_Misc","path":"scripts/GMUI_Misc/GMUI_Misc.yy",},},
     {"id":{"name":"GMUI_PlotWidgets","path":"scripts/GMUI_PlotWidgets/GMUI_PlotWidgets.yy",},},
     {"id":{"name":"GMUI_Popup","path":"scripts/GMUI_Popup/GMUI_Popup.yy",},},
+    {"id":{"name":"GMUI_Profile","path":"scripts/GMUI_Profile/GMUI_Profile.yy",},},
     {"id":{"name":"GMUI_Rows","path":"scripts/GMUI_Rows/GMUI_Rows.yy",},},
     {"id":{"name":"GMUI_Sleeper","path":"scripts/GMUI_Sleeper/GMUI_Sleeper.yy",},},
     {"id":{"name":"GMUI_Style","path":"scripts/GMUI_Style/GMUI_Style.yy",},},
