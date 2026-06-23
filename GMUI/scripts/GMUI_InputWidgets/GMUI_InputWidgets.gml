@@ -2856,6 +2856,20 @@ function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 2
                             cursor++;
                             cursor_start = cursor;
                             preferred_col = -1;
+
+							var cur_line_info = _gmui_multiline_index_to_line(lines, cursor);
+							var cursor_y_top = (cur_line_info.line + 1) * line_height;
+							var cursor_y_bottom = cursor_y_top + line_height;
+							var view_h = height;
+							var scroll_y = textbox_container.scroll_y;
+							
+							if (cursor_y_top < scroll_y) {
+							    textbox_container.scroll_y = cursor_y_top;
+							} else if (cursor_y_bottom > scroll_y + view_h) {
+							    textbox_container.scroll_y = cursor_y_bottom - view_h;
+							}
+							var max_scroll = max(0, total_text_height - height);
+							textbox_container.scroll_y = clamp(textbox_container.scroll_y, 0, max_scroll);
                             break;
 
                         default:
@@ -2883,20 +2897,6 @@ function gmui_textbox_multiline(text, place_holder = "", width = 200, height = 2
             lines = string_split(text, "\n");
             line_count = array_length(lines);
             total_text_height = line_count * line_height + padding_v * 2;
-
-            var cur_line_info = _gmui_multiline_index_to_line(lines, cursor);
-            var cursor_y_top = cur_line_info.line * line_height;
-            var cursor_y_bottom = cursor_y_top + line_height;
-            var view_h = height;
-            var scroll_y = textbox_container.scroll_y;
-
-            //if (cursor_y_top < scroll_y) {
-            //    textbox_container.scroll_y = cursor_y_top;
-            //} else if (cursor_y_bottom > scroll_y + view_h) {
-            //    textbox_container.scroll_y = cursor_y_bottom - view_h;
-            //}
-            //var max_scroll = max(0, total_text_height - height);
-            //textbox_container.scroll_y = clamp(textbox_container.scroll_y, 0, max_scroll);
         }
 
         variable_struct_set(container, state_prefix + "cursor", cursor);

@@ -13,7 +13,7 @@ function gmui_get_default_profile(type = gmui_default_profile.REAL_TIME) {
 				animation_flag: false,
 			},
 			container_properties: {
-				use_surface: true,
+				use_surface: false,
 				surface_flag: false,
 				surface_sleep: false,
 				use_scissor: true,

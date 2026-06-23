@@ -55,7 +55,6 @@ function gmui_init(init_profile = gmui_get_default_profile(), visual_calls = und
 	        modal_bg:   { base: 2000,	highest: 2000,	},
 	        popup:      { base: 2500,	highest: 2500,	},
 	    },
-		window_tab_connection_counter: 0,
 		profile: init_profile,
 		ignore_widget_flag_once: false,
 		

@@ -136,7 +136,7 @@ gmui_dockspace(
 			gmui_button_icon1(GMUI_Icon, undefined, undefined, undefined, gmui_get().style.color_accent);
 		}
 	},
-	0, 0,
-	1920, 1080,
-	gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS
+	100, 100,
+	1280, 720,
+	0//gmui_window_flags.NO_TITLE_BAR | gmui_window_flags.NO_BORDERS
 );
