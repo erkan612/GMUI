@@ -47,12 +47,14 @@ enum gmui_split_dir {
 	VERTICAL						= 1,
 };
 enum gmui_default_profile {
-	REAL_TIME						= 0,
+	IMMEDIATE						= 0,
 	CACHED_LEVEL1					= 1,
 	CACHED_LEVEL2					= 2,
 	CACHED_LEVEL3					= 3,
 	CACHED_LEVEL4					= 4, // for future surface batching
 	BALANCED						= 5,
+	INSTANT							= 6, // for future no-batch mode
+	INSTANT_FOCUS					= 7, // for future no-batch focus mode
 };
 
 enum gmui_flow_direction {

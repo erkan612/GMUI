@@ -1,10 +1,10 @@
 
 
 // PROFILE
-function gmui_get_default_profile(type = gmui_default_profile.REAL_TIME) {
+function gmui_get_default_profile(type = gmui_default_profile.IMMEDIATE) {
 	var profile = undefined;
 	switch (type) {
-	case gmui_default_profile.REAL_TIME: {
+	case gmui_default_profile.IMMEDIATE: {
 		profile = {
 			column_row_properties: {
 				background_enabled: false,

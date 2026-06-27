@@ -673,9 +673,7 @@ function gmui_docking_draw_drop_zones(dock_name) {
                 draw_triangle(z.mx, z.my+arrow, z.mx-arrow, z.my-arrow, z.mx+arrow, z.my-arrow, false);
                 break;
             case gmui_docking_zone_direction.CENTER: {
-                var cs = arrow/2;
-                draw_rectangle(z.mx-cs,    z.my-arrow, z.mx+cs,    z.my+arrow, false);
-                draw_rectangle(z.mx-arrow, z.my-cs,    z.mx+arrow, z.my+cs,    false);
+				draw_circle(z.mx, z.my, arrow, false);
             } break;
         }
     }
