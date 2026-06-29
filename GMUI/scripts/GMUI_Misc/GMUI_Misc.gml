@@ -171,12 +171,13 @@ function _gmui_quartiles(values) {
 };
 
 function _gmui_format_float(val, dec = 4) {
-    var text = string_format(val, 1, dec);
-    while (string_length(text) > 1 && string_char_at(text, string_length(text)) == "0" && string_pos(".", text) > 0) {
-        text = string_copy(text, 1, string_length(text) - 1);
-    }
-    if (string_char_at(text, string_length(text)) == ".") text = string_copy(text, 1, string_length(text) - 1);
-    return text;
+	return string_format(val, 1, dec);
+    //var text = string_format(val, 1, dec);
+    //while (string_length(text) > 1 && string_char_at(text, string_length(text)) == "0" && string_pos(".", text) > 0) {
+    //    text = string_copy(text, 1, string_length(text) - 1);
+    //}
+    //if (string_char_at(text, string_length(text)) == ".") text = string_copy(text, 1, string_length(text) - 1);
+    //return text;
 };
 
 function _gmui_array_sum(arr, count) {

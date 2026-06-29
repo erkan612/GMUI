@@ -11,8 +11,8 @@
   "name":"Object1",
   "overriddenProperties":[],
   "parent":{
-    "name":"GMUI",
-    "path":"GMUI.yyp",
+    "name":"FeatureAndBugTests",
+    "path":"folders/FeatureAndBugTests.yy",
   },
   "parentObjectId":null,
   "persistent":false,

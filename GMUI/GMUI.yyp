@@ -10,6 +10,7 @@
   },
   "defaultScriptType":1,
   "Folders":[
+    {"$GMFolder":"","%Name":"FeatureAndBugTests","folderPath":"folders/FeatureAndBugTests.yy","name":"FeatureAndBugTests","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"GMUI","folderPath":"folders/GMUI.yy","name":"GMUI","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Core","folderPath":"folders/GMUI/Core.yy","name":"Core","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Features","folderPath":"folders/GMUI/Features.yy","name":"Features","resourceType":"GMFolder","resourceVersion":"2.0",},

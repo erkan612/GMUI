@@ -119,8 +119,8 @@
   "maintainGms1Font":false,
   "name":"Font1",
   "parent":{
-    "name":"GMUI",
-    "path":"GMUI.yyp",
+    "name":"FeatureAndBugTests",
+    "path":"folders/FeatureAndBugTests.yy",
   },
   "pointRounding":0,
   "ranges":[

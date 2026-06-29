@@ -13,8 +13,6 @@ gmui_init(gmui_get_default_profile(gmui_default_profile.IMMEDIATE));
 mti = "multi\nline\ntextbox!!!!";
 color = gmui_make_color_rgba(100, 255, 100, 255);
 
-math_set_epsilon(0.00000001);
-
 var dock = gmui_docking_create_dockspace("editor");
 var root   = gmui_dock_split(dock, undefined, gmui_docking_split_axis.HORIZONTAL, [0.2, 0.6, 0.2]);
 var left   = gmui_dock_leaf(dock, root, 0);

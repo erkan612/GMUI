@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"cAnimTests",
   "parent":{
-    "name":"GMUI",
-    "path":"GMUI.yyp",
+    "name":"FeatureAndBugTests",
+    "path":"folders/FeatureAndBugTests.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
