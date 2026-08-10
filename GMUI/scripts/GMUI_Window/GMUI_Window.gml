@@ -77,7 +77,7 @@ function gmui_begin_window(name, x = -1, y = -1, width = -1, height = -1, flags 
 	}
 	
 	// border
-	if (has_title && window.border_handler != undefined) {
+	if (has_border && window.border_handler != undefined) {
 		window.border_handler(window);
 	}
 	
